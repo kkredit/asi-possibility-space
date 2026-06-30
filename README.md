@@ -30,7 +30,9 @@ pnpm build      # static bundle in dist/ (GitHub Pages ready)
   information, grey = where situational awareness matters.
 - **Scenarios** — sortable table of every scenario with its probability, value, and (where authored)
   hand-reasoned narrative.
-- **Evaluators** — cached-vs-linear scatter; the residual measures how non-linear the space is.
+- **Evaluators** — the *model ladder*: each value model's RMS divergence from the hand-reasoned
+  surface, plus a scatter against any model you pick. The residuals decompose the surface — and show
+  it's **gated, not additive** (see [`docs/MODEL.md`](docs/MODEL.md)).
 
 ## Architecture
 
@@ -45,10 +47,12 @@ src/
 └── shell/    # the UI wrapper — MUI theme, layout, controls, Zustand state, engine↔viz wiring.
 ```
 
-The evaluator is a **pluggable interface** ([`src/engine/evaluators/`](src/engine/evaluators)). Two
-ship today — a crude *linear* model and a sparse *cached / hand-reasoned* model that falls back to
-linear for un-authored cells — and comparing them is the point: their divergence is the research
-signal for understanding how the factors actually relate.
+The evaluator is a **pluggable interface** ([`src/engine/evaluators/`](src/engine/evaluators)). Five
+ship today across two model families: a hand-set *linear* model, two least-squares *fitted* models
+(additive and additive-plus-pairwise), a *logical-gate* model, and the sparse *cached / hand-reasoned*
+surface they're all measured against. Comparing them is the point — their divergence is the research
+signal for how the factors actually relate. See [`docs/MODEL.md`](docs/MODEL.md) for the findings and
+[`AGENTS.md`](AGENTS.md) for how to extend the model.
 
 ## Tech
 
