@@ -16,6 +16,7 @@ import { evaluators } from '@engine/index';
 import type { Factor, FactorKind } from '@model/types';
 import { useBeliefs } from '@shell/store';
 import { Presets } from '@shell/controls/Presets';
+import { InfoTip } from '@viz/InfoTip';
 import { c, fonts, kindColor } from '@shell/theme';
 
 const KIND_ORDER: FactorKind[] = ['objective', 'contingent', 'influenceable'];
@@ -184,22 +185,27 @@ export function Controls() {
       </Box>
 
       <Box>
-        <Typography sx={{ ...monoPct, color: c.faint, mb: 0.4, letterSpacing: '0.04em' }}>PROBABILITIES</Typography>
+        <Stack direction="row" alignItems="center" sx={{ mb: 0.4 }}>
+          <Typography sx={{ ...monoPct, color: c.faint, letterSpacing: '0.04em' }}>PROBABILITIES</Typography>
+          <InfoTip>
+            {netMode ? (
+              <>
+                Each slider is the chance of a state <b>at ASI onset</b>. Drag one and it’s held (
+                <Box component="span" sx={{ color: c.teal, fontFamily: fonts.mono }}>HELD</Box>) as soft evidence;
+                the <Box component="span" sx={{ fontFamily: fonts.mono }}>FLOAT</Box> factors re-rake to stay
+                consistent with the net. Reset releases everything.
+              </>
+            ) : (
+              <>
+                For each factor, the chance of each state <b>at ASI onset</b> (the threshold where value
+                locks in). Objective factors are the exception — there the slider is your current confidence
+                a timeless property holds.
+              </>
+            )}
+          </InfoTip>
+        </Stack>
         <Typography variant="caption" sx={{ color: c.mute, display: 'block', lineHeight: 1.4 }}>
-          {netMode ? (
-            <>
-              Each slider is the chance of a state <b>at ASI onset</b>. Drag one and it’s held (
-              <Box component="span" sx={{ color: c.teal, fontFamily: fonts.mono, fontSize: '0.9em' }}>HELD</Box>) as soft
-              evidence; the <Box component="span" sx={{ fontFamily: fonts.mono, fontSize: '0.9em' }}>FLOAT</Box> factors
-              re-rake to stay consistent with the net. Reset releases everything.
-            </>
-          ) : (
-            <>
-              For each factor, the chance of each state <b>at ASI onset</b> (the threshold where value
-              locks in). Objective factors are the exception — there the slider is your current confidence
-              a timeless property holds.
-            </>
-          )}
+          {netMode ? 'chance of each state at ASI onset · drag to hold, others re-rake' : 'chance of each state at ASI onset'}
         </Typography>
       </Box>
 

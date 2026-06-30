@@ -1,5 +1,6 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import { c, fonts } from '@shell/theme';
+import { InfoTip } from '@viz/InfoTip';
 
 export interface CruxRow {
   factorId: string;
@@ -51,12 +52,15 @@ export function ConditionTornado({ rows, decisionLabel }: Props) {
 
   return (
     <Box>
-      <Typography variant="subtitle2" gutterBottom>
-        Under what conditions
-      </Typography>
+      <Stack direction="row" alignItems="center" sx={{ mb: 0.25 }}>
+        <Typography variant="subtitle2">Under what conditions</Typography>
+        <InfoTip>
+          EV gain from {decisionLabel} as each other factor varies. Right of the line (green) the choice
+          helps; left (red) it hurts; a bar crossing the line is what flips the verdict.
+        </InfoTip>
+      </Stack>
       <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 1 }}>
-        EV gain from {decisionLabel} as each other factor varies · right of the line (green) the
-        choice helps, left (red) it hurts · a bar crossing the line is what flips the verdict
+        EV gain from {decisionLabel} · green helps, red hurts
       </Typography>
       <Box sx={{ overflowX: 'auto' }}>
         <svg width="100%" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Conditional contrast tornado" style={{ minWidth: 680 }}>

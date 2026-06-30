@@ -1,5 +1,7 @@
+import type { ReactNode } from 'react';
 import { Box, Stack, Tooltip, Typography } from '@mui/material';
 import { c, fonts } from '@shell/theme';
+import { InfoTip } from '@viz/InfoTip';
 
 export interface LadderRow {
   id: string;
@@ -14,6 +16,8 @@ export interface LadderRow {
 
 interface Props {
   rows: LadderRow[];
+  /** Optional fuller explanation, shown behind an info affordance on the heading. */
+  info?: ReactNode;
 }
 
 /**
@@ -23,13 +27,14 @@ interface Props {
  * next, more expressive, model. The reference row (cached) sits at zero by
  * definition. See docs/MODEL.md.
  */
-export function ModelLadder({ rows }: Props) {
+export function ModelLadder({ rows, info }: Props) {
   const max = Math.max(0.0001, ...rows.map((r) => r.rms));
   return (
     <Box>
-      <Typography variant="subtitle2" gutterBottom>
-        Model ladder
-      </Typography>
+      <Stack direction="row" alignItems="center" sx={{ mb: 0.5 }}>
+        <Typography variant="subtitle2">Model ladder</Typography>
+        {info ? <InfoTip>{info}</InfoTip> : null}
+      </Stack>
       <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 1.5 }}>
         RMS divergence from the hand-reasoned surface, per value model. Shorter is a closer fit; the
         drop between rungs is the structure the more expressive model captures.

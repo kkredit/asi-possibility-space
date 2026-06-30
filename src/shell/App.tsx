@@ -32,6 +32,7 @@ import { EvaluatorDiff, type DiffPoint } from '@viz/EvaluatorDiff';
 import { ModelLadder, type LadderRow } from '@viz/ModelLadder';
 import { ConditionTornado } from '@viz/ConditionTornado';
 import { ConditionHeatmap } from '@viz/ConditionHeatmap';
+import { InfoTip } from '@viz/InfoTip';
 
 function Panel({ children }: { children: React.ReactNode }) {
   return <Paper sx={{ p: { xs: 1.75, sm: 2.5 }, mb: 2 }}>{children}</Paper>;
@@ -295,11 +296,19 @@ export function App() {
 
                   {/* Verdict headline */}
                   <Box sx={{ borderTop: `1px solid ${c.line}`, pt: 1.5 }}>
-                    <Typography variant="body2" sx={{ color: c.mute, mb: 0.5 }}>
+                    <Typography variant="body2" sx={{ color: c.mute, mb: 0.5, display: 'inline-flex', alignItems: 'center', flexWrap: 'wrap' }}>
                       At your current beliefs,{' '}
                       {isObjectiveDecision ? 'if it turns out ' : 'steering '}
-                      <Box component="span" sx={{ color: c.teal }}>{decisionFactor.label} {isObjectiveDecision ? '=' : '→'} {towardLabel}</Box>
+                      <Box component="span" sx={{ color: c.teal, mx: 0.5 }}>{decisionFactor.label} {isObjectiveDecision ? '=' : '→'} {towardLabel}</Box>
                       {' '}(vs {baselineLabel}) {isObjectiveDecision ? 'would be' : 'is'}
+                      <InfoTip>
+                        {isObjectiveDecision
+                          ? 'This factor is objective — you can’t steer it, so read this as value of information: how much the verdict moves if it turns out one way vs. the other. '
+                          : ''}
+                        Each future is compared to itself with only this factor changed (all else held fixed),
+                        so net EV and the favorable share always agree in sign.
+                        {Object.keys(pins).length > 0 ? ` Holding fixed the ${Object.keys(pins).length} condition(s) you pinned in Beliefs.` : ''}
+                      </InfoTip>
                     </Typography>
                     <Stack direction="row" spacing={3} alignItems="baseline" flexWrap="wrap" useFlexGap>
                       <Typography sx={{ fontFamily: fonts.display, fontSize: '1.5rem', color: valueColor(Math.max(-1, Math.min(1, contrast.netDelta * 3))) }}>
@@ -313,13 +322,6 @@ export function App() {
                         </Box>
                       </Typography>
                     </Stack>
-                    <Typography variant="caption" sx={{ color: c.faint, display: 'block', mt: 1 }}>
-                      {isObjectiveDecision
-                        ? 'This factor is objective — you can’t steer it, so read this as value of information: how much the verdict moves if it turns out one way vs. the other. '
-                        : ''}
-                      Each future is compared to itself with only this factor changed (all else held fixed), so net EV and the favorable share always agree in sign.
-                      {Object.keys(pins).length > 0 ? ` Holding fixed the ${Object.keys(pins).length} condition(s) you pinned in Beliefs.` : ''}
-                    </Typography>
                   </Box>
                 </Panel>
 
@@ -388,30 +390,42 @@ export function App() {
             {tab === 4 && (
               <>
                 <Panel>
-                  <ModelLadder rows={ladder} />
-                  <Typography variant="body2" sx={{ mt: 2, color: c.mute, maxWidth: 620 }}>
-                    Each model is fit to (or hand-set against) the same hand-reasoned cells. The drop
-                    from <em>linear</em> to <em>fitted linear</em> is coefficients the hand-set model got
-                    wrong; the drop to <em>fitted + pairwise</em> is two-way interaction; what remains is
-                    genuinely higher-order entanglement (the hard logical gates). See{' '}
-                    <Box component="span" sx={{ fontFamily: fonts.mono, color: c.bone }}>docs/MODEL.md</Box>.
-                  </Typography>
+                  <ModelLadder
+                    rows={ladder}
+                    info={
+                      <>
+                        Each model is fit to (or hand-set against) the same hand-reasoned cells. The drop
+                        from <em>linear</em> to <em>fitted linear</em> is coefficients the hand-set model got
+                        wrong; the drop to <em>fitted + pairwise</em> is two-way interaction; what remains is
+                        genuinely higher-order entanglement (the hard logical gates). See docs/MODEL.md.
+                      </>
+                    }
+                  />
                 </Panel>
                 <Panel>
-                  <EvaluatorDiff points={diffPoints} model={compareEvaluator.label} xLabel={`${compareEvaluator.label} value →`} />
-                  <Typography variant="body2" sx={{ mt: 2, color: c.mute, maxWidth: 620 }}>
-                    Each dot is a scenario at its <strong>{compareEvaluator.label.toLowerCase()}</strong> value
-                    (x) vs. hand-reasoned value (y). Distance from the dashed diagonal is where that model
-                    departs from careful reasoning — pick a different evaluator at left to compare it.
-                  </Typography>
+                  <EvaluatorDiff
+                    points={diffPoints}
+                    model={compareEvaluator.label}
+                    xLabel={`${compareEvaluator.label} value →`}
+                    info={
+                      <>
+                        Each dot is a scenario at its <strong>{compareEvaluator.label.toLowerCase()}</strong> value
+                        (x) vs. hand-reasoned value (y). Distance from the dashed diagonal is where that model
+                        departs from careful reasoning — pick a different evaluator at left to compare it.
+                      </>
+                    }
+                  />
                 </Panel>
               </>
             )}
 
-            <Typography sx={{ mt: 1, color: c.faint, fontSize: '0.72rem', fontFamily: fonts.body }}>
-              Every factor, probability, outcome and weight is a presumed first-pass default — edit{' '}
-              <Box component="code" sx={{ fontFamily: fonts.mono, color: c.mute }}>src/model/dataset.ts</Box> to
-              refine. See <Box component="code" sx={{ fontFamily: fonts.mono, color: c.mute }}>docs/DESIGN.md</Box>.
+            <Typography sx={{ mt: 1, color: c.faint, fontSize: '0.72rem', fontFamily: fonts.body, display: 'inline-flex', alignItems: 'center' }}>
+              Presumed first-pass defaults
+              <InfoTip>
+                Every factor, probability, outcome and weight is a presumed first-pass default — edit{' '}
+                <Box component="code" sx={{ fontFamily: fonts.mono, color: c.bone }}>src/model/dataset.ts</Box> to
+                refine. See <Box component="code" sx={{ fontFamily: fonts.mono, color: c.bone }}>docs/DESIGN.md</Box>.
+              </InfoTip>
             </Typography>
           </Box>
         </Box>

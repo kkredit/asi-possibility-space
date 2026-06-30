@@ -1,5 +1,7 @@
-import { Box, Typography } from '@mui/material';
+import type { ReactNode } from 'react';
+import { Box, Stack, Typography } from '@mui/material';
 import { c, fonts, valueColor } from '@shell/theme';
+import { InfoTip } from '@viz/InfoTip';
 
 export interface DiffPoint {
   linear: number;
@@ -14,6 +16,8 @@ interface Props {
   model?: string;
   /** Label for the x-axis (the comparison model). Defaults to "linear value →". */
   xLabel?: string;
+  /** Optional fuller explanation, shown behind an info affordance on the heading. */
+  info?: ReactNode;
 }
 
 /**
@@ -21,7 +25,7 @@ interface Props {
  * scenario. Points off the diagonal are where careful reasoning disagrees with that
  * model — the residual measures how much of the surface the model can't capture.
  */
-export function EvaluatorDiff({ points, model = 'linear', xLabel = 'linear value →' }: Props) {
+export function EvaluatorDiff({ points, model = 'linear', xLabel = 'linear value →', info }: Props) {
   const size = 340;
   const pad = 38;
   const plot = size - pad * 2;
@@ -37,9 +41,10 @@ export function EvaluatorDiff({ points, model = 'linear', xLabel = 'linear value
 
   return (
     <Box>
-      <Typography variant="subtitle2" gutterBottom>
-        Cached vs. {model.toLowerCase()}
-      </Typography>
+      <Stack direction="row" alignItems="center" sx={{ mb: 0.5 }}>
+        <Typography variant="subtitle2">Cached vs. {model.toLowerCase()}</Typography>
+        {info ? <InfoTip>{info}</InfoTip> : null}
+      </Stack>
       <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 1 }}>
         distance off the diagonal is what this model misses · RMS divergence over {reasoned.length} cells{' '}
         <Box component="span" sx={{ fontFamily: fonts.mono, color: c.bone }}>{rms.toFixed(3)}</Box>

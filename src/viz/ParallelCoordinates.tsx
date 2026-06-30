@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Stack, Typography } from '@mui/material';
 import type { Factor } from '@model/types';
 import type { EvaluatedScenario } from '@engine/analyze';
 import { c, fonts, valueColor, valueGradient } from '@shell/theme';
+import { InfoTip } from '@viz/InfoTip';
 
 interface Props {
   scenarios: EvaluatedScenario[];
@@ -150,13 +151,16 @@ export function ParallelCoordinates({ scenarios, factors }: Props) {
 
   return (
     <Box>
-      <Typography variant="subtitle2" gutterBottom>
-        Possibility space
-      </Typography>
+      <Stack direction="row" alignItems="center" sx={{ mb: 0.25 }}>
+        <Typography variant="subtitle2">Possibility space</Typography>
+        <InfoTip>
+          Every possible future at once. Each line threads left-to-right through the state it takes on
+          each factor, landing on its overall <b>Value</b> (far-right axis). Faint lines are improbable
+          futures; each axis dot is colored by the average value of the futures through it.
+        </InfoTip>
+      </Stack>
       <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 0.5 }}>
-        Every possible future at once. Each line threads left-to-right through the state it takes on
-        each factor, landing on its overall <b>Value</b> (far-right axis). Faint lines are improbable
-        futures; each axis dot is colored by the average value of the futures through it.
+        each line is one future · dots colored by average value
       </Typography>
 
       {/* value legend — its own line, so it never shifts with the readout text */}
@@ -185,7 +189,7 @@ export function ParallelCoordinates({ scenarios, factors }: Props) {
               <Box component="span" sx={{ fontFamily: fonts.mono, color: valueColor(readout.mean) }}>{readout.mean >= 0 ? '+' : ''}{readout.mean.toFixed(2)}</Box>
             </>
           ) : (
-            'Hover a factor state to trace its futures. Click to hold states across factors and narrow the set.'
+            'Hover a state to trace its futures · click to hold across factors'
           )}
         </Typography>
         {Object.keys(locked).length > 0 ? (
