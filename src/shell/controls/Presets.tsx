@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import {
   Box,
-  Collapse,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   FormControl,
   Link,
   ListSubheader,
@@ -133,10 +135,10 @@ export function Presets() {
             <Link
               component="button"
               type="button"
-              onClick={() => setShowSources((v) => !v)}
+              onClick={() => setShowSources(true)}
               sx={{ fontSize: '0.72rem', color: c.teal, textDecorationColor: c.teal }}
             >
-              {showSources ? 'Hide' : 'Sources & reasoning'}
+              Sources & reasoning ↗
             </Link>
             <Link
               component="button"
@@ -148,8 +150,12 @@ export function Presets() {
             </Link>
           </Stack>
 
-          <Collapse in={showSources}>
-            <Box sx={{ mt: 1 }}>
+          <Dialog open={showSources} onClose={() => setShowSources(false)} maxWidth="sm" fullWidth>
+            <DialogTitle sx={{ fontFamily: fonts.display, fontSize: '1rem', pb: 0.5 }}>
+              {displayName(active)}
+              <Typography sx={{ fontSize: '0.72rem', color: c.mute, fontWeight: 400 }}>{active.role}</Typography>
+            </DialogTitle>
+            <DialogContent>
               <Typography sx={{ ...sectionLabel, fontSize: '0.64rem', mb: 0.75 }}>
                 How each factor was set · per-factor accuracy
               </Typography>
@@ -203,8 +209,8 @@ export function Presets() {
                   </Box>
                 </Box>
               ))}
-            </Box>
-          </Collapse>
+            </DialogContent>
+          </Dialog>
         </Box>
       )}
     </Box>
