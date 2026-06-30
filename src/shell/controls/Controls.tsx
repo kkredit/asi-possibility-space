@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import {
   Box,
   Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Divider,
   FormControl,
   MenuItem,
@@ -17,6 +21,7 @@ import type { Factor, FactorKind } from '@model/types';
 import { useBeliefs } from '@shell/store';
 import { Presets } from '@shell/controls/Presets';
 import { InfoTip } from '@viz/InfoTip';
+import { BayesNetDiagram } from '@viz/BayesNetDiagram';
 import { c, fonts, kindColor } from '@shell/theme';
 
 const KIND_ORDER: FactorKind[] = ['objective', 'contingent', 'influenceable'];
@@ -120,6 +125,7 @@ export function Controls() {
   const setProbabilityModel = useBeliefs((s) => s.setProbabilityModel);
   const reset = useBeliefs((s) => s.reset);
   const netMode = probabilityModel === 'bayesNet';
+  const [netOpen, setNetOpen] = useState(false);
 
   return (
     <Stack spacing={2.25}>
@@ -182,7 +188,31 @@ export function Controls() {
             </MenuItem>
           </Select>
         </FormControl>
+        {dataset.bayesNet ? (
+          <Box
+            component="span"
+            onClick={() => setNetOpen(true)}
+            sx={{ display: 'inline-block', mt: 0.6, cursor: 'pointer', color: c.mute, fontFamily: fonts.display, fontSize: '0.74rem', '&:hover': { color: c.teal } }}
+          >
+            View the network ↗
+          </Box>
+        ) : null}
       </Box>
+
+      {dataset.bayesNet ? (
+        <Dialog open={netOpen} onClose={() => setNetOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle sx={{ fontFamily: fonts.display, fontSize: '1rem' }}>
+            The relationship network
+          </DialogTitle>
+          <DialogContent>
+            <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 1.5 }}>
+              {dataset.bayesNet.description} Arrows point from a cause to what it shapes; roots take
+              their prior from your sliders, children from conditional tables. Hover a node for its rationale.
+            </Typography>
+            <BayesNetDiagram net={dataset.bayesNet} factors={dataset.factors} />
+          </DialogContent>
+        </Dialog>
+      ) : null}
 
       <Box>
         <Stack direction="row" alignItems="center" sx={{ mb: 0.4 }}>

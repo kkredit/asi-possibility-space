@@ -194,13 +194,16 @@ drives every tab (EV, Landscape, sensitivity, Conditions) via `analyze`'s
 `jointProbability` override; actions re-rake (an action asserts a higher target on its
 factor and the effect propagates through the net).
 
+The **DAG is now viewable in the UI** — "View the network ↗" next to the
+probability-model selector opens a layered diagram of the net
+([`BayesNetDiagram`](../src/viz/BayesNetDiagram.tsx)), roots on top, arrows
+parent → child, nodes colored by kind with the dependency rationale on hover.
+
 **What still remains:**
 - **Pin semantics.** `analyze`'s probabilities sum to the pinned mass `P(pins)` (EV
   under pins is mass-weighted, not conditional). The net path mirrors this exactly; if
   we want true conditional EVs under pins, that normalisation choice should be made for
   *both* models together.
-- **Surfacing the DAG** in the UI (which factor floats because of which parent) would
-  make the raking legible rather than surprising.
 - The `Coupling` type can eventually be retired (or kept as compile-to-CPT sugar).
 
 ---
