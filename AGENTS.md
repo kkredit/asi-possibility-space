@@ -156,8 +156,8 @@ concentrates` suppresses the (fast, diffuse) corner to `0.12×`.
 
 There's also an **opt-in Bayes net** (`bayesNet` in dataset.ts, engine in
 [`bayesnet.ts`](src/engine/bayesnet.ts)) — the principled successor to
-independence×couplings. `analyze(..., pins, net)` swaps the joint over to it; it's
-off by default. Validate edits with `validateBayesNet`. See docs/MODEL.md §5.
+independence×couplings. `analyze(..., pins, jointProbability)` swaps the joint over
+to it; it's off by default. Validate edits with `validateBayesNet`. See docs/MODEL.md §5.
 
 ### Actions
 
@@ -174,6 +174,35 @@ those are timeless facts, not features of the world-to-come. `applyAction` moves
 > *authored content* is what has to keep up. Un-authored cells silently fall back
 > to the linear evaluator (and are flagged as not-reasoned), so check the
 > Evaluators tab after a change.
+
+### Checklist: adding a new factor
+
+Touchpoints, in order — all in `dataset.ts` unless noted. (The `coordination`
+factor, commit history, is a complete worked example of every step.)
+
+1. **`factors[]`** — add the `Factor` (≤ 3 states; pick the `kind`).
+2. **`baselineCredences`** — add its prior; states **must sum to 1**.
+3. **`linearContributions`** — add per-state value contributions (use `{}` per state
+   for a value-neutral factor whose effect is purely on probabilities).
+4. **Cached cells** — extend the authoring pipeline so cells cover the new factor:
+   add an `expand<Factor>(cell) => CachedCell[]` step (like `expandTakeoff` /
+   `expandCoordination`) and chain it into `cachedOutcomes`. This multiplies the cell
+   count. (Skip only if you accept a flagged linear fallback for the new dimension.)
+5. **`couplings`** — add any dependencies so the factor is causal in the *independence*
+   model (the default).
+6. **`bayesNet`** — add a node. Root (prior from slider) or child with a `cpt`. If it's
+   a *parent* of existing children, expand their CPTs (keys are parent states joined
+   by `|` in `parents` order). Every factor needs a node or `validateBayesNet` fails.
+7. **`actions`** — point any relevant action at it (objective factors stay off-limits).
+8. **Presets** (`presets.ts`) — optional: unstated factors fall back to baseline (store
+   merge), but research-grounded credences are better. Keep `factorNotes`/citations in sync.
+9. **Tests** — update hardcoded counts (`engine.test` scenario/cell totals + the
+   cross-product title + pinned count; `fit.test` `featureCount`/`sampleCount`) and add
+   the new factor key to any literal scenario object (else its cached lookup falls back).
+10. **Docs** — bump counts in this file, `docs/FACTORS.md` (move from candidate to
+    added), `docs/MODEL.md` (ladder param counts + scenario count), README/DESIGN.
+
+Then `pnpm typecheck && pnpm test && pnpm build` must all pass.
 
 ## "I want to add an evaluator"
 
