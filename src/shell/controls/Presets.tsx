@@ -90,7 +90,7 @@ export function Presets() {
       <Typography sx={{ ...sectionLabel, mb: 0.25 }}>Belief presets</Typography>
       <Typography sx={{ fontSize: '0.72rem', color: c.faint, mb: 1 }}>
         load a cited public view · value = their expected value (red extinction → teal flourishing) ·
-        mapping accuracy shown once selected
+        per-factor sourcing & accuracy shown once selected
       </Typography>
 
       <FormControl fullWidth size="small">
@@ -122,18 +122,6 @@ export function Presets() {
             {active.summary}
           </Typography>
 
-          <Tooltip title={active.accuracyNote} arrow placement="top">
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: active.pdoom ? 0.75 : 1 }}>
-              <Typography sx={{ fontSize: '0.68rem', color: c.mute, width: 96 }}>est. accuracy</Typography>
-              <Box sx={{ position: 'relative', flex: 1, height: 6, bgcolor: c.ink, borderRadius: 99 }}>
-                <Box sx={{ position: 'absolute', height: '100%', width: `${active.accuracy * 100}%`, bgcolor: accuracyColor(active.accuracy), borderRadius: 99 }} />
-              </Box>
-              <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.72rem', color: c.bone, width: 34, textAlign: 'right' }}>
-                {Math.round(active.accuracy * 100)}%
-              </Typography>
-            </Stack>
-          </Tooltip>
-
           {active.pdoom && (
             <Typography sx={{ fontSize: '0.72rem', color: c.mute, mb: 1 }}>
               Stated risk:{' '}
@@ -162,42 +150,59 @@ export function Presets() {
 
           <Collapse in={showSources}>
             <Box sx={{ mt: 1 }}>
-              {active.citations.map((cit, i) => (
-                <Box key={i} sx={{ mb: 1.25 }}>
-                  <Link
-                    href={cit.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{ fontSize: '0.72rem', color: c.bone, display: 'inline-flex', alignItems: 'center', gap: 0.4, textDecorationColor: c.faint }}
-                  >
-                    {cit.label}
-                    <OpenInNewIcon sx={{ fontSize: 11, color: c.faint }} />
-                  </Link>
-                  {cit.quote && (
-                    <Typography sx={{ fontSize: '0.7rem', color: c.mute, fontStyle: 'italic', borderLeft: `2px solid ${c.line}`, pl: 1, mt: 0.4, lineHeight: 1.4 }}>
-                      {cit.quote}
+              <Typography sx={{ ...sectionLabel, fontSize: '0.64rem', mb: 0.75 }}>
+                How each factor was set · per-factor accuracy
+              </Typography>
+              {dataset.factors.map((f) => {
+                const view = active.factors[f.id];
+                if (!view) return null;
+                return (
+                  <Box key={f.id} sx={{ mb: 0.85 }}>
+                    <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.15 }}>
+                      <Tooltip title={`${Math.round(view.accuracy * 100)}% — how directly the public record pins this factor`} arrow>
+                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: accuracyColor(view.accuracy), flexShrink: 0 }} />
+                      </Tooltip>
+                      <Typography sx={{ fontFamily: fonts.display, fontSize: '0.68rem', fontWeight: 600, color: c.bone }}>
+                        {f.label}
+                      </Typography>
+                      <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.62rem', color: c.faint }}>
+                        {Math.round(view.accuracy * 100)}%
+                      </Typography>
+                    </Stack>
+                    <Typography sx={{ fontSize: '0.68rem', color: c.mute, lineHeight: 1.4, pl: 1.75 }}>
+                      {view.note}
+                      {view.refs?.length ? (
+                        <Box component="sup" sx={{ color: c.teal, fontFamily: fonts.mono, ml: 0.25 }}>
+                          {view.refs.join(',')}
+                        </Box>
+                      ) : null}
                     </Typography>
-                  )}
+                  </Box>
+                );
+              })}
+
+              <Typography sx={{ ...sectionLabel, fontSize: '0.64rem', mt: 1.25, mb: 0.5 }}>References</Typography>
+              {active.references.map((ref, i) => (
+                <Box key={i} sx={{ mb: 0.85, display: 'flex', gap: 0.5 }}>
+                  <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.66rem', color: c.faint, flexShrink: 0 }}>{i + 1}.</Typography>
+                  <Box>
+                    <Link
+                      href={ref.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{ fontSize: '0.7rem', color: c.bone, display: 'inline-flex', alignItems: 'center', gap: 0.4, textDecorationColor: c.faint }}
+                    >
+                      {ref.label}
+                      <OpenInNewIcon sx={{ fontSize: 11, color: c.faint }} />
+                    </Link>
+                    {ref.quote && (
+                      <Typography sx={{ fontSize: '0.68rem', color: c.mute, fontStyle: 'italic', borderLeft: `2px solid ${c.line}`, pl: 1, mt: 0.3, lineHeight: 1.4 }}>
+                        {ref.quote}
+                      </Typography>
+                    )}
+                  </Box>
                 </Box>
               ))}
-
-              {active.factorNotes && (
-                <Box sx={{ mt: 1.5 }}>
-                  <Typography sx={{ ...sectionLabel, fontSize: '0.64rem', mb: 0.75 }}>How each factor was set</Typography>
-                  {dataset.factors.map((f) =>
-                    active.factorNotes?.[f.id] ? (
-                      <Box key={f.id} sx={{ mb: 0.6 }}>
-                        <Typography component="span" sx={{ fontFamily: fonts.display, fontSize: '0.68rem', color: c.bone }}>
-                          {f.label}:{' '}
-                        </Typography>
-                        <Typography component="span" sx={{ fontSize: '0.68rem', color: c.mute, lineHeight: 1.4 }}>
-                          {active.factorNotes[f.id]}
-                        </Typography>
-                      </Box>
-                    ) : null,
-                  )}
-                </Box>
-              )}
             </Box>
           </Collapse>
         </Box>

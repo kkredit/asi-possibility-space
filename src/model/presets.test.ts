@@ -25,10 +25,13 @@ describe('belief presets', () => {
     }
   });
 
-  it('have accuracy in [0,1] and non-negative weights on all dimensions', () => {
+  it('have per-factor accuracy in [0,1] and non-negative weights on all dimensions', () => {
     for (const p of presets) {
-      expect(p.accuracy).toBeGreaterThanOrEqual(0);
-      expect(p.accuracy).toBeLessThanOrEqual(1);
+      for (const [fid, view] of Object.entries(p.factors)) {
+        expect(view!.accuracy, `${p.id}/${fid} accuracy`).toBeGreaterThanOrEqual(0);
+        expect(view!.accuracy, `${p.id}/${fid} accuracy`).toBeLessThanOrEqual(1);
+        expect(dataset.factors.some((f) => f.id === fid), `${p.id} unknown factor ${fid}`).toBe(true);
+      }
       if (p.weights) {
         for (const dim of VALUE_DIMENSION_IDS) {
           expect(p.weights[dim], `${p.id} weight ${dim}`).toBeGreaterThanOrEqual(0);
@@ -37,11 +40,27 @@ describe('belief presets', () => {
     }
   });
 
-  it('each cite at least one https source', () => {
+  it('reference every current factor, each with a note', () => {
     for (const p of presets) {
-      expect(p.citations.length, `${p.id} has no citations`).toBeGreaterThan(0);
-      for (const cit of p.citations) {
-        expect(cit.url, `${p.id} citation "${cit.label}"`).toMatch(/^https:\/\//);
+      for (const factor of dataset.factors) {
+        const view = p.factors[factor.id];
+        expect(view, `${p.id} missing factor view ${factor.id}`).toBeDefined();
+        expect(view!.note.length, `${p.id}/${factor.id} empty note`).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('cite https references; factor refs are valid 1-based indices', () => {
+    for (const p of presets) {
+      expect(p.references.length, `${p.id} has no references`).toBeGreaterThan(0);
+      for (const ref of p.references) {
+        expect(ref.url, `${p.id} reference "${ref.label}"`).toMatch(/^https:\/\//);
+      }
+      for (const [fid, view] of Object.entries(p.factors)) {
+        for (const r of view!.refs ?? []) {
+          expect(r, `${p.id}/${fid} ref ${r} out of range`).toBeGreaterThanOrEqual(1);
+          expect(r, `${p.id}/${fid} ref ${r} out of range`).toBeLessThanOrEqual(p.references.length);
+        }
       }
     }
   });
