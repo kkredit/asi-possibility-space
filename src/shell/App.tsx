@@ -13,6 +13,7 @@ import {
 } from '@engine/index';
 import { Controls } from '@shell/controls/Controls';
 import { EvHeadline } from '@shell/EvHeadline';
+import { Logo } from '@shell/Logo';
 import { useBeliefs } from '@shell/store';
 import { c, fonts } from '@shell/theme';
 import { EVDistribution } from '@viz/EVDistribution';
@@ -36,20 +37,23 @@ function Masthead() {
         py: 1.75,
         display: 'flex',
         flexWrap: 'wrap',
-        alignItems: 'baseline',
-        gap: { xs: 0.5, sm: 2 },
+        alignItems: 'center',
+        gap: { xs: 1, sm: 2 },
         rowGap: 0.5,
       }}
     >
-      <Typography sx={{ fontFamily: fonts.display, fontWeight: 700, fontSize: '1.1rem', letterSpacing: '-0.01em', color: c.bone }}>
-        Possibility&nbsp;Space
-      </Typography>
-      <Typography sx={{ fontFamily: fonts.display, fontSize: '0.84rem', color: c.mute, fontWeight: 400 }}>
-        an instrument for reasoning about AI&nbsp;futures
-      </Typography>
+      <Logo size={26} />
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: { xs: 0.75, sm: 1.5 }, rowGap: 0 }}>
+        <Typography sx={{ fontFamily: fonts.display, fontWeight: 700, fontSize: '1.1rem', letterSpacing: '-0.01em', color: c.bone }}>
+          ASI&nbsp;Possibility&nbsp;Space
+        </Typography>
+        <Typography sx={{ fontFamily: fonts.display, fontSize: '0.84rem', color: c.mute, fontWeight: 400 }}>
+          an instrument for reasoning about AI&nbsp;futures
+        </Typography>
+      </Box>
       <Box sx={{ flex: 1 }} />
       <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.68rem', color: c.faint, whiteSpace: 'nowrap' }}>
-        144 scenarios · presumed first-pass model
+        432 scenarios · presumed first-pass model
       </Typography>
     </Box>
   );
