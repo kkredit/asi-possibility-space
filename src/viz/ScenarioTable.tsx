@@ -9,13 +9,11 @@ import {
   TableHead,
   TableRow,
   TableSortLabel,
-  Tooltip,
   Typography,
 } from '@mui/material';
-import StarIcon from '@mui/icons-material/Star';
 import type { Factor } from '@model/types';
 import type { EvaluatedScenario } from '@engine/analyze';
-import { valueColor } from '@shell/theme';
+import { c, fonts, valueColor } from '@shell/theme';
 
 type SortKey = 'probability' | 'scalar' | 'contribution';
 
@@ -42,17 +40,20 @@ export function ScenarioTable({ scenarios, factors, limit = 25 }: Props) {
 
   const header = (key: SortKey, label: string) => (
     <TableSortLabel active={sortKey === key} direction={key === 'scalar' ? 'asc' : 'desc'} onClick={() => setSortKey(key)}>
-      {label}
+      <Box component="span" sx={{ fontFamily: fonts.display, fontSize: '0.78rem', letterSpacing: '0.03em' }}>{label}</Box>
     </TableSortLabel>
   );
 
   return (
     <Box>
       <Typography variant="subtitle2" gutterBottom>
-        Scenarios ({shown.length} of {scenarios.length} shown)
+        Scenarios
+      </Typography>
+      <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 1 }}>
+        top {shown.length} of {scenarios.length} — sort by probability, value, or contribution to EV
       </Typography>
       <Box sx={{ overflowX: 'auto' }}>
-        <Table size="small" sx={{ minWidth: 640 }}>
+        <Table size="small" sx={{ minWidth: 640, '& td, & th': { borderColor: c.line } }}>
           <TableHead>
             <TableRow>
               <TableCell>{header('probability', 'P')}</TableCell>
@@ -63,40 +64,43 @@ export function ScenarioTable({ scenarios, factors, limit = 25 }: Props) {
           <TableBody>
             {shown.map((s, i) => (
               <TableRow key={i} hover>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>{(s.probability * 100).toFixed(2)}%</TableCell>
-                <TableCell>
-                  <Chip
-                    size="small"
-                    label={s.scalar.toFixed(2)}
-                    sx={{ bgcolor: valueColor(s.scalar), color: '#0d1117', fontWeight: 600, minWidth: 52 }}
-                  />
+                <TableCell sx={{ whiteSpace: 'nowrap', fontFamily: fonts.mono, fontSize: '0.78rem', color: c.mute, verticalAlign: 'top' }}>
+                  {(s.probability * 100).toFixed(2)}%
+                </TableCell>
+                <TableCell sx={{ verticalAlign: 'top' }}>
+                  <Box
+                    sx={{
+                      display: 'inline-block',
+                      fontFamily: fonts.mono,
+                      fontWeight: 600,
+                      fontSize: '0.78rem',
+                      color: c.ink,
+                      bgcolor: valueColor(s.scalar),
+                      borderRadius: 1,
+                      px: 0.75,
+                      py: 0.25,
+                      minWidth: 46,
+                      textAlign: 'center',
+                    }}
+                  >
+                    {s.scalar >= 0 ? '+' : '−'}{Math.abs(s.scalar).toFixed(2)}
+                  </Box>
                 </TableCell>
                 <TableCell>
-                  <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mb: s.reasoned ? 0.5 : 0 }}>
+                  <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mb: 0.6 }}>
                     {factors.map((f) => (
                       <Chip
                         key={f.id}
                         size="small"
                         variant="outlined"
                         label={stateLabel(f, s.scenario[f.id])}
-                        sx={{ height: 20, fontSize: 10 }}
+                        sx={{ height: 19, fontSize: 10, fontFamily: fonts.body, color: c.mute, '& .MuiChip-label': { px: 0.75 } }}
                       />
                     ))}
                   </Stack>
-                  {s.reasoned ? (
-                    <Stack direction="row" spacing={0.5} alignItems="flex-start">
-                      <StarIcon sx={{ fontSize: 13, color: '#d29922', mt: '2px' }} />
-                      <Typography variant="caption" color="text.secondary">
-                        {s.narrative}
-                      </Typography>
-                    </Stack>
-                  ) : (
-                    <Tooltip title="Not yet hand-reasoned — value is the linear fallback" arrow>
-                      <Typography variant="caption" sx={{ color: '#6e7681', fontStyle: 'italic' }}>
-                        linear fallback
-                      </Typography>
-                    </Tooltip>
-                  )}
+                  <Typography variant="caption" sx={{ color: c.mute, lineHeight: 1.45 }}>
+                    {s.narrative}
+                  </Typography>
                 </TableCell>
               </TableRow>
             ))}

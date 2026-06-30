@@ -1,15 +1,5 @@
 import { useMemo, useState } from 'react';
-import {
-  AppBar,
-  Alert,
-  Box,
-  Container,
-  Paper,
-  Tab,
-  Tabs,
-  Toolbar,
-  Typography,
-} from '@mui/material';
+import { Box, Container, Paper, Tab, Tabs, Typography } from '@mui/material';
 import { dataset } from '@model/dataset';
 import {
   analyze,
@@ -24,6 +14,7 @@ import {
 import { Controls } from '@shell/controls/Controls';
 import { EvHeadline } from '@shell/EvHeadline';
 import { useBeliefs } from '@shell/store';
+import { c, fonts } from '@shell/theme';
 import { EVDistribution } from '@viz/EVDistribution';
 import { Tornado } from '@viz/Tornado';
 import { ActionRanking } from '@viz/ActionRanking';
@@ -32,7 +23,36 @@ import { ParallelCoordinates } from '@viz/ParallelCoordinates';
 import { EvaluatorDiff, type DiffPoint } from '@viz/EvaluatorDiff';
 
 function Panel({ children }: { children: React.ReactNode }) {
-  return <Paper sx={{ p: 2, mb: 2 }}>{children}</Paper>;
+  return <Paper sx={{ p: { xs: 1.75, sm: 2.5 }, mb: 2 }}>{children}</Paper>;
+}
+
+function Masthead() {
+  return (
+    <Box
+      component="header"
+      sx={{
+        borderBottom: `1px solid ${c.line}`,
+        px: { xs: 2, sm: 3 },
+        py: 1.75,
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'baseline',
+        gap: { xs: 0.5, sm: 2 },
+        rowGap: 0.5,
+      }}
+    >
+      <Typography sx={{ fontFamily: fonts.display, fontWeight: 700, fontSize: '1.1rem', letterSpacing: '-0.01em', color: c.bone }}>
+        Possibility&nbsp;Space
+      </Typography>
+      <Typography sx={{ fontFamily: fonts.display, fontSize: '0.84rem', color: c.mute, fontWeight: 400 }}>
+        an instrument for reasoning about AI&nbsp;futures
+      </Typography>
+      <Box sx={{ flex: 1 }} />
+      <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.68rem', color: c.faint, whiteSpace: 'nowrap' }}>
+        144 scenarios · presumed first-pass model
+      </Typography>
+    </Box>
+  );
 }
 
 export function App() {
@@ -70,26 +90,21 @@ export function App() {
 
   return (
     <Box sx={{ minHeight: '100vh' }}>
-      <AppBar position="static" elevation={0} sx={{ bgcolor: 'background.paper' }}>
-        <Toolbar>
-          <Typography variant="h6" sx={{ flex: 1 }}>
-            AI Safety Possibility-Space Explorer
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            POC · presumed first-pass content
-          </Typography>
-        </Toolbar>
-      </AppBar>
+      <Masthead />
 
-      <Container maxWidth="xl" sx={{ py: 3 }}>
-        <Alert severity="info" sx={{ mb: 2 }}>
-          Every factor, probability, outcome and weight below is a <strong>presumed first-pass
-          default</strong>, not a locked-in choice — edit <code>src/model/dataset.ts</code> to refine
-          the model. See <code>docs/DESIGN.md</code> §5/§9.
-        </Alert>
-
+      <Container maxWidth="xl" sx={{ py: { xs: 2, sm: 3 } }}>
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: 'flex-start' }}>
-          <Paper sx={{ p: 2, width: { xs: '100%', md: 380 }, flexShrink: 0, position: { md: 'sticky' }, top: { md: 16 } }}>
+          <Paper
+            sx={{
+              p: { xs: 1.75, sm: 2.25 },
+              width: { xs: '100%', md: 360 },
+              flexShrink: 0,
+              position: { md: 'sticky' },
+              top: { md: 16 },
+              maxHeight: { md: 'calc(100vh - 32px)' },
+              overflowY: { md: 'auto' },
+            }}
+          >
             <Controls />
           </Paper>
 
@@ -98,12 +113,14 @@ export function App() {
               <EvHeadline ev={analysis.ev} evVector={analysis.evVector} />
             </Box>
 
-            <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 2 }} variant="scrollable" scrollButtons="auto">
-              <Tab label="Landscape" />
-              <Tab label="Where to act" />
-              <Tab label="Scenarios" />
-              <Tab label="Evaluators" />
-            </Tabs>
+            <Box sx={{ borderBottom: `1px solid ${c.line}`, mb: 2 }}>
+              <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto" allowScrollButtonsMobile>
+                <Tab label="Landscape" />
+                <Tab label="Where to act" />
+                <Tab label="Scenarios" />
+                <Tab label="Evaluators" />
+              </Tabs>
+            </Box>
 
             {tab === 0 && (
               <>
@@ -136,14 +153,19 @@ export function App() {
             {tab === 3 && (
               <Panel>
                 <EvaluatorDiff points={diffPoints} />
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                  Each dot is a scenario placed at its linear value (x) vs. hand-reasoned value (y);
-                  gold dots are authored cells, grey are linear fallbacks (on the diagonal by
-                  construction). Distance from the dashed diagonal is where careful reasoning departs
-                  from the simple additive model — the research signal for refining the dataset.
+                <Typography variant="body2" sx={{ mt: 2, color: c.mute, maxWidth: 620 }}>
+                  Each dot is a scenario at its linear value (x) vs. hand-reasoned value (y). Distance
+                  from the dashed diagonal is where careful reasoning departs from the simple additive
+                  model — the research signal for refining the dataset.
                 </Typography>
               </Panel>
             )}
+
+            <Typography sx={{ mt: 1, color: c.faint, fontSize: '0.72rem', fontFamily: fonts.body }}>
+              Every factor, probability, outcome and weight is a presumed first-pass default — edit{' '}
+              <Box component="code" sx={{ fontFamily: fonts.mono, color: c.mute }}>src/model/dataset.ts</Box> to
+              refine. See <Box component="code" sx={{ fontFamily: fonts.mono, color: c.mute }}>docs/DESIGN.md</Box>.
+            </Typography>
           </Box>
         </Box>
       </Container>

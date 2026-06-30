@@ -14,6 +14,6 @@ describe('App smoke render', () => {
       </ThemeProvider>,
     );
     expect(html).toContain('Expected value');
-    expect(html).toContain('AI Safety Possibility-Space Explorer');
+    expect(html).toContain('Possibility');
   });
 });
