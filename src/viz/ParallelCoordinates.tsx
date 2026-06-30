@@ -1,32 +1,14 @@
 import { useMemo, useState } from 'react';
-import { Box, Stack, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import type { Factor } from '@model/types';
 import type { EvaluatedScenario } from '@engine/analyze';
 import { c, fonts, valueColor, valueGradient } from '@shell/theme';
-import { InfoTip } from '@viz/InfoTip';
+import { VizHeading } from '@viz/VizHeading';
+import { wrapLabel } from '@viz/text';
 
 interface Props {
   scenarios: EvaluatedScenario[];
   factors: Factor[];
-}
-
-/** Greedily wrap a title into lines of at most maxChars, capped at maxLines (ellipsis if over). */
-function wrapTitle(title: string, maxChars = 15, maxLines = 3): string[] {
-  const lines: string[] = [];
-  let current = '';
-  for (const word of title.split(' ')) {
-    const candidate = current ? `${current} ${word}` : word;
-    if (current && candidate.length > maxChars) {
-      lines.push(current);
-      current = word;
-      if (lines.length === maxLines) break;
-    } else {
-      current = candidate;
-    }
-  }
-  if (current && lines.length < maxLines) lines.push(current);
-  else if (current) lines[maxLines - 1] = `${lines[maxLines - 1].replace(/.$/, '')}…`;
-  return lines;
 }
 
 const keyOf = (factorId: string, stateId: string) => `${factorId}:${stateId}`;
@@ -151,14 +133,16 @@ export function ParallelCoordinates({ scenarios, factors }: Props) {
 
   return (
     <Box>
-      <Stack direction="row" alignItems="center" sx={{ mb: 0.25 }}>
-        <Typography variant="subtitle2">Possibility space</Typography>
-        <InfoTip>
-          Every possible future at once. Each line threads left-to-right through the state it takes on
-          each factor, landing on its overall <b>Value</b> (far-right axis). Faint lines are improbable
-          futures; each axis dot is colored by the average value of the futures through it.
-        </InfoTip>
-      </Stack>
+      <VizHeading
+        title="Possibility space"
+        info={
+          <>
+            Every possible future at once. Each line threads left-to-right through the state it takes on
+            each factor, landing on its overall <b>Value</b> (far-right axis). Faint lines are improbable
+            futures; each axis dot is colored by the average value of the futures through it.
+          </>
+        }
+      />
       <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 0.5 }}>
         each line is one future · dots colored by average value
       </Typography>
@@ -320,7 +304,7 @@ export function ParallelCoordinates({ scenarios, factors }: Props) {
                 textAnchor="middle"
                 pointerEvents="none"
               >
-                {wrapTitle(title).map((line, li) => (
+                {wrapLabel(title, 15, 3, true).map((line, li) => (
                   <tspan key={li} x={axisX(i)} dy={li === 0 ? 0 : 10}>
                     {line}
                   </tspan>

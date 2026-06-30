@@ -1,6 +1,7 @@
-import { Box, Stack, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { c, fonts } from '@shell/theme';
-import { InfoTip } from '@viz/InfoTip';
+import { VizHeading } from '@viz/VizHeading';
+import { wrapLabel } from '@viz/text';
 
 export interface CruxRow {
   factorId: string;
@@ -16,21 +17,6 @@ interface Props {
   rows: CruxRow[];
   /** Name of the choice being evaluated, for the caption (e.g. "open-source"). */
   decisionLabel: string;
-}
-
-function wrap(label: string, maxChars = 22, maxLines = 2): string[] {
-  const lines: string[] = [];
-  let current = '';
-  for (const word of label.split(' ')) {
-    const candidate = current ? `${current} ${word}` : word;
-    if (current && candidate.length > maxChars) {
-      lines.push(current);
-      current = word;
-      if (lines.length === maxLines) break;
-    } else current = candidate;
-  }
-  if (current && lines.length < maxLines) lines.push(current);
-  return lines;
 }
 
 /**
@@ -52,13 +38,15 @@ export function ConditionTornado({ rows, decisionLabel }: Props) {
 
   return (
     <Box>
-      <Stack direction="row" alignItems="center" sx={{ mb: 0.25 }}>
-        <Typography variant="subtitle2">Under what conditions</Typography>
-        <InfoTip>
-          EV gain from {decisionLabel} as each other factor varies. Right of the line (green) the choice
-          helps; left (red) it hurts; a bar crossing the line is what flips the verdict.
-        </InfoTip>
-      </Stack>
+      <VizHeading
+        title="Under what conditions"
+        info={
+          <>
+            EV gain from {decisionLabel} as each other factor varies. Right of the line (green) the choice
+            helps; left (red) it hurts; a bar crossing the line is what flips the verdict.
+          </>
+        }
+      />
       <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 1 }}>
         EV gain from {decisionLabel} · green helps, red hurts
       </Typography>
@@ -71,7 +59,7 @@ export function ConditionTornado({ rows, decisionLabel }: Props) {
             const barY = y + 9;
             const barH = rowH - 20;
             const x0 = xOf(0);
-            const labelLines = wrap(r.label);
+            const labelLines = wrapLabel(r.label, 22, 2);
             return (
               <g key={r.factorId}>
                 <text x={0} y={cy} fill={c.bone} fontSize={12.5} fontFamily={fonts.display} dominantBaseline="middle">

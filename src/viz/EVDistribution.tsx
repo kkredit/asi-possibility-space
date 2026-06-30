@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Box, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Tooltip, Typography } from '@mui/material';
 import type { DistributionBin, EvaluatedScenario } from '@engine/analyze';
 import type { Factor } from '@model/types';
 import { c, fonts, valueColor } from '@shell/theme';
-import { InfoTip } from '@viz/InfoTip';
+import { VizHeading } from '@viz/VizHeading';
 
 interface Props {
   bins: DistributionBin[];
@@ -82,13 +82,15 @@ export function EVDistribution({ bins, ev, factors, valence }: Props) {
 
   return (
     <Box>
-      <Stack direction="row" alignItems="center" sx={{ mb: 0.25 }}>
-        <Typography variant="subtitle2">Outcome distribution</Typography>
-        <InfoTip>
-          Probability mass across the value spectrum. Hover a bar to preview the scenarios that land
-          there; click to pin it and scroll the full list. Hover any scenario for its make-up.
-        </InfoTip>
-      </Stack>
+      <VizHeading
+        title="Outcome distribution"
+        info={
+          <>
+            Probability mass across the value spectrum. Hover a bar to preview the scenarios that land
+            there; click to pin it and scroll the full list. Hover any scenario for its make-up.
+          </>
+        }
+      />
       <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 1 }}>
         probability mass across the value spectrum
       </Typography>

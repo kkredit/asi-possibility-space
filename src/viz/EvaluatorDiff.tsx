@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
-import { Box, Stack, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { c, fonts, valueColor } from '@shell/theme';
-import { InfoTip } from '@viz/InfoTip';
+import { VizHeading } from '@viz/VizHeading';
 
 export interface DiffPoint {
   linear: number;
@@ -41,10 +41,7 @@ export function EvaluatorDiff({ points, model = 'linear', xLabel = 'linear value
 
   return (
     <Box>
-      <Stack direction="row" alignItems="center" sx={{ mb: 0.5 }}>
-        <Typography variant="subtitle2">Cached vs. {model.toLowerCase()}</Typography>
-        {info ? <InfoTip>{info}</InfoTip> : null}
-      </Stack>
+      <VizHeading title={`Cached vs. ${model.toLowerCase()}`} info={info} />
       <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 1 }}>
         distance off the diagonal is what this model misses · RMS divergence over {reasoned.length} cells{' '}
         <Box component="span" sx={{ fontFamily: fonts.mono, color: c.bone }}>{rms.toFixed(3)}</Box>

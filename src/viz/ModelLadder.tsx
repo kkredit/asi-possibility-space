@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Box, Stack, Tooltip, Typography } from '@mui/material';
 import { c, fonts } from '@shell/theme';
-import { InfoTip } from '@viz/InfoTip';
+import { VizHeading } from '@viz/VizHeading';
 
 export interface LadderRow {
   id: string;
@@ -31,10 +31,7 @@ export function ModelLadder({ rows, info }: Props) {
   const max = Math.max(0.0001, ...rows.map((r) => r.rms));
   return (
     <Box>
-      <Stack direction="row" alignItems="center" sx={{ mb: 0.5 }}>
-        <Typography variant="subtitle2">Model ladder</Typography>
-        {info ? <InfoTip>{info}</InfoTip> : null}
-      </Stack>
+      <VizHeading title="Model ladder" info={info} />
       <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 1.5 }}>
         RMS divergence from the hand-reasoned surface, per value model. Shorter is a closer fit; the
         drop between rungs is the structure the more expressive model captures.

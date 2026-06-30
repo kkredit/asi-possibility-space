@@ -1,24 +1,10 @@
 import { Box, Stack, Typography } from '@mui/material';
 import type { SensitivityRow } from '@engine/sensitivity';
 import { c, fonts, kindColor, kindLabel } from '@shell/theme';
+import { wrapLabel } from '@viz/text';
 
 interface Props {
   rows: SensitivityRow[];
-}
-
-function wrap(label: string, maxChars = 24, maxLines = 2): string[] {
-  const lines: string[] = [];
-  let current = '';
-  for (const word of label.split(' ')) {
-    const candidate = current ? `${current} ${word}` : word;
-    if (current && candidate.length > maxChars) {
-      lines.push(current);
-      current = word;
-      if (lines.length === maxLines) break;
-    } else current = candidate;
-  }
-  if (current && lines.length < maxLines) lines.push(current);
-  return lines;
 }
 
 /** Tornado chart: EV swing per factor, colored by kind (the "where to act" read-out). */
@@ -48,7 +34,7 @@ export function Tornado({ rows }: Props) {
           const x1 = xOf(Math.min(r.evLow, r.evHigh));
           const x2 = xOf(Math.max(r.evLow, r.evHigh));
           const barW = Math.max(3, x2 - x1);
-          const labelLines = wrap(r.label);
+          const labelLines = wrapLabel(r.label, 24, 2);
           return (
             <g key={r.factorId}>
               <text x={0} y={y + rowH / 2} fill={c.bone} fontSize={13} fontFamily={fonts.display} dominantBaseline="middle">
