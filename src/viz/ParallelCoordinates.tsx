@@ -8,6 +8,25 @@ interface Props {
   factors: Factor[];
 }
 
+/** Greedily wrap a title into lines of at most maxChars, capped at maxLines (ellipsis if over). */
+function wrapTitle(title: string, maxChars = 16, maxLines = 3): string[] {
+  const lines: string[] = [];
+  let current = '';
+  for (const word of title.split(' ')) {
+    const candidate = current ? `${current} ${word}` : word;
+    if (current && candidate.length > maxChars) {
+      lines.push(current);
+      current = word;
+      if (lines.length === maxLines) break;
+    } else {
+      current = candidate;
+    }
+  }
+  if (current && lines.length < maxLines) lines.push(current);
+  else if (current) lines[maxLines - 1] = `${lines[maxLines - 1].replace(/.$/, '')}…`;
+  return lines;
+}
+
 /**
  * Parallel-coordinates plot of the N-dimensional scenario space. One vertical
  * axis per factor (plus a continuous Value axis); each scenario is a polyline
@@ -16,8 +35,8 @@ interface Props {
  */
 export function ParallelCoordinates({ scenarios, factors }: Props) {
   const width = 720;
-  const height = 320;
-  const padding = { top: 28, right: 60, bottom: 56, left: 24 };
+  const height = 360;
+  const padding = { top: 28, right: 60, bottom: 96, left: 24 };
   const plotH = height - padding.top - padding.bottom;
   const axes = [...factors.map((f) => ({ type: 'factor' as const, factor: f })), { type: 'value' as const }];
   const n = axes.length;
@@ -91,12 +110,18 @@ export function ParallelCoordinates({ scenarios, factors }: Props) {
           {/* axis titles */}
           {axes.map((axis, i) => {
             const title = axis.type === 'factor' ? axis.factor.label : 'Value';
-            const words = title.split(' ');
             return (
-              <text key={`t${i}`} x={axisX(i)} y={height - 26} fill="#c9d1d9" fontSize={9} textAnchor="middle">
-                {words.map((w, wi) => (
-                  <tspan key={wi} x={axisX(i)} dy={wi === 0 ? 0 : 10}>
-                    {w}
+              <text
+                key={`t${i}`}
+                x={axisX(i)}
+                y={padding.top + plotH + 16}
+                fill="#c9d1d9"
+                fontSize={9}
+                textAnchor="middle"
+              >
+                {wrapTitle(title).map((line, li) => (
+                  <tspan key={li} x={axisX(i)} dy={li === 0 ? 0 : 10}>
+                    {line}
                   </tspan>
                 ))}
               </text>
