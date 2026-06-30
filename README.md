@@ -28,6 +28,9 @@ pnpm build      # static bundle in dist/ (GitHub Pages ready)
 - **Where to act** — actions ranked by EV gain (the max-EV action), and a sensitivity tornado
   colored by factor kind: green = where to act, gold = where forecasting has the most value of
   information, grey = where situational awareness matters.
+- **Conditions** — *"under what conditions is choice X favorable?"* Pick any factor as a hypothetical
+  lever (e.g. open-source → diffuse vs concentrated); get the net verdict, the share of likely
+  futures that favor it, a crux tornado of which other factor flips the verdict, and a two-way map.
 - **Scenarios** — sortable table of every scenario with its probability, value, and (where authored)
   hand-reasoned narrative.
 - **Evaluators** — the *model ladder*: each value model's RMS divergence from the hand-reasoned
