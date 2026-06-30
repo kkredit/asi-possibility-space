@@ -10,6 +10,8 @@ export interface DiffPoint {
 
 interface Props {
   points: DiffPoint[];
+  /** Label for the x-axis (the comparison model). Defaults to "linear value →". */
+  xLabel?: string;
 }
 
 /**
@@ -17,7 +19,7 @@ interface Props {
  * the diagonal are where careful reasoning disagrees with the simple additive model —
  * the residual is a direct measure of how non-linear the space is.
  */
-export function EvaluatorDiff({ points }: Props) {
+export function EvaluatorDiff({ points, xLabel = 'linear value →' }: Props) {
   const size = 340;
   const pad = 38;
   const plot = size - pad * 2;
@@ -58,7 +60,7 @@ export function EvaluatorDiff({ points }: Props) {
           </circle>
         ))}
         <text x={size / 2} y={size - 6} fill={c.mute} fontSize={11} fontFamily={fonts.display} textAnchor="middle">
-          linear value →
+          {xLabel}
         </text>
         <text x={12} y={size / 2} fill={c.mute} fontSize={11} fontFamily={fonts.display} textAnchor="middle" transform={`rotate(-90 12 ${size / 2})`}>
           hand-reasoned value →

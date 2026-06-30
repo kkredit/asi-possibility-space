@@ -7,8 +7,6 @@ import {
   Select,
   Slider,
   Stack,
-  ToggleButton,
-  ToggleButtonGroup,
   Tooltip,
   Typography,
 } from '@mui/material';
@@ -117,15 +115,25 @@ export function Controls() {
 
       <Box>
         <Typography sx={{ ...monoPct, color: c.faint, mb: 0.75, letterSpacing: '0.04em' }}>EVALUATOR</Typography>
-        <ToggleButtonGroup size="small" exclusive value={evaluatorId} onChange={(_, v) => v && setEvaluator(v)} fullWidth>
-          {evaluators.map((e) => (
-            <ToggleButton key={e.id} value={e.id} sx={{ fontSize: '0.74rem', py: 0.6 }}>
-              <Tooltip title={e.description} arrow>
-                <span>{e.label}</span>
-              </Tooltip>
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
+        <FormControl fullWidth size="small">
+          <Select
+            value={evaluatorId}
+            onChange={(e) => setEvaluator(e.target.value)}
+            sx={{ fontFamily: fonts.display, fontSize: '0.82rem' }}
+            MenuProps={{ slotProps: { paper: { sx: { maxWidth: 340 } } } }}
+          >
+            {evaluators.map((e) => (
+              <MenuItem key={e.id} value={e.id} sx={{ display: 'block', py: 0.9 }}>
+                <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.bone }}>
+                  {e.label}
+                </Typography>
+                <Typography sx={{ fontSize: '0.7rem', color: c.mute, whiteSpace: 'normal', lineHeight: 1.35 }}>
+                  {e.description}
+                </Typography>
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Box>
 
       {KIND_ORDER.map((kind) => {

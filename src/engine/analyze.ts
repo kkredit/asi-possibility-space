@@ -11,7 +11,7 @@ import {
   scenarioProbability,
   type Pins,
 } from '@engine/scenarios';
-import { isReasoned } from '@engine/evaluators';
+import { cachedEvaluator, isReasoned } from '@engine/evaluators';
 import { scalarize, VALUE_DIMENSION_IDS } from '@engine/value';
 
 export interface EvaluatedScenario {
@@ -78,6 +78,51 @@ export function analyze(
   }
 
   return { scenarios, evVector, ev, totalProbability };
+}
+
+/**
+ * How far an evaluator sits from the hand-reasoned (cached) surface, measured as
+ * root-mean-square divergence over every cell the cached evaluator actually has an
+ * opinion on. Reported both in value-vector space (weight-independent, the quantity
+ * the fitted models minimise) and in scalar space under the supplied weights (what
+ * the EV the user sees actually depends on). This is the yardstick behind the
+ * "model ladder": fit each evaluator, see how much of the surface it can't capture.
+ */
+export interface EvaluatorFit {
+  evaluatorId: string;
+  label: string;
+  /** RMS over the four value dimensions — independent of weights. */
+  vectorRms: number;
+  /** RMS of the scalarised value under the current weights. */
+  scalarRms: number;
+  /** Number of cells compared (cells the cached evaluator has reasoned). */
+  cells: number;
+}
+
+export function evaluatorFit(
+  dataset: Dataset,
+  evaluator: Evaluator,
+  weights: ValueVector,
+): EvaluatorFit {
+  let vsse = 0;
+  let ssse = 0;
+  let cells = 0;
+  for (const scenario of enumerateScenarios(dataset.factors)) {
+    if (!isReasoned(scenario, dataset)) continue;
+    const a = evaluator.evaluate(scenario, dataset)?.value ?? ZERO;
+    const b = cachedEvaluator.evaluate(scenario, dataset)?.value ?? ZERO;
+    cells++;
+    for (const id of VALUE_DIMENSION_IDS) vsse += (a[id] - b[id]) ** 2;
+    ssse += (scalarize(a, weights) - scalarize(b, weights)) ** 2;
+  }
+  const n = Math.max(1, cells);
+  return {
+    evaluatorId: evaluator.id,
+    label: evaluator.label,
+    vectorRms: Math.sqrt(vsse / (n * VALUE_DIMENSION_IDS.length)),
+    scalarRms: Math.sqrt(ssse / n),
+    cells,
+  };
 }
 
 /** Bucket scenarios by scalar value into a histogram for the EV distribution. */
