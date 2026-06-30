@@ -36,18 +36,34 @@ const KIND_HINT: Record<FactorKind, string> = {
 const monoPct = { fontFamily: fonts.mono, fontSize: '0.72rem' };
 
 function FactorControl({ factor }: { factor: Factor }) {
+  const netMode = useBeliefs((s) => s.probabilityModel === 'bayesNet');
   const credences = useBeliefs((s) => s.credences[factor.id]);
+  const bayesMarginals = useBeliefs((s) => s.bayesMarginals[factor.id]);
+  const touched = useBeliefs((s) => netMode && !!s.targets[factor.id]);
   const pin = useBeliefs((s) => s.pins[factor.id]);
   const setCredence = useBeliefs((s) => s.setCredence);
+  const setMarginalTarget = useBeliefs((s) => s.setMarginalTarget);
   const setPin = useBeliefs((s) => s.setPin);
+
+  // In Bayes-net mode a slider shows the reconciled marginal and edits it as soft
+  // evidence (re-raking the joint); in independence mode it edits the credence directly.
+  const dist = (netMode ? bayesMarginals : credences) ?? credences;
+  const onSlide = netMode ? setMarginalTarget : setCredence;
 
   return (
     <Box sx={{ mb: 1.75 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
         <Tooltip title={factor.description} arrow placement="top-start">
-          <Typography sx={{ fontFamily: fonts.display, fontWeight: 500, fontSize: '0.84rem', color: c.bone }}>
-            {factor.label}
-          </Typography>
+          <Stack direction="row" spacing={0.75} alignItems="center">
+            <Typography sx={{ fontFamily: fonts.display, fontWeight: 500, fontSize: '0.84rem', color: c.bone }}>
+              {factor.label}
+            </Typography>
+            {netMode ? (
+              <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.6rem', color: touched ? c.teal : c.faint, letterSpacing: '0.04em' }}>
+                {touched ? 'HELD' : 'FLOAT'}
+              </Typography>
+            ) : null}
+          </Stack>
         </Tooltip>
         <FormControl size="small" sx={{ minWidth: 88 }}>
           <Select
@@ -80,13 +96,13 @@ function FactorControl({ factor }: { factor: Factor }) {
             min={0}
             max={1}
             step={0.01}
-            value={credences[st.id]}
-            onChange={(_, v) => setCredence(factor.id, st.id, v as number)}
+            value={dist[st.id] ?? 0}
+            onChange={(_, v) => onSlide(factor.id, st.id, v as number)}
             sx={{ flex: 1 }}
             disabled={!!pin}
           />
-          <Typography sx={{ ...monoPct, width: 34, textAlign: 'right', color: c.bone }}>
-            {Math.round(credences[st.id] * 100)}
+          <Typography sx={{ ...monoPct, width: 34, textAlign: 'right', color: netMode && touched ? c.teal : c.bone }}>
+            {Math.round((dist[st.id] ?? 0) * 100)}
           </Typography>
         </Stack>
       ))}
@@ -99,7 +115,10 @@ export function Controls() {
   const setWeight = useBeliefs((s) => s.setWeight);
   const evaluatorId = useBeliefs((s) => s.evaluatorId);
   const setEvaluator = useBeliefs((s) => s.setEvaluator);
+  const probabilityModel = useBeliefs((s) => s.probabilityModel);
+  const setProbabilityModel = useBeliefs((s) => s.setProbabilityModel);
   const reset = useBeliefs((s) => s.reset);
+  const netMode = probabilityModel === 'bayesNet';
 
   return (
     <Stack spacing={2.25}>
@@ -140,11 +159,47 @@ export function Controls() {
       </Box>
 
       <Box>
+        <Typography sx={{ ...monoPct, color: c.faint, mb: 0.75, letterSpacing: '0.04em' }}>PROBABILITY MODEL</Typography>
+        <FormControl fullWidth size="small">
+          <Select
+            value={probabilityModel}
+            onChange={(e) => setProbabilityModel(e.target.value as 'independence' | 'bayesNet')}
+            sx={{ fontFamily: fonts.display, fontSize: '0.82rem' }}
+            MenuProps={{ slotProps: { paper: { sx: { maxWidth: 340 } } } }}
+          >
+            <MenuItem value="independence" sx={{ display: 'block', py: 0.9 }}>
+              <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.bone }}>Independence + couplings</Typography>
+              <Typography sx={{ fontSize: '0.7rem', color: c.mute, whiteSpace: 'normal', lineHeight: 1.35 }}>
+                Factors independent, with a few hand-set dependency corrections. Each slider is a free marginal.
+              </Typography>
+            </MenuItem>
+            <MenuItem value="bayesNet" sx={{ display: 'block', py: 0.9 }}>
+              <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.bone }}>Bayes net (soft evidence)</Typography>
+              <Typography sx={{ fontSize: '0.7rem', color: c.mute, whiteSpace: 'normal', lineHeight: 1.35 }}>
+                A DAG of relationships. Slide any factor and the untouched ones re-rake to stay consistent.
+              </Typography>
+            </MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
+      <Box>
         <Typography sx={{ ...monoPct, color: c.faint, mb: 0.4, letterSpacing: '0.04em' }}>PROBABILITIES</Typography>
         <Typography variant="caption" sx={{ color: c.mute, display: 'block', lineHeight: 1.4 }}>
-          For each factor, the chance of each state <b>at ASI onset</b> (the threshold where value
-          locks in). Objective factors are the exception — there the slider is your current confidence
-          a timeless property holds.
+          {netMode ? (
+            <>
+              Each slider is the chance of a state <b>at ASI onset</b>. Drag one and it’s held (
+              <Box component="span" sx={{ color: c.teal, fontFamily: fonts.mono, fontSize: '0.9em' }}>HELD</Box>) as soft
+              evidence; the <Box component="span" sx={{ fontFamily: fonts.mono, fontSize: '0.9em' }}>FLOAT</Box> factors
+              re-rake to stay consistent with the net. Reset releases everything.
+            </>
+          ) : (
+            <>
+              For each factor, the chance of each state <b>at ASI onset</b> (the threshold where value
+              locks in). Objective factors are the exception — there the slider is your current confidence
+              a timeless property holds.
+            </>
+          )}
         </Typography>
       </Box>
 

@@ -3,6 +3,7 @@ import { Box, Container, FormControl, MenuItem, Paper, Select, Stack, Tab, Tabs,
 import { dataset } from '@model/dataset';
 import {
   analyze,
+  applyAction,
   cachedEvaluator,
   conditionalContrast,
   contrastGrid,
@@ -13,6 +14,7 @@ import {
   getEvaluator,
   linearEvaluator,
   rankActions,
+  reconcileJoint,
   scalarize,
   sensitivity,
 } from '@engine/index';
@@ -72,23 +74,45 @@ export function App() {
   const weights = useBeliefs((s) => s.weights);
   const evaluatorId = useBeliefs((s) => s.evaluatorId);
   const pins = useBeliefs((s) => s.pins);
+  const probabilityModel = useBeliefs((s) => s.probabilityModel);
+  const bayesProbability = useBeliefs((s) => s.bayesProbability);
+  const targets = useBeliefs((s) => s.targets);
+  const bayesMarginals = useBeliefs((s) => s.bayesMarginals);
   const [tab, setTab] = useState(0);
 
   const evaluator = getEvaluator(evaluatorId);
+  // In Bayes-net mode the reconciled joint drives every analysis (it can't be
+  // factored back into independent marginals); in independence mode it's undefined
+  // and analyze falls back to the credences × couplings path.
+  const jointProbability = probabilityModel === 'bayesNet' ? bayesProbability ?? undefined : undefined;
+  const netMode = probabilityModel === 'bayesNet';
 
   const analysis = useMemo(
-    () => analyze(dataset, credences, weights, evaluator, pins),
-    [credences, weights, evaluator, pins],
+    () => analyze(dataset, credences, weights, evaluator, pins, undefined, jointProbability),
+    [credences, weights, evaluator, pins, jointProbability],
   );
   const bins = useMemo(() => distribution(analysis.scenarios), [analysis]);
   const sens = useMemo(
-    () => sensitivity(dataset, credences, weights, evaluator, pins),
-    [credences, weights, evaluator, pins],
+    () => sensitivity(dataset, credences, weights, evaluator, pins, jointProbability),
+    [credences, weights, evaluator, pins, jointProbability],
   );
-  const actions = useMemo(
-    () => rankActions(dataset, credences, weights, evaluator, pins),
-    [credences, weights, evaluator, pins],
-  );
+  const actions = useMemo(() => {
+    if (!netMode || !dataset.bayesNet) return rankActions(dataset, credences, weights, evaluator, pins);
+    // Option A: an action asserts a higher target marginal on its factor, then the
+    // joint re-rakes, so the action's effect propagates through the net.
+    const baselineEv = analysis.ev;
+    const ranked = dataset.actions
+      .map((action) => {
+        const shifted = applyAction(bayesMarginals, action);
+        const newTargets = { ...targets };
+        for (const d of action.deltas) newTargets[d.factor] = shifted[d.factor];
+        const r = reconcileJoint(dataset.bayesNet!, dataset.factors, dataset.baselineCredences, newTargets);
+        const res = analyze(dataset, credences, weights, evaluator, pins, undefined, r.probability);
+        return { action, ev: res.ev, evGain: res.ev - baselineEv, evVector: res.evVector };
+      })
+      .sort((a, b) => b.evGain - a.evGain);
+    return { baselineEv, ranked };
+  }, [netMode, credences, weights, evaluator, pins, targets, bayesMarginals, analysis]);
   // The scatter plots a comparison model (x) against the hand-reasoned surface (y).
   // Comparing cached-vs-cached is a useless diagonal, so when cached is selected we
   // fall back to the hand-set linear model (the original default view).
@@ -154,8 +178,8 @@ export function App() {
     setDecision((d) => ({ ...d, baseline: sid, toward: d.toward === sid ? decisionFactor.states.find((s) => s.id !== sid)!.id : d.toward }));
 
   const contrast = useMemo(
-    () => conditionalContrast(dataset, credences, weights, evaluator, decision, pins),
-    [credences, weights, evaluator, decision, pins],
+    () => conditionalContrast(dataset, credences, weights, evaluator, decision, pins, jointProbability),
+    [credences, weights, evaluator, decision, pins, jointProbability],
   );
 
   // Two-way map: default to the top two cruxes (most verdict-moving factors).
@@ -164,8 +188,8 @@ export function App() {
     return [ids[0], ids[1]] as [string | undefined, string | undefined];
   }, [contrast]);
   const grid = useMemo(
-    () => (hmF1 && hmF2 ? contrastGrid(dataset, credences, weights, evaluator, decision, hmF1, hmF2, pins) : null),
-    [credences, weights, evaluator, decision, pins, hmF1, hmF2],
+    () => (hmF1 && hmF2 ? contrastGrid(dataset, credences, weights, evaluator, decision, hmF1, hmF2, pins, jointProbability) : null),
+    [credences, weights, evaluator, decision, pins, hmF1, hmF2, jointProbability],
   );
   const labelOf = (fid: string) => dataset.factors.find((f) => f.id === fid)?.label ?? fid;
 

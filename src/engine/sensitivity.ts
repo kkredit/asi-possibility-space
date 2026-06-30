@@ -1,4 +1,4 @@
-import type { Credences, Dataset, Evaluator, FactorKind, ValueVector } from '@model/types';
+import type { Credences, Dataset, Evaluator, FactorKind, Scenario, ValueVector } from '@model/types';
 import { analyze } from '@engine/analyze';
 import type { Pins } from '@engine/scenarios';
 
@@ -29,6 +29,9 @@ export function sensitivity(
   weights: ValueVector,
   evaluator: Evaluator,
   pins: Pins = {},
+  /** Optional joint (e.g. the soft-evidence reconciled joint). Forwarded to analyze,
+   *  which conditions it on each pinned state. */
+  jointProbability?: (s: Scenario) => number,
 ): SensitivityRow[] {
   const rows: SensitivityRow[] = [];
 
@@ -44,7 +47,7 @@ export function sensitivity(
       const ev = analyze(dataset, credences, weights, evaluator, {
         ...pins,
         [factor.id]: state.id,
-      }).ev;
+      }, undefined, jointProbability).ev;
       if (ev > evHigh) {
         evHigh = ev;
         bestStateId = state.id;

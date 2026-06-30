@@ -176,20 +176,26 @@ under the net vs. **0.116** under independence×couplings — a small, explainab
 `validateBayesNet` checks acyclicity and CPT completeness/normalisation;
 [`bayesnet.test.ts`](../src/engine/bayesnet.test.ts) pins all of this.
 
-**What remains before it becomes the default** (the genuinely hard parts):
-- **The child-slider question.** Under the net a slider on a *child* factor is no
-  longer a free marginal — its marginal is implied by its parents' CPTs. The UI needs
-  to decide what a child slider *does*: show it read-only (derived), treat an edit as
-  soft evidence (a Bayesian update), or as a do-operator (intervention that cuts the
-  parent edges). Until that's designed, the net stays opt-in so the sliders keep their
-  current, simple meaning.
-- **A probability-model toggle** in the shell (independence×couplings ↔ Bayes net),
-  parallel to the evaluator selector, plus surfacing the implied child marginals.
+**The child-slider question is resolved — soft evidence by raking.** A probability-
+model toggle ships in the Beliefs panel (independence×couplings ↔ Bayes net). In
+net mode every slider is a *target marginal*: drag one and it's **HELD** while the
+untouched (**FLOAT**) factors re-rake to stay consistent with the net's relationships,
+via Iterative Proportional Fitting ([`softevidence.ts`](../src/engine/softevidence.ts)).
+The net's CPTs supply the associations; your touched sliders supply the marginals; IPF
+returns the minimum-KL joint matching both. Sliding alignment-in-time up raises slow
+takeoff and easy tractability — evidence flows to the parents. The reconciled joint
+drives every tab (EV, Landscape, sensitivity, Conditions) via `analyze`'s
+`jointProbability` override; actions re-rake (an action asserts a higher target on its
+factor and the effect propagates through the net).
+
+**What still remains:**
 - **Pin semantics.** `analyze`'s probabilities sum to the pinned mass `P(pins)` (EV
-  under pins is mass-weighted, not conditional). The net path mirrors this exactly
-  today; if we want true conditional EVs under pins, that normalisation choice should
-  be made for *both* models together.
-- Then the `Coupling` type can be retired (or kept as compile-to-CPT sugar).
+  under pins is mass-weighted, not conditional). The net path mirrors this exactly; if
+  we want true conditional EVs under pins, that normalisation choice should be made for
+  *both* models together.
+- **Surfacing the DAG** in the UI (which factor floats because of which parent) would
+  make the raking legible rather than surprising.
+- The `Coupling` type can eventually be retired (or kept as compile-to-CPT sugar).
 
 ---
 

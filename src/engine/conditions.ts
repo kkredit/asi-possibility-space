@@ -4,6 +4,7 @@ import type {
   Evaluator,
   FactorId,
   FactorKind,
+  Scenario,
   StateId,
 } from '@model/types';
 import { analyze } from '@engine/analyze';
@@ -103,8 +104,9 @@ function groupByRest(
   evaluator: Evaluator,
   decision: Decision,
   given: Pins,
+  jointProbability?: (s: Scenario) => number,
 ): RestGroup[] {
-  const scenarios = analyze(dataset, credences, weights, evaluator, given).scenarios;
+  const scenarios = analyze(dataset, credences, weights, evaluator, given, undefined, jointProbability).scenarios;
   const map = new Map<string, { rest: Record<FactorId, StateId>; prob: number; a?: number; b?: number }>();
   for (const s of scenarios) {
     const rest = { ...s.scenario };
@@ -146,12 +148,13 @@ export function conditionalContrast(
   evaluator: Evaluator,
   decision: Decision,
   given: Pins = {},
+  jointProbability?: (s: Scenario) => number,
 ): ConditionalContrast {
   // The decision factor is the free variable, so any `given` pin on it is dropped.
   const base: Pins = { ...given };
   delete base[decision.factor];
 
-  const groups = groupByRest(dataset, credences, weights, evaluator, decision, base);
+  const groups = groupByRest(dataset, credences, weights, evaluator, decision, base, jointProbability);
   const overall = summarize(groups);
 
   // Cruxes: every other free factor, with the contrast's mean delta conditioned on
@@ -230,6 +233,7 @@ export function contrastGrid(
   f1Id: FactorId,
   f2Id: FactorId,
   given: Pins = {},
+  jointProbability?: (s: Scenario) => number,
 ): ContrastGrid | null {
   const f1 = dataset.factors.find((f) => f.id === f1Id);
   const f2 = dataset.factors.find((f) => f.id === f2Id);
@@ -238,7 +242,7 @@ export function contrastGrid(
   const base: Pins = { ...given };
   delete base[decision.factor];
 
-  const groups = groupByRest(dataset, credences, weights, evaluator, decision, base);
+  const groups = groupByRest(dataset, credences, weights, evaluator, decision, base, jointProbability);
   const cells: number[][] = [];
   let maxAbs = 0;
   for (const s1 of f1.states) {
