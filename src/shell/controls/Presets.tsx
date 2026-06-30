@@ -15,8 +15,19 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import type { Preset } from '@model/types';
 import { presets } from '@model/presets';
 import { dataset } from '@model/dataset';
+import { analyze, cachedEvaluator } from '@engine/index';
 import { useBeliefs } from '@shell/store';
-import { c, fonts } from '@shell/theme';
+import { c, fonts, valueColor } from '@shell/theme';
+
+/** Each preset's own expected value (its credences + its weights), for color-coding. */
+const presetEv: Record<string, number> = Object.fromEntries(
+  presets.map((p) => [
+    p.id,
+    analyze(dataset, p.credences, p.weights ?? dataset.defaultWeights, cachedEvaluator).ev,
+  ]),
+);
+
+const fmtEv = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}`;
 
 const sectionLabel = {
   fontFamily: fonts.display,
@@ -43,10 +54,13 @@ const labs = presets.filter((p) => p.category === 'lab');
 function presetItem(p: Preset) {
   return (
     <MenuItem key={p.id} value={p.id} sx={{ fontSize: '0.82rem' }}>
-      <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: accuracyColor(p.accuracy), mr: 1, flexShrink: 0 }} />
       <Box component="span" sx={{ flex: 1 }}>{displayName(p)}</Box>
-      <Box component="span" sx={{ fontFamily: fonts.mono, fontSize: '0.68rem', color: c.faint, ml: 1.5 }}>
-        {Math.round(p.accuracy * 100)}%
+      <Box
+        component="span"
+        title={`expected value ${fmtEv(presetEv[p.id])}`}
+        sx={{ fontFamily: fonts.mono, fontSize: '0.74rem', color: valueColor(presetEv[p.id]), ml: 1.5 }}
+      >
+        {fmtEv(presetEv[p.id])}
       </Box>
     </MenuItem>
   );
@@ -75,7 +89,8 @@ export function Presets() {
     <Box>
       <Typography sx={{ ...sectionLabel, mb: 0.25 }}>Belief presets</Typography>
       <Typography sx={{ fontSize: '0.72rem', color: c.faint, mb: 1 }}>
-        load a public figure's or lab's cited views · % = how directly their record pins these factors
+        load a cited public view · value = their expected value (red extinction → teal flourishing) ·
+        mapping accuracy shown once selected
       </Typography>
 
       <FormControl fullWidth size="small">

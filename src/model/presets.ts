@@ -606,4 +606,99 @@ export const presets: Preset[] = [
       },
     ],
   },
+
+  {
+    id: 'xai',
+    name: 'xAI',
+    category: 'lab',
+    role: 'xAI · Elon Musk',
+    summary:
+      'AI is a genuine existential risk (Musk cites a ~10–20% chance of annihilation) and superintelligence is imminent — but the ~80% good-outcome upside is worth it; the safety bet is a "maximally truth-seeking" AI rather than slowing down.',
+    pdoom: '~10–20% annihilation (paired with ~80% good)',
+    accuracy: 0.55,
+    accuracyNote:
+      'Musk gives explicit, repeated numbers (the 10–20% / 80% framing) but they are erratic and casual rather than from a risk model; offense/defense, concentration and control are inferred.',
+    credences: {
+      orthogonality: { holds: 0.75, fails: 0.25 },
+      tractability: { easy: 0.15, hard: 0.65, nearImpossible: 0.2 },
+      offenseDefense: { offense: 0.45, balanced: 0.3, defense: 0.25 },
+      takeoff: { fast: 0.7, medium: 0.25, slow: 0.05 },
+      powerConcentration: { concentrated: 0.65, diffuse: 0.35 },
+      alignmentInTime: { yes: 0.55, no: 0.45 },
+      controlDeployed: { yes: 0.45, no: 0.55 },
+    },
+    weights: { survival: 0.9, agency: 0.7, suffering: 0.4, flourishing: 0.85 },
+    factorNotes: {
+      takeoff: `"We're in the hard takeoff. Right now"; AI "smarter than all humans combined" by 2029.`,
+      orthogonality: `Takes misalignment seriously ("summoning the demon"), softened by his bet that a "maximally curious" AI converges on being pro-humanity.`,
+      controlDeployed: `Doubts containment; bets on intrinsic curiosity/truth-seeking rather than imposed control (inferred).`,
+      alignmentInTime: `His ~80% good-outcome optimism vs. a near-term takeoff timeline — close to even (inferred).`,
+      offenseDefense: `"more dangerous than nukes" / "biggest existential threat" — offense-leaning (inferred).`,
+    },
+    citations: [
+      {
+        label: 'Musk: ~10–20% bad / 80% good (Abundance Summit, reported)',
+        url: 'https://analyticsindiamag.com/ai-news-updates/elon-musk-predicts-ai-driven-age-of-abundance-warns-of-existential-crisis-and-potential-annihilation/',
+        quote: `"there's a 10% or 20% probability of something terrible happening but the glass is 80% full."`,
+      },
+      {
+        label: 'Musk: "summoning the demon" (CBS News)',
+        url: 'https://www.cbsnews.com/news/elon-musk-artificial-intelligence-is-like-summoning-the-demon/',
+        quote: `"With artificial intelligence, we are summoning the demon ... potentially more dangerous than nukes."`,
+      },
+      {
+        label: 'Musk: smarter than all humans by 2029 (Fox Business)',
+        url: 'https://www.foxbusiness.com/media/elon-musk-predicts-ai-will-likely-smarter-all-humans-combined-2029',
+        quote: `"By 2029, AI is probably smarter than all humans combined."`,
+      },
+    ],
+  },
+
+  {
+    id: 'meta',
+    name: 'Meta',
+    category: 'lab',
+    role: 'Meta · Mark Zuckerberg (CEO) / FAIR',
+    summary:
+      'AI is overwhelmingly beneficial and the dominant danger is concentration in a few closed labs, so open release makes the world safer; existential "doomsday" scenarios are downplayed — though by 2025 Meta reserves the right to withhold "critical-risk" models.',
+    pdoom: 'no number — downplays existential "doomsday" risk',
+    accuracy: 0.35,
+    accuracyNote:
+      'Rhetorical/directional posture (open source is safer; doom is "irresponsible") with no calibrated probabilities; the 2025 Frontier AI Framework adds risk tiers but no numbers, and open-everything rhetoric sits in tension with its withhold-on-critical-risk clause.',
+    credences: {
+      orthogonality: { holds: 0.25, fails: 0.75 },
+      tractability: { easy: 0.55, hard: 0.4, nearImpossible: 0.05 },
+      offenseDefense: { offense: 0.15, balanced: 0.3, defense: 0.55 },
+      takeoff: { fast: 0.15, medium: 0.35, slow: 0.5 },
+      powerConcentration: { concentrated: 0.15, diffuse: 0.85 },
+      alignmentInTime: { yes: 0.7, no: 0.3 },
+      controlDeployed: { yes: 0.65, no: 0.35 },
+    },
+    weights: { survival: 0.55, agency: 0.95, suffering: 0.45, flourishing: 0.95 },
+    factorNotes: {
+      powerConcentration: `The central thesis: open source ensures "power isn't concentrated in the hands of a small number of companies".`,
+      offenseDefense: `"larger actors can check the power of smaller bad actors ... promote security and stability across society."`,
+      tractability: `"open source should be significantly safer since the systems are more transparent and can be widely scrutinized."`,
+      orthogonality: `Groups self-replication / hyper-optimization among "truly catastrophic science fiction scenarios" — treated as remote (leans fails).`,
+      takeoff: `Long-running dismissal of rapid "doomsday" self-improvement; gradualist optimism (leans slow, inferred).`,
+      controlDeployed: `2025 Frontier AI Framework commits to "stop development" of unmitigable critical-risk models — but mechanisms are unspecified and open weights cannot be recalled.`,
+    },
+    citations: [
+      {
+        label: 'Open Source AI Is the Path Forward (Zuckerberg, Meta, 2024)',
+        url: 'https://about.fb.com/news/2024/07/open-source-ai-is-the-path-forward/',
+        quote: `"open source should be significantly safer since the systems are more transparent and can be widely scrutinized."`,
+      },
+      {
+        label: 'Open-source letter — anti-concentration thesis',
+        url: 'https://about.fb.com/news/2024/07/open-source-ai-is-the-path-forward/',
+        quote: `"power isn't concentrated in the hands of a small number of companies."`,
+      },
+      {
+        label: 'Meta may withhold "too risky" models (TechCrunch, 2025)',
+        url: 'https://techcrunch.com/2025/02/03/meta-says-it-may-stop-development-of-ai-systems-it-deems-too-risky/',
+        quote: `Meta will "stop development until the system can be made less dangerous" for critical-risk models whose catastrophic outcome "cannot be mitigated".`,
+      },
+    ],
+  },
 ];
