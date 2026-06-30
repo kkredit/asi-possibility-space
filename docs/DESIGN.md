@@ -34,16 +34,27 @@ A **factor** is one key question. Each factor has **≤ 3 mutually exclusive sta
 the scenario space stays cacheable — see §4). You assign a **credence** to each state (the states'
 credences sum to 1).
 
-Every factor is tagged with one of **three kinds** — this distinction is load-bearing, because it
-determines whether and how you can act on it:
+Every factor is tagged with one of **three kinds**. The taxonomy falls out of two
+questions: **(1) could this be otherwise in another universe?** and, if so, **(2) is the
+die already cast or still rolling?**
 
-| Kind | Meaning | What you can do about it | Example |
-|------|---------|--------------------------|---------|
-| **Objective** | A fact about reality. Debated, but not contingent on us. | Only revise your *credence*. Actions can't move it. High sensitivity here ⇒ high **value of information** (forecast/research harder). | Orthogonality Thesis; alignment tractability *in principle*; offense/defense balance of ASI conflict. |
-| **Contingent** | A fact about the situation we happen to be in. Fixed for the analysis horizon, but not a law of nature. | Mostly fixed; track it. High sensitivity ⇒ **situational awareness** matters. | Power concentration among frontier actors; race structure. |
-| **Influenceable** | Something our choices can move going forward. | **Actions attach here.** High sensitivity ⇒ **this is where to act.** | Whether alignment is solved *in time*; whether control is deployed; governance/coordination. |
+| Kind | Could it be otherwise? | Settled or open? | How you reduce uncertainty / act | Example |
+|------|------|------|------|---------|
+| **Objective** | **No** — true or false the same way in every possible world (nature, logic, the maths of intelligence). | n/a — unchangeable anywhere. | You can only *discover* which way it is, by **research**. High sensitivity ⇒ **value of information**. | Orthogonality Thesis; alignment tractability *in principle*; offense/defense balance at ASI scale. |
+| **Contingent** | **Yes** | **Settled** in our world by history and timing — the hand we've been dealt. | You can't move it now; you can only *find out* which world you're in, by **observation**. High sensitivity ⇒ **situational awareness**. | Power concentration among frontier actors; race structure. |
+| **Influenceable** | **Yes** | **Still open** — the relevant choices are ahead of us. | Your **actions** move it. High sensitivity ⇒ **this is where to act**. | Whether alignment is solved *in time*; whether control is deployed; governance/coordination. |
 
-This taxonomy is exactly what makes "where can we exert positive influence?" fall out of the model.
+The two "Yes — could be otherwise" rows are the subtle pair. **Contingent and
+influenceable are both contingent in the philosophical sense** — neither is a law of
+nature. They differ *only in timing*: contingent is the already-determined **baseline**;
+influenceable is **future movement** still open to us. A factor is influenceable only
+insofar as our forward choices, rather than past events, dominate its outcome; once the
+outcome is effectively locked by what has already happened, it is contingent. (Objective
+is the genuinely different kind — invariant across all worlds, never movable, only
+knowable.)
+
+This is exactly what makes "where can we exert positive influence?" fall out of the
+model: it's the *influenceable* column, and only that column, that actions attach to.
 
 ### 2.2 Scenarios
 

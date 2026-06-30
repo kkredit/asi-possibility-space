@@ -56,9 +56,9 @@ export const kindColor: Record<string, string> = {
 };
 
 export const kindLabel: Record<string, string> = {
-  objective: 'Objective — forecast harder (value of info)',
-  contingent: 'Contingent — situational awareness',
-  influenceable: 'Influenceable — where to act',
+  objective: 'Objective — true in any world; reduce by research (value of info)',
+  contingent: 'Contingent — settled in our world; reduce by observation (awareness)',
+  influenceable: 'Influenceable — still open; move it by acting',
 };
 
 export const theme = createTheme({

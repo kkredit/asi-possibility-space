@@ -20,14 +20,17 @@ import { c, fonts, kindColor } from '@shell/theme';
 
 const KIND_ORDER: FactorKind[] = ['objective', 'contingent', 'influenceable'];
 const KIND_HEADING: Record<FactorKind, string> = {
-  objective: 'Objective · facts about reality',
-  contingent: 'Contingent · our situation',
-  influenceable: 'Influenceable · actions attach here',
+  objective: 'Objective · true in any universe',
+  contingent: 'Contingent · settled baseline of our world',
+  influenceable: 'Influenceable · still open to our choices',
 };
 const KIND_HINT: Record<FactorKind, string> = {
-  objective: 'You can only revise your credence. High sensitivity here means forecasting has high value of information.',
-  contingent: 'Roughly fixed for the analysis horizon — track it.',
-  influenceable: 'Your choices can move these. This is where actions attach.',
+  objective:
+    'Could not be otherwise in any universe — a fact of nature or logic. You can’t change it, only discover which way it is, by research. High sensitivity ⇒ value of information.',
+  contingent:
+    'Could have been otherwise, but it’s already settled in our world by how things have played out. You can’t move it now, only find out which world you’re in. High sensitivity ⇒ situational awareness.',
+  influenceable:
+    'Could be otherwise, and the choices are still ahead of us — your actions move it. Differs from contingent only in timing: future movement, not settled baseline. High sensitivity ⇒ where to act.',
 };
 
 const monoPct = { fontFamily: fonts.mono, fontSize: '0.72rem' };

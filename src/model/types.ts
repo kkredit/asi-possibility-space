@@ -1,12 +1,28 @@
 // The data store's type vocabulary. Pure types — no logic, no React.
 
 /**
- * Three fundamentally different kinds of input. This distinction is the spine of
- * the tool: it determines whether and how you can act on a factor.
- *  - objective:     a fact about reality. You can only revise your credence.
- *                   High EV-sensitivity here => high value of information.
- *  - contingent:    a fact about the situation we're in. ~Fixed; track it.
- *  - influenceable: something choices can move. Actions attach here.
+ * Three kinds of input, separated by two questions: (1) could this be otherwise in
+ * another universe? and (2) if so, is the die already cast or still rolling? The
+ * kind is the spine of the tool — it fixes whether you can act on a factor and, when
+ * you can't, how you reduce your uncertainty about it.
+ *
+ *  - objective:     true or false in principle in EVERY possible world — a matter of
+ *                   nature, logic, or the mathematics of intelligence and alignment.
+ *                   Unchangeable in any universe; you only DISCOVER which way it is,
+ *                   by reasoning and research. High EV-sensitivity => value of
+ *                   information (study the problem harder).
+ *  - contingent:    could have been otherwise, but in OUR world it is already settled
+ *                   by history and timing — the hand we've been dealt. Unchangeable
+ *                   now; you only FIND OUT which world you're in, by observing
+ *                   reality. High sensitivity => situational awareness (read the board).
+ *  - influenceable: could be otherwise AND the relevant choices are still ahead of
+ *                   us, so our actions MOVE it. High sensitivity => act.
+ *
+ * Contingent and influenceable are BOTH contingent in the philosophical sense —
+ * neither is a law of nature. The line between them is purely temporal: contingent
+ * is the already-determined baseline; influenceable is what remains open to our
+ * forward choices. A factor belongs in `influenceable` only insofar as future
+ * action, not past events, dominates its outcome — otherwise it is `contingent`.
  */
 export type FactorKind = 'objective' | 'contingent' | 'influenceable';
 

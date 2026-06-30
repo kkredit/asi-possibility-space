@@ -89,15 +89,22 @@ A `Factor` ([types.ts:23](src/model/types.ts)):
 - **≤ 3 states is a hard cap.** It keeps the scenario space small enough to
   enumerate *and* hand-author every cell (cacheability). Today's 7 factors give
   `2·3·3·3·2·2·2 = 432` scenarios; more states explode that combinatorially.
-- The three `kind`s are the spine of the tool — they decide how you can act on a
-  factor and how its sensitivity is interpreted:
-  - **`objective`** — a fact about reality you can only revise your *credence*
-    about. High EV-sensitivity here = high **value of information** (gold in the
-    tornado). Actions may **not** target objective factors.
-  - **`contingent`** — a fact about the situation; roughly fixed, you *track* it.
-    Sensitivity here = where **situational awareness** matters (grey).
-  - **`influenceable`** — something choices can move. **Actions attach here**
-    (green = "where to act").
+- The three `kind`s are the spine of the tool. They split on two questions: *could
+  this be otherwise in another universe?* and, if so, *is the die already cast or
+  still rolling?* (Full definition in [types.ts](src/model/types.ts) `FactorKind`.)
+  - **`objective`** — true/false the same way in *every* possible world (nature,
+    logic, the maths of intelligence). Unchangeable anywhere; you only discover it,
+    by research. High sensitivity = **value of information** (gold). Actions may
+    **not** target objective factors.
+  - **`contingent`** — could be otherwise, but already *settled* in our world by
+    history/timing. You can't move it; you find out which world you're in. High
+    sensitivity = **situational awareness** (grey).
+  - **`influenceable`** — could be otherwise, and the choices are *still ahead of
+    us*. **Actions attach here** (green = "where to act").
+  - ⚠️ Contingent vs. influenceable is **purely temporal** — settled baseline vs.
+    future movement, *not* "fact vs. choice." Both are philosophically contingent.
+    Classify a factor `influenceable` only when forward action, not past events,
+    dominates its outcome.
 
 ### baselineCredences
 
