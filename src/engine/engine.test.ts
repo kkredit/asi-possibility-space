@@ -15,6 +15,38 @@ import {
   sensitivity,
 } from '@engine/index';
 
+describe('dataset integrity (cached cells)', () => {
+  const validState = (fid: string, sid: string) =>
+    dataset.factors.find((f) => f.id === fid)?.states.some((s) => s.id === sid);
+
+  it('has no duplicate scenario keys', () => {
+    const keys = dataset.cachedOutcomes.map((c) => scenarioKey(c.scenario));
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  it('every cached scenario uses real factor/state ids for all factors', () => {
+    for (const c of dataset.cachedOutcomes) {
+      for (const f of dataset.factors) {
+        expect(validState(f.id, c.scenario[f.id])).toBe(true);
+      }
+    }
+  });
+
+  it('every cached value is within [-1, 1]', () => {
+    for (const c of dataset.cachedOutcomes) {
+      for (const v of Object.values(c.outcome.value)) {
+        expect(v).toBeGreaterThanOrEqual(-1);
+        expect(v).toBeLessThanOrEqual(1);
+      }
+    }
+  });
+
+  it('covers a substantial share of the 144-scenario space', () => {
+    // informational: current authored coverage
+    expect(dataset.cachedOutcomes.length).toBeGreaterThanOrEqual(50);
+  });
+});
+
 describe('scenario enumeration', () => {
   it('produces the full cross-product (2·3·3·2·2·2 = 144)', () => {
     expect(enumerateScenarios(dataset.factors)).toHaveLength(144);
