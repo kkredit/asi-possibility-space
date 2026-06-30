@@ -231,7 +231,7 @@ export function App() {
             {tab === 0 && (
               <>
                 <Panel>
-                  <EVDistribution bins={bins} ev={analysis.ev} />
+                  <EVDistribution bins={bins} ev={analysis.ev} factors={dataset.factors} />
                 </Panel>
                 <Panel>
                   <ParallelCoordinates scenarios={analysis.scenarios} factors={dataset.factors} />

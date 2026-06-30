@@ -146,19 +146,24 @@ export interface DistributionBin {
   lo: number;
   hi: number;
   probability: number;
+  /** The scenarios that land in this bin, sorted by probability (largest first) —
+   *  the contributors to this bin's mass. */
+  scenarios: EvaluatedScenario[];
 }
 
 export function distribution(scenarios: EvaluatedScenario[], binCount = 10): DistributionBin[] {
   const bins: DistributionBin[] = [];
   const width = 2 / binCount;
   for (let i = 0; i < binCount; i++) {
-    bins.push({ lo: -1 + i * width, hi: -1 + (i + 1) * width, probability: 0 });
+    bins.push({ lo: -1 + i * width, hi: -1 + (i + 1) * width, probability: 0, scenarios: [] });
   }
   for (const s of scenarios) {
     let idx = Math.floor((s.scalar + 1) / width);
     if (idx < 0) idx = 0;
     if (idx >= binCount) idx = binCount - 1;
     bins[idx].probability += s.probability;
+    bins[idx].scenarios.push(s);
   }
+  for (const b of bins) b.scenarios.sort((a, z) => z.probability - a.probability);
   return bins;
 }
