@@ -68,6 +68,29 @@ export interface Evaluator {
   evaluate(scenario: Scenario, dataset: Dataset): Outcome | undefined;
 }
 
+/**
+ * A dependency between factors that corrects the independence assumption.
+ *
+ * Under independence the joint probability of a scenario is just the product of
+ * each factor's marginal credence. A coupling is a log-linear correction: every
+ * scenario that matches ALL of `when`'s (factor=state) conditions has its prior
+ * multiplied by `multiplier` (>1 boosts that combination, <1 suppresses it, 0
+ * forbids it). After every coupling has applied, the joint is renormalized so the
+ * total probability mass is unchanged — couplings only *redistribute* mass.
+ *
+ * Example: takeoff=fast strongly implies powerConcentration=concentrated, so the
+ * (fast, diffuse) combination carries a multiplier well below 1.
+ */
+export interface Coupling {
+  id: string;
+  /** Human-readable rationale for the dependency. */
+  description: string;
+  /** All these (factor=state) must hold for the multiplier to apply. */
+  when: { factor: FactorId; state: StateId }[];
+  /** Prior multiplier applied to matching scenarios. */
+  multiplier: number;
+}
+
 /** A single nudge: shift probability mass of `factor` toward `towardState`. */
 export interface ActionDelta {
   factor: FactorId;
@@ -103,6 +126,8 @@ export interface Dataset {
   factors: Factor[];
   valueDimensions: ValueDimension[];
   actions: Action[];
+  /** Dependencies between factors; corrects the independence assumption. */
+  couplings: Coupling[];
   /** Default credences (the starting odds). */
   baselineCredences: Credences;
   /** Default value-dimension weights (sum normalized at use). */

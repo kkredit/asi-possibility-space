@@ -1,6 +1,7 @@
 import type {
   Action,
   CachedCell,
+  Coupling,
   Credences,
   Dataset,
   Factor,
@@ -19,11 +20,13 @@ import type {
  *
  *  §9.1 value dimensions  -> survival / agency / suffering / flourishing, with
  *                            defaults weighted toward survival & suffering.
- *  §9.2 factor set        -> the six from §5 (kept as-is).
+ *  §9.2 factor set        -> the six from §5, plus takeoff speed (objective).
  *  §9.3 offense/defense   -> treated as PURELY OBJECTIVE for now (no action
  *                            attaches to it). d/acc is modeled as boosting
  *                            realized control instead.
- *  §9.4 dependencies      -> INDEPENDENCE assumed (probabilities multiply).
+ *  §9.4 dependencies      -> independence is the BASE, corrected by an explicit
+ *                            set of `couplings` (e.g. fast takeoff ⇒ concentrated;
+ *                            orthogonality fails ⇒ alignment is moot/easy).
  *  §9.5 action cost       -> ranked by RAW EV gain (no cost term yet).
  *  §9.6 name              -> "AI Safety Possibility-Space Explorer".
  *
@@ -79,6 +82,19 @@ const factors: Factor[] = [
     ],
   },
   {
+    id: 'takeoff',
+    label: 'Takeoff speed',
+    kind: 'objective',
+    question: 'How abruptly does capability cross from roughly-human to decisively-superhuman?',
+    description:
+      'A fact about how the technology scales: a fast (hard) takeoff leaves little calendar time to react and tends to hand a decisive advantage to whoever crosses first; a slow (soft) takeoff lets oversight, alignment, control, and other actors keep pace. Strongly coupled to power concentration (fast ⇒ concentrated) and to whether alignment/control land in time.',
+    states: [
+      { id: 'fast', label: 'Fast', blurb: 'hard takeoff — months/weeks; little time to react' },
+      { id: 'medium', label: 'Medium', blurb: 'a few years; oversight strains to keep pace' },
+      { id: 'slow', label: 'Slow', blurb: 'soft takeoff — a decade+; institutions can adapt' },
+    ],
+  },
+  {
     id: 'powerConcentration',
     label: 'Power concentration',
     kind: 'contingent',
@@ -121,6 +137,7 @@ const baselineCredences: Credences = {
   orthogonality: { holds: 0.7, fails: 0.3 },
   tractability: { easy: 0.2, hard: 0.5, nearImpossible: 0.3 },
   offenseDefense: { offense: 0.45, balanced: 0.35, defense: 0.2 },
+  takeoff: { fast: 0.3, medium: 0.45, slow: 0.25 },
   powerConcentration: { concentrated: 0.55, diffuse: 0.45 },
   alignmentInTime: { yes: 0.35, no: 0.65 },
   controlDeployed: { yes: 0.45, no: 0.55 },
@@ -154,6 +171,11 @@ const linearContributions: LinearContributions = {
     balanced: {},
     defense: { survival: 0.2, flourishing: 0.1 },
   },
+  takeoff: {
+    fast: { survival: -0.15, agency: -0.1, suffering: -0.1, flourishing: -0.1 },
+    medium: {},
+    slow: { survival: 0.1, agency: 0.1, flourishing: 0.05 },
+  },
   powerConcentration: {
     concentrated: { survival: 0.05, agency: -0.3, suffering: -0.2, flourishing: -0.15 },
     diffuse: { survival: -0.1, agency: 0.25, suffering: 0.05, flourishing: 0.05 },
@@ -177,6 +199,13 @@ const linearContributions: LinearContributions = {
 // defense once capability is proliferated, and alignment vs. control once
 // orthogonality holds). Value tuple is [survival, agency, suffering, flourishing],
 // each in [-1, +1]. Un-listed scenarios fall back to the linear evaluator.
+//
+// These cells range over the original SIX factors and do NOT vary takeoff speed.
+// The cached evaluator projects takeoff out at lookup, so every takeoff variant of
+// an authored cell reuses its outcome; takeoff shapes the cached surface through
+// its couplings (fast ⇒ concentrated; fast ⇒ misses alignment/control), not a
+// per-takeoff hand-reasoned value. Authoring takeoff in later widens the projection
+// automatically.
 //
 // Shared sub-arguments reused across the chains below:
 //  (D) DOOM — orthogonality holds, neither aligned nor controlled: an uncontained
@@ -503,6 +532,77 @@ const cachedOutcomes: CachedCell[] = [
   ...failsCells,
 ];
 
+// ============================================================================
+//  COUPLINGS — dependencies that correct the independence assumption (§9.4).
+// ----------------------------------------------------------------------------
+// Each coupling multiplies the independent prior of every scenario matching ALL
+// its `when` conditions; `analyze` then renormalizes so total mass is preserved.
+// Multiplier < 1 suppresses a combination, > 1 boosts it, 0 forbids it. These are
+// presumed first-pass dependency strengths — argue with them and edit.
+// ============================================================================
+const couplings: Coupling[] = [
+  // --- Takeoff speed ↔ power concentration -------------------------------------
+  // A fast (hard) takeoff hands a decisive strategic advantage to whoever crosses
+  // first, so capability concentrates almost by definition. Suppress the
+  // fast-but-diffuse corner hard; after renormalization P(concentrated | fast)≈0.9.
+  {
+    id: 'fastTakeoff_concentrates',
+    description: 'Fast takeoff ⇒ a decisive first-mover advantage ⇒ power is almost certainly concentrated.',
+    when: [{ factor: 'takeoff', state: 'fast' }, { factor: 'powerConcentration', state: 'diffuse' }],
+    multiplier: 0.12,
+  },
+  // A slow takeoff gives trailing actors time to catch up, so diffusion is somewhat
+  // more likely than the marginal suggests.
+  {
+    id: 'slowTakeoff_diffuses',
+    description: 'Slow takeoff ⇒ others have time to catch up ⇒ concentration is less likely.',
+    when: [{ factor: 'takeoff', state: 'slow' }, { factor: 'powerConcentration', state: 'concentrated' }],
+    multiplier: 0.6,
+  },
+
+  // --- Takeoff speed ↔ getting alignment / control in time ---------------------
+  // "Solved & deployed in time" is a race against the calendar. Fast takeoff shrinks
+  // the calendar; slow takeoff lengthens it.
+  {
+    id: 'fastTakeoff_missesAlignment',
+    description: 'Fast takeoff ⇒ far less time to field aligned ASI before catastrophe.',
+    when: [{ factor: 'takeoff', state: 'fast' }, { factor: 'alignmentInTime', state: 'yes' }],
+    multiplier: 0.5,
+  },
+  {
+    id: 'fastTakeoff_missesControl',
+    description: 'Fast takeoff ⇒ less time to stand up and deploy control/monitoring.',
+    when: [{ factor: 'takeoff', state: 'fast' }, { factor: 'controlDeployed', state: 'yes' }],
+    multiplier: 0.65,
+  },
+  {
+    id: 'slowTakeoff_aidsAlignment',
+    description: 'Slow takeoff ⇒ more calendar time, so alignment-in-time is more likely.',
+    when: [{ factor: 'takeoff', state: 'slow' }, { factor: 'alignmentInTime', state: 'no' }],
+    multiplier: 0.65,
+  },
+
+  // --- Orthogonality ↔ alignment tractability ----------------------------------
+  // If orthogonality FAILS, sufficiently capable systems converge toward broadly
+  // benign goals on their own — so "aligning" them is moot/easy, NOT a hard
+  // technical problem. Push tractability toward easy and away from near-impossible.
+  // (This encodes the model's current benign-attractor reading of "fails". A
+  // malign-attractor variant would instead make tractability near-impossible —
+  // flip these two multipliers to model that.)
+  {
+    id: 'orthogonalityFails_alignmentEasy',
+    description: 'Orthogonality fails (benign convergence) ⇒ alignment is effectively a non-problem (easy).',
+    when: [{ factor: 'orthogonality', state: 'fails' }, { factor: 'tractability', state: 'easy' }],
+    multiplier: 2.2,
+  },
+  {
+    id: 'orthogonalityFails_notNearImpossible',
+    description: 'Orthogonality fails ⇒ alignment being near-impossible is incoherent; suppress it.',
+    when: [{ factor: 'orthogonality', state: 'fails' }, { factor: 'tractability', state: 'nearImpossible' }],
+    multiplier: 0.2,
+  },
+];
+
 // Actions nudge probability mass on influenceable factors (and, sparingly, the
 // contingent one). Objective factors are off-limits by construction.
 const actions: Action[] = [
@@ -542,6 +642,7 @@ export const dataset: Dataset = {
   factors,
   valueDimensions,
   actions,
+  couplings,
   baselineCredences,
   defaultWeights,
   linearBaseline,

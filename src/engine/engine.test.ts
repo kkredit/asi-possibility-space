@@ -25,10 +25,12 @@ describe('dataset integrity (cached cells)', () => {
     expect(new Set(keys).size).toBe(keys.length);
   });
 
-  it('every cached scenario uses real factor/state ids for all factors', () => {
+  it('every cached scenario uses real factor/state ids for the factors it ranges over', () => {
+    // Cells range over a subset of factors (they don't vary takeoff speed); every
+    // key they DO use must be a real factor/state.
     for (const c of dataset.cachedOutcomes) {
-      for (const f of dataset.factors) {
-        expect(validState(f.id, c.scenario[f.id])).toBe(true);
+      for (const fid of Object.keys(c.scenario)) {
+        expect(validState(fid, c.scenario[fid])).toBe(true);
       }
     }
   });
@@ -42,21 +44,24 @@ describe('dataset integrity (cached cells)', () => {
     }
   });
 
-  it('covers the full 144-scenario space (every scenario hand-reasoned)', () => {
+  it('every scenario is hand-reasoned (144 authored cells project across takeoff)', () => {
+    // 144 cells over the original 6 factors; the 432-scenario space (×3 takeoff)
+    // is fully covered because the cached lookup projects takeoff out.
     expect(dataset.cachedOutcomes.length).toBe(144);
     const scenarios = enumerateScenarios(dataset.factors);
+    expect(scenarios).toHaveLength(432);
     expect(scenarios.every((s) => isReasoned(s, dataset))).toBe(true);
   });
 });
 
 describe('scenario enumeration', () => {
-  it('produces the full cross-product (2·3·3·2·2·2 = 144)', () => {
-    expect(enumerateScenarios(dataset.factors)).toHaveLength(144);
+  it('produces the full cross-product (2·3·3·3·2·2·2 = 432)', () => {
+    expect(enumerateScenarios(dataset.factors)).toHaveLength(432);
   });
 
   it('collapses a pinned factor', () => {
     const pinned = enumerateScenarios(dataset.factors, { tractability: 'hard' });
-    expect(pinned).toHaveLength(48); // 144 / 3
+    expect(pinned).toHaveLength(144); // 432 / 3
     expect(pinned.every((s) => s.tractability === 'hard')).toBe(true);
   });
 
@@ -87,6 +92,45 @@ describe('probability model', () => {
       linearEvaluator,
     );
     expect(totalProbability).toBeCloseTo(1, 10);
+  });
+});
+
+describe('couplings', () => {
+  const massOf = (
+    pred: (s: { scenario: Record<string, string> }) => boolean,
+    pins = {},
+  ) =>
+    analyze(dataset, dataset.baselineCredences, dataset.defaultWeights, linearEvaluator, pins)
+      .scenarios.filter(pred)
+      .reduce((a, s) => a + s.probability, 0);
+
+  it('preserves total mass after renormalization (with and without pins)', () => {
+    expect(massOf(() => true)).toBeCloseTo(1, 10);
+    // Pinned subset keeps the pinned state's marginal mass.
+    expect(massOf(() => true, { orthogonality: 'holds' })).toBeCloseTo(0.7, 10);
+  });
+
+  it('suppresses the fast-takeoff + diffuse combination vs. independence', () => {
+    // Independent: P(fast)·P(diffuse) = 0.3·0.45 = 0.135. The coupling drives it far lower.
+    const coupled = massOf((s) => s.scenario.takeoff === 'fast' && s.scenario.powerConcentration === 'diffuse');
+    expect(coupled).toBeLessThan(0.05);
+  });
+
+  it('makes concentration nearly certain given a fast takeoff', () => {
+    const fast = massOf((s) => s.scenario.takeoff === 'fast');
+    const fastConcentrated = massOf(
+      (s) => s.scenario.takeoff === 'fast' && s.scenario.powerConcentration === 'concentrated',
+    );
+    expect(fastConcentrated / fast).toBeGreaterThan(0.85);
+  });
+
+  it('screens off near-impossible tractability when orthogonality fails', () => {
+    const fails = massOf((s) => s.scenario.orthogonality === 'fails');
+    const failsNearImpossible = massOf(
+      (s) => s.scenario.orthogonality === 'fails' && s.scenario.tractability === 'nearImpossible',
+    );
+    // Independent share would be 0.3; the coupling pushes it well below that.
+    expect(failsNearImpossible / fails).toBeLessThan(0.15);
   });
 });
 

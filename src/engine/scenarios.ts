@@ -1,4 +1,4 @@
-import type { Credences, Factor, FactorId, Scenario, StateId } from '@model/types';
+import type { Coupling, Credences, Factor, FactorId, Scenario, StateId } from '@model/types';
 
 /** Stable, order-independent key for a scenario (factors sorted by id). */
 export function scenarioKey(scenario: Scenario): string {
@@ -40,4 +40,18 @@ export function scenarioProbability(scenario: Scenario, credences: Credences): n
     p *= credences[fid]?.[scenario[fid]] ?? 0;
   }
   return p;
+}
+
+/**
+ * The product of every coupling multiplier whose `when` conditions all hold in
+ * this scenario. 1 when no coupling applies (pure independence). This is the
+ * log-linear correction that `analyze` multiplies onto the independent prior
+ * before renormalizing — see {@link Coupling}.
+ */
+export function couplingMultiplier(scenario: Scenario, couplings: Coupling[]): number {
+  let m = 1;
+  for (const c of couplings) {
+    if (c.when.every(({ factor, state }) => scenario[factor] === state)) m *= c.multiplier;
+  }
+  return m;
 }

@@ -6,6 +6,7 @@ import type {
   ValueVector,
 } from '@model/types';
 import {
+  couplingMultiplier,
   enumerateScenarios,
   scenarioProbability,
   type Pins,
@@ -41,8 +42,21 @@ export function analyze(
   evaluator: Evaluator,
   pins: Pins = {},
 ): Analysis {
-  const scenarios = enumerateScenarios(dataset.factors, pins).map((scenario) => {
-    const probability = scenarioProbability(scenario, credences);
+  // Independent prior × coupling correction, then renormalized so the coupled
+  // distribution carries the same total mass as the independent one (couplings
+  // redistribute mass between scenarios; they never create or destroy it). With
+  // no pins that total is 1; with pins it is the pinned states' marginal mass.
+  const couplings = dataset.couplings ?? [];
+  const enumerated = enumerateScenarios(dataset.factors, pins).map((scenario) => {
+    const prior = scenarioProbability(scenario, credences);
+    return { scenario, prior, coupled: prior * couplingMultiplier(scenario, couplings) };
+  });
+  const priorMass = enumerated.reduce((a, s) => a + s.prior, 0);
+  const coupledMass = enumerated.reduce((a, s) => a + s.coupled, 0);
+  const renorm = coupledMass > 0 ? priorMass / coupledMass : 0;
+
+  const scenarios = enumerated.map(({ scenario, coupled }) => {
+    const probability = coupled * renorm;
     const outcome = evaluator.evaluate(scenario, dataset) ?? { narrative: '', value: ZERO };
     return {
       scenario,
