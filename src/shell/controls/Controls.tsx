@@ -20,17 +20,17 @@ import { c, fonts, kindColor } from '@shell/theme';
 
 const KIND_ORDER: FactorKind[] = ['objective', 'contingent', 'influenceable'];
 const KIND_HEADING: Record<FactorKind, string> = {
-  objective: 'Objective · true in any universe',
-  contingent: 'Contingent · settled baseline of our world',
-  influenceable: 'Influenceable · still open to our choices',
+  objective: 'Objective · timeless structural fact',
+  contingent: 'Contingent · the world at ASI · low leverage',
+  influenceable: 'Influenceable · the world at ASI · high leverage',
 };
 const KIND_HINT: Record<FactorKind, string> = {
   objective:
-    'Could not be otherwise in any universe — a fact of nature or logic. You can’t change it, only discover which way it is, by research. High sensitivity ⇒ value of information.',
+    'A structural fact true the same way in any universe. The slider is your confidence it holds. You can’t change it, only research it. High sensitivity ⇒ value of information.',
   contingent:
-    'Could have been otherwise, but it’s already settled in our world by how things have played out. You can’t move it now, only find out which world you’re in. High sensitivity ⇒ situational awareness.',
+    'A feature of the world at ASI onset that we have little leverage over — its trajectory is set mostly by exogenous forces. The slider forecasts its state at the threshold; you mainly track it and position for it. High sensitivity ⇒ situational awareness.',
   influenceable:
-    'Could be otherwise, and the choices are still ahead of us — your actions move it. Differs from contingent only in timing: future movement, not settled baseline. High sensitivity ⇒ where to act.',
+    'A feature of the world at ASI onset our choices substantially move. The slider forecasts its state at the threshold. Same kind of thing as contingent — just more leverage. High sensitivity ⇒ where to act.',
 };
 
 const monoPct = { fontFamily: fonts.mono, fontSize: '0.72rem' };
@@ -137,6 +137,15 @@ export function Controls() {
             ))}
           </Select>
         </FormControl>
+      </Box>
+
+      <Box>
+        <Typography sx={{ ...monoPct, color: c.faint, mb: 0.4, letterSpacing: '0.04em' }}>PROBABILITIES</Typography>
+        <Typography variant="caption" sx={{ color: c.mute, display: 'block', lineHeight: 1.4 }}>
+          For each factor, the chance of each state <b>at ASI onset</b> (the threshold where value
+          locks in). Objective factors are the exception — there the slider is your current confidence
+          a timeless property holds.
+        </Typography>
       </Box>
 
       {KIND_ORDER.map((kind) => {

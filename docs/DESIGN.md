@@ -34,27 +34,28 @@ A **factor** is one key question. Each factor has **≤ 3 mutually exclusive sta
 the scenario space stays cacheable — see §4). You assign a **credence** to each state (the states'
 credences sum to 1).
 
-Every factor is tagged with one of **three kinds**. The taxonomy falls out of two
-questions: **(1) could this be otherwise in another universe?** and, if so, **(2) is the
-die already cast or still rolling?**
+Every factor is tagged with one of **three kinds**. First, **what the slider means**
+differs by kind: for *objective* factors it's your present confidence that a timeless
+property holds; for everything else it's a **forecast of the factor's state at ASI
+onset** — the threshold where value locks in — because those variables are still in
+motion until then. Second, the kind fixes how you reduce your uncertainty or act:
 
-| Kind | Could it be otherwise? | Settled or open? | How you reduce uncertainty / act | Example |
+| Kind | What the slider is | Leverage we have | How you engage it | Example |
 |------|------|------|------|---------|
-| **Objective** | **No** — true or false the same way in every possible world (nature, logic, the maths of intelligence). | n/a — unchangeable anywhere. | You can only *discover* which way it is, by **research**. High sensitivity ⇒ **value of information**. | Orthogonality Thesis; alignment tractability *in principle*; offense/defense balance at ASI scale. |
-| **Contingent** | **Yes** | **Settled** in our world by history and timing — the hand we've been dealt. | You can't move it now; you can only *find out* which world you're in, by **observation**. High sensitivity ⇒ **situational awareness**. | Power concentration among frontier actors; race structure. |
-| **Influenceable** | **Yes** | **Still open** — the relevant choices are ahead of us. | Your **actions** move it. High sensitivity ⇒ **this is where to act**. | Whether alignment is solved *in time*; whether control is deployed; governance/coordination. |
+| **Objective** | Confidence a timeless, structural fact holds (same in every possible world). | None — off the leverage axis; unmovable in any universe. | *Discover* which way it is, by **research**. High sensitivity ⇒ **value of information**. | Orthogonality Thesis; alignment tractability *in principle*; offense/defense balance at ASI scale. |
+| **Contingent** | Forecast of its state at ASI onset. | **Low** — trajectory driven mostly by exogenous forces (geopolitics, markets, who races whom). | Mainly *forecast and position*; actions nudge it weakly. High sensitivity ⇒ **situational awareness**. | Power concentration among frontier actors; race structure. |
+| **Influenceable** | Forecast of its state at ASI onset. | **High** — our choices substantially move it. | *Act*. High sensitivity ⇒ **this is where to act**. | Whether alignment is solved *in time*; whether control is deployed; governance/coordination. |
 
-The two "Yes — could be otherwise" rows are the subtle pair. **Contingent and
-influenceable are both contingent in the philosophical sense** — neither is a law of
-nature. They differ *only in timing*: contingent is the already-determined **baseline**;
-influenceable is **future movement** still open to us. A factor is influenceable only
-insofar as our forward choices, rather than past events, dominate its outcome; once the
-outcome is effectively locked by what has already happened, it is contingent. (Objective
-is the genuinely different kind — invariant across all worlds, never movable, only
-knowable.)
+The subtle point: **contingent and influenceable are the same *kind* of thing** — both
+forecasts of the world at the threshold — and differ only in **how much grip we have on
+them**. The line is *leverage*, a continuum: a factor is influenceable when our choices
+dominate its outcome and contingent when exogenous forces do. Actions can attach to
+both (weakly to contingent); only **objective** factors are truly off-limits, because
+they're timeless facts, not features of the world-to-come. That epistemic gap — fact vs.
+forecast — is what really sets objective apart.
 
-This is exactly what makes "where can we exert positive influence?" fall out of the
-model: it's the *influenceable* column, and only that column, that actions attach to.
+This is what makes "where can we exert positive influence?" fall out of the model: it
+tracks the leverage axis, peaking on the influenceable factors.
 
 ### 2.2 Scenarios
 

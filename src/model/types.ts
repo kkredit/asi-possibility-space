@@ -1,28 +1,34 @@
 // The data store's type vocabulary. Pure types — no logic, no React.
 
 /**
- * Three kinds of input, separated by two questions: (1) could this be otherwise in
- * another universe? and (2) if so, is the die already cast or still rolling? The
- * kind is the spine of the tool — it fixes whether you can act on a factor and, when
- * you can't, how you reduce your uncertainty about it.
+ * Three kinds of input. What a credence slider MEANS depends on the kind:
+ *  - for OBJECTIVE factors it's your confidence, right now, that a timeless,
+ *    structural property holds — true the same way in this universe and any other;
+ *  - for everything else it's a FORECAST of the factor's state *at ASI onset* — the
+ *    threshold where value locks in — because those variables are still in motion
+ *    until then.
  *
- *  - objective:     true or false in principle in EVERY possible world — a matter of
- *                   nature, logic, or the mathematics of intelligence and alignment.
- *                   Unchangeable in any universe; you only DISCOVER which way it is,
- *                   by reasoning and research. High EV-sensitivity => value of
- *                   information (study the problem harder).
- *  - contingent:    could have been otherwise, but in OUR world it is already settled
- *                   by history and timing — the hand we've been dealt. Unchangeable
- *                   now; you only FIND OUT which world you're in, by observing
- *                   reality. High sensitivity => situational awareness (read the board).
- *  - influenceable: could be otherwise AND the relevant choices are still ahead of
- *                   us, so our actions MOVE it. High sensitivity => act.
+ * The kind also fixes whether you can act on a factor and, when you can't, how you
+ * reduce your uncertainty:
  *
- * Contingent and influenceable are BOTH contingent in the philosophical sense —
- * neither is a law of nature. The line between them is purely temporal: contingent
- * is the already-determined baseline; influenceable is what remains open to our
- * forward choices. A factor belongs in `influenceable` only insofar as future
- * action, not past events, dominates its outcome — otherwise it is `contingent`.
+ *  - objective:     a structural fact (the mathematics of intelligence, the physics
+ *                   of ASI conflict). Off the leverage axis entirely — unmovable in
+ *                   any universe; you only DISCOVER which way it is, by research.
+ *                   High EV-sensitivity => value of information.
+ *  - contingent:    a feature of the ASI-onset world we have LITTLE leverage over —
+ *                   its trajectory is driven mostly by exogenous forces (geopolitics,
+ *                   markets, who races whom). You mainly forecast it and position for
+ *                   it; actions may nudge it, but weakly. High sensitivity =>
+ *                   situational awareness.
+ *  - influenceable: a feature of the ASI-onset world our choices have SUBSTANTIAL
+ *                   leverage over. High sensitivity => act.
+ *
+ * Contingent and influenceable are the SAME kind of thing — forecasts of the world
+ * at the threshold — and differ only in how much grip we have on them. The line
+ * between them is *leverage*, a continuum, not a hard either/or; a factor is
+ * `influenceable` when our choices dominate its outcome and `contingent` when
+ * exogenous forces do. Objective is the genuinely distinct kind: a timeless fact,
+ * never a forecast.
  */
 export type FactorKind = 'objective' | 'contingent' | 'influenceable';
 

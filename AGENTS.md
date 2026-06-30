@@ -89,22 +89,23 @@ A `Factor` ([types.ts:23](src/model/types.ts)):
 - **≤ 3 states is a hard cap.** It keeps the scenario space small enough to
   enumerate *and* hand-author every cell (cacheability). Today's 7 factors give
   `2·3·3·3·2·2·2 = 432` scenarios; more states explode that combinatorially.
-- The three `kind`s are the spine of the tool. They split on two questions: *could
-  this be otherwise in another universe?* and, if so, *is the die already cast or
-  still rolling?* (Full definition in [types.ts](src/model/types.ts) `FactorKind`.)
-  - **`objective`** — true/false the same way in *every* possible world (nature,
-    logic, the maths of intelligence). Unchangeable anywhere; you only discover it,
-    by research. High sensitivity = **value of information** (gold). Actions may
-    **not** target objective factors.
-  - **`contingent`** — could be otherwise, but already *settled* in our world by
-    history/timing. You can't move it; you find out which world you're in. High
-    sensitivity = **situational awareness** (grey).
-  - **`influenceable`** — could be otherwise, and the choices are *still ahead of
-    us*. **Actions attach here** (green = "where to act").
-  - ⚠️ Contingent vs. influenceable is **purely temporal** — settled baseline vs.
-    future movement, *not* "fact vs. choice." Both are philosophically contingent.
-    Classify a factor `influenceable` only when forward action, not past events,
-    dominates its outcome.
+- The three `kind`s are the spine of the tool. (Full definition in
+  [types.ts](src/model/types.ts) `FactorKind`.) A slider means a **timeless
+  confidence** for objective factors but a **forecast of the state at ASI onset** for
+  the rest — those variables are still in motion until the threshold.
+  - **`objective`** — a timeless structural fact (the maths of intelligence, the
+    physics of ASI conflict), true the same way in any universe. Unmovable; you only
+    discover it, by research. High sensitivity = **value of information** (gold).
+    Actions may **not** target objective factors.
+  - **`contingent`** — a feature of the ASI-onset world we have *low* leverage over
+    (driven mostly by exogenous forces). You mainly forecast and position for it;
+    actions nudge it weakly. High sensitivity = **situational awareness** (grey).
+  - **`influenceable`** — a feature of the ASI-onset world our choices have *high*
+    leverage over. **Where actions chiefly attach** (green = "where to act").
+  - ⚠️ Contingent vs. influenceable is a **leverage spectrum**, not "fact vs. choice"
+    — both are forecasts of the world at the threshold; they differ only in how much
+    our choices move them. Classify a factor `influenceable` when our choices
+    dominate its outcome, `contingent` when exogenous forces do.
 
 ### baselineCredences
 
@@ -154,10 +155,10 @@ concentrates` suppresses the (fast, diffuse) corner to `0.12×`.
 
 `actions` ([dataset.ts:693](src/model/dataset.ts), shape at
 [types.ts:102](src/model/types.ts)) are sets of `ActionDelta`s that shift
-probability mass toward a target state. **Deltas may target influenceable factors
-only** (objective factors are off-limits by construction; the contingent one is
-used sparingly). `applyAction` moves `magnitude` onto the target state and
-redistributes the remainder proportionally.
+probability mass toward a target state. **Deltas may target influenceable factors,
+and (with smaller magnitude) contingent ones — never objective factors**, since
+those are timeless facts, not features of the world-to-come. `applyAction` moves
+`magnitude` onto the target state and redistributes the remainder proportionally.
 
 > ⚠️ **Adding a factor or extra states multiplies the scenario space** and will
 > break the `432`-cell assumptions: you may need to re-author `baseCells`, extend

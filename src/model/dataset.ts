@@ -101,7 +101,7 @@ const factors: Factor[] = [
     kind: 'contingent',
     question: 'Is frontier capability gated by a few actors or widely proliferated?',
     description:
-      'A fact about the situation we are in: whether frontier AI is controlled by a few labs/states or broadly diffused (e.g. open-source dominant). Roughly fixed over the analysis horizon.',
+      'Whether, at ASI onset, frontier capability is controlled by a few labs/states or broadly diffused (e.g. open-source dominant). Its level at the threshold is driven mostly by exogenous forces — geopolitics, markets, open-source norms — so we have some but limited leverage over it (hence contingent, not influenceable).',
     states: [
       { id: 'concentrated', label: 'Concentrated', blurb: 'a few labs/states gate the frontier' },
       { id: 'diffuse', label: 'Diffuse', blurb: 'proliferated / open-source dominant' },
