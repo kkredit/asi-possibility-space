@@ -78,14 +78,65 @@ export interface ConditionalContrast {
   unfavorableWhen: ConditionLine[];
 }
 
-function evWith(
+/**
+ * One "rest-of-world" configuration (every factor except the decision factor), with
+ * its probability mass and the scalar value the world takes under the toward state
+ * (a) and the baseline state (b). The contrast is computed *interventionally*:
+ * a and b come from the SAME rest configuration, so the comparison is apples-to-
+ * apples and never smuggles in a coupling-driven shift in the other factors' beliefs.
+ */
+interface RestGroup {
+  rest: Record<FactorId, StateId>;
+  prob: number;
+  a: number;
+  b: number;
+}
+
+/**
+ * Enumerate the (given-conditioned) space once with the decision factor left free,
+ * then collapse to rest-of-world groups carrying the value under A and under B.
+ */
+function groupByRest(
   dataset: Dataset,
   credences: Credences,
   weights: Parameters<typeof analyze>[2],
   evaluator: Evaluator,
-  pins: Pins,
-): number {
-  return analyze(dataset, credences, weights, evaluator, pins).ev;
+  decision: Decision,
+  given: Pins,
+): RestGroup[] {
+  const scenarios = analyze(dataset, credences, weights, evaluator, given).scenarios;
+  const map = new Map<string, { rest: Record<FactorId, StateId>; prob: number; a?: number; b?: number }>();
+  for (const s of scenarios) {
+    const rest = { ...s.scenario };
+    delete rest[decision.factor];
+    const key = scenarioKey(rest);
+    let g = map.get(key);
+    if (!g) map.set(key, (g = { rest, prob: 0 }));
+    g.prob += s.probability;
+    if (s.scenario[decision.factor] === decision.toward) g.a = s.scalar;
+    if (s.scenario[decision.factor] === decision.baseline) g.b = s.scalar;
+  }
+  const out: RestGroup[] = [];
+  for (const g of map.values()) {
+    if (g.a !== undefined && g.b !== undefined) out.push({ rest: g.rest, prob: g.prob, a: g.a, b: g.b });
+  }
+  return out;
+}
+
+/** Probability-weighted contrast stats over a set of rest-groups. */
+function summarize(groups: RestGroup[]) {
+  let p = 0;
+  let evA = 0;
+  let evB = 0;
+  let fav = 0;
+  for (const g of groups) {
+    p += g.prob;
+    evA += g.prob * g.a;
+    evB += g.prob * g.b;
+    if (g.a > g.b) fav += g.prob;
+  }
+  if (p <= 0) return { delta: 0, favorableShare: 0, evA: 0, evB: 0, mass: 0 };
+  return { delta: (evA - evB) / p, favorableShare: fav / p, evA: evA / p, evB: evB / p, mass: p };
 }
 
 export function conditionalContrast(
@@ -100,12 +151,11 @@ export function conditionalContrast(
   const base: Pins = { ...given };
   delete base[decision.factor];
 
-  const pinA: Pins = { ...base, [decision.factor]: decision.toward };
-  const pinB: Pins = { ...base, [decision.factor]: decision.baseline };
-  const evA = evWith(dataset, credences, weights, evaluator, pinA);
-  const evB = evWith(dataset, credences, weights, evaluator, pinB);
+  const groups = groupByRest(dataset, credences, weights, evaluator, decision, base);
+  const overall = summarize(groups);
 
-  // Cruxes: every other factor not already fixed by `given`.
+  // Cruxes: every other free factor, with the contrast's mean delta conditioned on
+  // each of that factor's states (the subgroup of rest-worlds where it holds).
   const cruxes: Crux[] = [];
   const favorableWhen: ConditionLine[] = [];
   const unfavorableWhen: ConditionLine[] = [];
@@ -113,9 +163,8 @@ export function conditionalContrast(
   for (const factor of dataset.factors) {
     if (factor.id === decision.factor || base[factor.id] !== undefined) continue;
     const states: CruxStateDelta[] = factor.states.map((st) => {
-      const dA = evWith(dataset, credences, weights, evaluator, { ...pinA, [factor.id]: st.id });
-      const dB = evWith(dataset, credences, weights, evaluator, { ...pinB, [factor.id]: st.id });
-      return { stateId: st.id, label: st.label, delta: dA - dB };
+      const delta = summarize(groups.filter((g) => g.rest[factor.id] === st.id)).delta;
+      return { stateId: st.id, label: st.label, delta };
     });
     let low = states[0];
     let high = states[0];
@@ -151,50 +200,14 @@ export function conditionalContrast(
   unfavorableWhen.sort((a, b) => a.delta - b.delta);
 
   return {
-    evA,
-    evB,
-    netDelta: evA - evB,
-    favorableShare: favorableShare(dataset, credences, weights, evaluator, decision, base),
+    evA: overall.evA,
+    evB: overall.evB,
+    netDelta: overall.delta,
+    favorableShare: overall.favorableShare,
     cruxes,
     favorableWhen,
     unfavorableWhen,
   };
-}
-
-/**
- * Probability-weighted share of "rest-of-world" configurations for which A beats B
- * pointwise. Groups the (given-conditioned) space by every factor except the
- * decision factor; within each group, compares the scalar value at A vs B and
- * counts the group's probability mass toward favorable if A wins.
- */
-function favorableShare(
-  dataset: Dataset,
-  credences: Credences,
-  weights: Parameters<typeof analyze>[2],
-  evaluator: Evaluator,
-  decision: Decision,
-  given: Pins,
-): number {
-  const scenarios = analyze(dataset, credences, weights, evaluator, given).scenarios;
-  const groups = new Map<string, { prob: number; a?: number; b?: number }>();
-  for (const s of scenarios) {
-    const rest = { ...s.scenario };
-    delete rest[decision.factor];
-    const key = scenarioKey(rest);
-    const g = groups.get(key) ?? { prob: 0 };
-    g.prob += s.probability;
-    if (s.scenario[decision.factor] === decision.toward) g.a = s.scalar;
-    if (s.scenario[decision.factor] === decision.baseline) g.b = s.scalar;
-    groups.set(key, g);
-  }
-  let favP = 0;
-  let totP = 0;
-  for (const g of groups.values()) {
-    if (g.a === undefined || g.b === undefined) continue;
-    totP += g.prob;
-    if (g.a > g.b) favP += g.prob;
-  }
-  return totP > 0 ? favP / totP : 0;
 }
 
 export interface ContrastGrid {
@@ -225,15 +238,15 @@ export function contrastGrid(
   const base: Pins = { ...given };
   delete base[decision.factor];
 
+  const groups = groupByRest(dataset, credences, weights, evaluator, decision, base);
   const cells: number[][] = [];
   let maxAbs = 0;
   for (const s1 of f1.states) {
     const row: number[] = [];
     for (const s2 of f2.states) {
-      const pins = { [f1.id]: s1.id, [f2.id]: s2.id };
-      const dA = evWith(dataset, credences, weights, evaluator, { ...base, ...pins, [decision.factor]: decision.toward });
-      const dB = evWith(dataset, credences, weights, evaluator, { ...base, ...pins, [decision.factor]: decision.baseline });
-      const delta = dA - dB;
+      const delta = summarize(
+        groups.filter((g) => g.rest[f1.id] === s1.id && g.rest[f2.id] === s2.id),
+      ).delta;
       maxAbs = Math.max(maxAbs, Math.abs(delta));
       row.push(delta);
     }

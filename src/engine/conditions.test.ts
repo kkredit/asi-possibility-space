@@ -57,6 +57,24 @@ describe('conditional contrast', () => {
     expect(defense).toBeGreaterThan(offense);
   });
 
+  it('net delta and favorable share never disagree in sign (interventional contrast)', () => {
+    // Regression: the observational version reported +EV with 0% favorable for
+    // concentrated-vs-diffuse because pinning reweighted the coupled takeoff factor.
+    const decisions: Parameters<typeof conditionalContrast>[4][] = [
+      { factor: 'powerConcentration', toward: 'concentrated', baseline: 'diffuse' },
+      { factor: 'powerConcentration', toward: 'diffuse', baseline: 'concentrated' },
+      { factor: 'controlDeployed', toward: 'yes', baseline: 'no' },
+      { factor: 'offenseDefense', toward: 'defense', baseline: 'offense' },
+    ];
+    for (const d of decisions) {
+      const c = run(d);
+      if (c.favorableShare === 0) expect(c.netDelta).toBeLessThanOrEqual(0);
+      if (c.favorableShare === 1) expect(c.netDelta).toBeGreaterThanOrEqual(0);
+      if (c.netDelta > 0) expect(c.favorableShare).toBeGreaterThan(0);
+      if (c.netDelta < 0) expect(c.favorableShare).toBeLessThan(1);
+    }
+  });
+
   it('a given condition drops that factor from the cruxes', () => {
     const c = run({ factor: 'powerConcentration', toward: 'diffuse', baseline: 'concentrated' }, { offenseDefense: 'defense' });
     expect(c.cruxes.map((x) => x.factorId)).not.toContain('offenseDefense');

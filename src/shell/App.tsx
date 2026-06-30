@@ -268,11 +268,10 @@ export function App() {
                         <Box component="span" sx={{ fontSize: '0.78rem', color: c.mute, ml: 0.75 }}>of probability-weighted futures favor it</Box>
                       </Typography>
                     </Stack>
-                    {Object.keys(pins).length > 0 ? (
-                      <Typography variant="caption" sx={{ color: c.faint, display: 'block', mt: 1 }}>
-                        Holding fixed the {Object.keys(pins).length} condition(s) you pinned in Beliefs.
-                      </Typography>
-                    ) : null}
+                    <Typography variant="caption" sx={{ color: c.faint, display: 'block', mt: 1 }}>
+                      Each future is compared to itself with only this factor changed (all else held fixed), so net EV and the favorable share always agree in sign.
+                      {Object.keys(pins).length > 0 ? ` Holding fixed the ${Object.keys(pins).length} condition(s) you pinned in Beliefs.` : ''}
+                    </Typography>
                   </Box>
                 </Panel>
 
