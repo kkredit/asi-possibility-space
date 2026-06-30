@@ -44,13 +44,25 @@ describe('dataset integrity (cached cells)', () => {
     }
   });
 
-  it('every scenario is hand-reasoned (144 authored cells project across takeoff)', () => {
-    // 144 cells over the original 6 factors; the 432-scenario space (×3 takeoff)
-    // is fully covered because the cached lookup projects takeoff out.
-    expect(dataset.cachedOutcomes.length).toBe(144);
+  it('every scenario is hand-reasoned across the full 432-cell space', () => {
+    // 144 medium-anchor cells × {fast, medium, slow} = 432 authored cells.
+    expect(dataset.cachedOutcomes.length).toBe(432);
     const scenarios = enumerateScenarios(dataset.factors);
     expect(scenarios).toHaveLength(432);
     expect(scenarios.every((s) => isReasoned(s, dataset))).toBe(true);
+  });
+
+  it('medium-takeoff variant preserves the base hand-reasoned value', () => {
+    // The doom corner barely moves with takeoff, but the ALIGNED/CONTROL corners do:
+    // fast should be no better than medium, slow no worse, on survival.
+    const corner = {
+      orthogonality: 'holds', tractability: 'hard', offenseDefense: 'balanced',
+      powerConcentration: 'concentrated', alignmentInTime: 'yes', controlDeployed: 'yes',
+    } as const;
+    const surv = (takeoff: string) =>
+      cachedEvaluator.evaluate({ ...corner, takeoff }, dataset)!.value.survival;
+    expect(surv('fast')).toBeLessThanOrEqual(surv('medium'));
+    expect(surv('slow')).toBeGreaterThanOrEqual(surv('medium'));
   });
 });
 
@@ -155,6 +167,7 @@ describe('evaluators', () => {
       powerConcentration: 'diffuse',
       alignmentInTime: 'no',
       controlDeployed: 'yes',
+      takeoff: 'medium', // medium is the hand-reasoned anchor — value verbatim
     };
     const outcome = cachedEvaluator.evaluate(scenario, dataset)!;
     expect(outcome.value.survival).toBe(-0.9);

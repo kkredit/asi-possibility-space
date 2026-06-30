@@ -6,6 +6,7 @@ import type {
   Dataset,
   Factor,
   LinearContributions,
+  Scenario,
   ValueDimension,
   ValueVector,
 } from './types';
@@ -200,12 +201,11 @@ const linearContributions: LinearContributions = {
 // orthogonality holds). Value tuple is [survival, agency, suffering, flourishing],
 // each in [-1, +1]. Un-listed scenarios fall back to the linear evaluator.
 //
-// These cells range over the original SIX factors and do NOT vary takeoff speed.
-// The cached evaluator projects takeoff out at lookup, so every takeoff variant of
-// an authored cell reuses its outcome; takeoff shapes the cached surface through
-// its couplings (fast ⇒ concentrated; fast ⇒ misses alignment/control), not a
-// per-takeoff hand-reasoned value. Authoring takeoff in later widens the projection
-// automatically.
+// These cells are authored over the original SIX factors; they are the MEDIUM-
+// takeoff anchor. The fast/medium/slow variants of the full 432-cell space are then
+// derived by `expandTakeoff` below, which adds a reasoned, corner-dependent delta
+// (DOOM / CONTROL / ALIGNED / BENIGN) on top of each medium value. Medium is the
+// base value verbatim, so all the hand-reasoning below is preserved exactly.
 //
 // Shared sub-arguments reused across the chains below:
 //  (D) DOOM — orthogonality holds, neither aligned nor controlled: an uncontained
@@ -316,7 +316,7 @@ const failsCells: CachedCell[] = (['easy', 'hard', 'nearImpossible'] as const).f
   failsTable.map((e) => cell('fails', tract, e.off, e.conc, e.align, e.ctrl, e.v, e.narrative, 0.35)),
 );
 
-const cachedOutcomes: CachedCell[] = [
+const baseCells: CachedCell[] = [
   // ==========================================================================
   // GROUP 1 — orthogonality HOLDS, tractability HARD (the high-stakes backbone).
   // Full 3×2×2×2 = 24-cell slice, grouped by (alignment, control).
@@ -531,6 +531,91 @@ const cachedOutcomes: CachedCell[] = [
   // FAILS branch: all 72 cells (24 combos × 3 tractabilities) generated from failsTable above.
   ...failsCells,
 ];
+
+// ============================================================================
+//  TAKEOFF EXPANSION — derive the fast/medium/slow variants of every base cell.
+// ----------------------------------------------------------------------------
+// The 144 baseCells above are the MEDIUM-takeoff anchor. Takeoff's effect is not
+// uniform — it depends on which corner of the space we're in, so we classify each
+// base scenario and apply a reasoned delta for fast vs. slow. Rationale per corner:
+//
+//  DOOM   (holds, not aligned, not controlled): an uncontained misaligned ASI wins
+//         either way, so takeoff barely moves the near-floor endpoint. Fast → swift,
+//         total, slightly less drawn-out suffering; slow → a sliver more warning but
+//         more prolonged harm.
+//  CONTROL (holds, not aligned, but leashed): takeoff matters MOST here. The leash's
+//         robustness tracks how much time control had to mature, and fast takeoff
+//         concentrates power abruptly. Fast → brittle leash, power grab; slow →
+//         sturdier, more distributed containment.
+//  ALIGNED (holds, aligned in time): conditional on success, fast takeoff forces a
+//         narrow, concentrated rollout (agency↓); slow lets the solution be verified,
+//         broadened and shared (agency↑, flourishing↑).
+//  BENIGN  (orthogonality fails): the AI is benign regardless; takeoff sets only how
+//         steady the handover is. Fast → abrupt, disorienting (agency↓); slow →
+//         gradual and legible.
+// ============================================================================
+type Corner = 'doom' | 'control' | 'aligned' | 'benign';
+
+function classifyCorner(s: Scenario): Corner {
+  if (s.orthogonality === 'fails') return 'benign';
+  if (s.alignmentInTime === 'yes') return 'aligned';
+  if (s.controlDeployed === 'yes') return 'control';
+  return 'doom';
+}
+
+// Delta applied to the medium [survival, agency, suffering, flourishing] tuple.
+const takeoffDelta: Record<Corner, { fast: ValueTuple; slow: ValueTuple }> = {
+  doom:    { fast: [-0.02, 0.0, 0.04, -0.01], slow: [0.03, 0.01, -0.05, 0.02] },
+  control: { fast: [-0.18, -0.12, -0.12, -0.12], slow: [0.12, 0.08, 0.1, 0.1] },
+  aligned: { fast: [-0.05, -0.12, -0.05, -0.08], slow: [0.04, 0.1, 0.04, 0.08] },
+  benign:  { fast: [-0.03, -0.1, -0.05, -0.06], slow: [0.03, 0.08, 0.04, 0.05] },
+};
+
+const takeoffClause: Record<Corner, { fast: string; slow: string }> = {
+  doom: {
+    fast: 'Fast takeoff makes the misaligned takeover swift and total — nothing has time to bite.',
+    slow: 'Slow takeoff drags the collapse out: more warning, but more prolonged harm.',
+  },
+  control: {
+    fast: 'Fast takeoff means the leash was improvised under extreme time pressure as capability concentrated abruptly — far more brittle.',
+    slow: 'Slow takeoff let control techniques mature and spread before the jump — a sturdier, more distributed leash.',
+  },
+  aligned: {
+    fast: 'Fast takeoff forced the aligned solution to be fielded under pressure by whoever crossed first — narrower and more concentrated.',
+    slow: 'Slow takeoff let alignment be verified, broadened and widely shared before the jump.',
+  },
+  benign: {
+    fast: 'Even a benign handover is abrupt under fast takeoff — institutions have no time to adapt.',
+    slow: 'Slow takeoff makes the benign handover gradual and legible enough for institutions to absorb.',
+  },
+};
+
+const clamp1 = (x: number): number => Math.max(-1, Math.min(1, x));
+
+function shiftTuple(base: ValueTuple, delta: ValueTuple): ValueTuple {
+  return [clamp1(base[0] + delta[0]), clamp1(base[1] + delta[1]), clamp1(base[2] + delta[2]), clamp1(base[3] + delta[3])];
+}
+
+/** Expand one medium-anchor cell into its fast/medium/slow variants. */
+function expandTakeoff(base: CachedCell): CachedCell[] {
+  const corner = classifyCorner(base.scenario);
+  const { survival, agency, suffering, flourishing } = base.outcome.value;
+  const medium: ValueTuple = [survival, agency, suffering, flourishing];
+  const baseConf = base.outcome.confidence ?? 0.4;
+  const derivedConf = Math.max(0.25, baseConf - 0.05); // derived variants are a touch less certain
+  const make = (takeoff: string, [s, a, su, f]: ValueTuple, narrative: string, confidence: number): CachedCell => ({
+    scenario: { ...base.scenario, takeoff },
+    outcome: { narrative, value: { survival: s, agency: a, suffering: su, flourishing: f }, confidence },
+  });
+  return [
+    make('fast', shiftTuple(medium, takeoffDelta[corner].fast), `${base.outcome.narrative} ${takeoffClause[corner].fast}`, derivedConf),
+    make('medium', medium, base.outcome.narrative, baseConf),
+    make('slow', shiftTuple(medium, takeoffDelta[corner].slow), `${base.outcome.narrative} ${takeoffClause[corner].slow}`, derivedConf),
+  ];
+}
+
+// The full 432-cell space: every base cell × {fast, medium, slow}.
+const cachedOutcomes: CachedCell[] = baseCells.flatMap(expandTakeoff);
 
 // ============================================================================
 //  COUPLINGS — dependencies that correct the independence assumption (§9.4).

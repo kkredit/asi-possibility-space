@@ -20,13 +20,11 @@ function buildIndex(dataset: Dataset): CachedIndex {
 }
 
 /**
- * Restrict a scenario to a subset of factors. The cached cells are authored over
- * fewer factors than the full space enumerates (e.g. they don't vary takeoff
- * speed), so lookups project onto the authored factors — every takeoff variant of
- * an authored cell shares that cell's outcome. Takeoff still shapes the cached
- * surface, but through its *couplings* (e.g. fast → concentrated) rather than a
- * per-takeoff hand-reasoned value. Authoring takeoff into the cells later just
- * works: the projection widens to include it automatically.
+ * Restrict a scenario to the factors the authored cells actually range over. The
+ * cells may cover fewer factors than the full space enumerates; lookups project
+ * onto the authored subset so each cell still matches. (Today the cells cover all
+ * factors including takeoff, so this is the identity — but if cells are authored
+ * over a subset later, every un-authored variant gracefully shares the base cell.)
  */
 function project(scenario: Scenario, factorIds: FactorId[]): Scenario {
   const out: Scenario = {};
