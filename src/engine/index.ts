@@ -7,3 +7,4 @@ export * from './actions';
 export * from './sensitivity';
 export * from './conditions';
 export * from './bayesnet';
+export * from './softevidence';
