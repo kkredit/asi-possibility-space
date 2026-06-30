@@ -213,6 +213,115 @@ export function conditionalContrast(
   };
 }
 
+// ---------------------------------------------------------------------------
+// Belief threshold — "how sure would you need to be?"
+// ---------------------------------------------------------------------------
+
+/** Just the net delta of a contrast (no cruxes/lists), for fast sweeps. */
+function netDeltaFor(
+  dataset: Dataset,
+  credences: Credences,
+  weights: Parameters<typeof analyze>[2],
+  evaluator: Evaluator,
+  decision: Decision,
+  given: Pins,
+): number {
+  const base: Pins = { ...given };
+  delete base[decision.factor];
+  return summarize(groupByRest(dataset, credences, weights, evaluator, decision, base)).delta;
+}
+
+/** Set one state's probability to `value`, redistributing the rest proportionally. */
+function withMarginal(
+  dist: Record<StateId, number>,
+  state: StateId,
+  value: number,
+): Record<StateId, number> {
+  const v = Math.max(0, Math.min(1, value));
+  const others = Object.keys(dist).filter((s) => s !== state);
+  const priorOthers = others.reduce((a, s) => a + dist[s], 0);
+  const remaining = 1 - v;
+  const out: Record<StateId, number> = { [state]: v };
+  for (const s of others) out[s] = priorOthers > 0 ? remaining * (dist[s] / priorOthers) : remaining / others.length;
+  return out;
+}
+
+export interface ThresholdPoint {
+  p: number;
+  netDelta: number;
+}
+
+export interface ThresholdCrossing {
+  /** Credence in the swept state at which the verdict flips. */
+  p: number;
+  /** True if the choice becomes favorable as the credence rises through `p`. */
+  favorableAbove: boolean;
+}
+
+export interface BeliefThreshold {
+  sweepFactor: FactorId;
+  sweepState: StateId;
+  /** The current credence in the swept state. */
+  currentP: number;
+  netDeltaAtCurrent: number;
+  /** Sweep of net delta as P(sweepState) goes 0 → 1 (others redistributed). */
+  points: ThresholdPoint[];
+  /** Break-even credences where the verdict flips sign. */
+  crossings: ThresholdCrossing[];
+}
+
+/**
+ * Sweep the credence in one factor-state from 0 to 1 (redistributing that factor's
+ * other states) and trace the contrast's net delta, locating the break-even
+ * credence(s) where the verdict flips — "favorable as long as P(X) exceeds Y%".
+ *
+ * This sweeps a *marginal credence*, so it uses the independence×couplings model
+ * (no joint override): it answers "how does the verdict depend on my credence in X?".
+ * Choosing the decision factor itself as the sweep target is meaningless (it's
+ * integrated out of the contrast) — pick another factor.
+ */
+export function beliefThreshold(
+  dataset: Dataset,
+  credences: Credences,
+  weights: Parameters<typeof analyze>[2],
+  evaluator: Evaluator,
+  decision: Decision,
+  sweepFactor: FactorId,
+  sweepState: StateId,
+  given: Pins = {},
+  steps = 51,
+): BeliefThreshold {
+  const dist = credences[sweepFactor] ?? {};
+  const currentP = dist[sweepState] ?? 0;
+
+  const points: ThresholdPoint[] = [];
+  for (let i = 0; i < steps; i++) {
+    const p = i / (steps - 1);
+    const swept: Credences = { ...credences, [sweepFactor]: withMarginal(dist, sweepState, p) };
+    points.push({ p, netDelta: netDeltaFor(dataset, swept, weights, evaluator, decision, given) });
+  }
+
+  const crossings: ThresholdCrossing[] = [];
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1];
+    const b = points[i];
+    if ((a.netDelta < 0 && b.netDelta >= 0) || (a.netDelta > 0 && b.netDelta <= 0)) {
+      // Linear-interpolate the zero crossing between the two samples.
+      const t = a.netDelta / (a.netDelta - b.netDelta);
+      crossings.push({ p: a.p + t * (b.p - a.p), favorableAbove: b.netDelta >= a.netDelta });
+    }
+  }
+
+  return {
+    sweepFactor,
+    sweepState,
+    currentP,
+    netDeltaAtCurrent: netDeltaFor(dataset, credences, weights, evaluator, decision, given),
+    points,
+    crossings,
+  };
+}
+
 export interface ContrastGrid {
   f1: FactorId;
   f2: FactorId;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { dataset } from '@model/dataset';
-import { cachedEvaluator, conditionalContrast, contrastGrid } from '@engine/index';
+import { beliefThreshold, cachedEvaluator, conditionalContrast, contrastGrid } from '@engine/index';
 
 const cr = dataset.baselineCredences;
 const w = dataset.defaultWeights;
@@ -78,6 +78,35 @@ describe('conditional contrast', () => {
   it('a given condition drops that factor from the cruxes', () => {
     const c = run({ factor: 'powerConcentration', toward: 'diffuse', baseline: 'concentrated' }, { offenseDefense: 'defense' });
     expect(c.cruxes.map((x) => x.factorId)).not.toContain('offenseDefense');
+  });
+});
+
+describe('belief threshold', () => {
+  const decision = { factor: 'powerConcentration', toward: 'diffuse', baseline: 'concentrated' } as const;
+
+  it('sweeps P(state) from 0 to 1 and reports the current credence', () => {
+    const t = beliefThreshold(dataset, cr, w, cachedEvaluator, decision, 'offenseDefense', 'defense');
+    expect(t.points).toHaveLength(51);
+    expect(t.points[0].p).toBe(0);
+    expect(t.points[50].p).toBe(1);
+    expect(t.currentP).toBeCloseTo(cr.offenseDefense.defense, 10);
+  });
+
+  it('open-source grows more favorable as defense-dominance becomes more certain', () => {
+    // The design-doc crux, as a monotone trend: net delta at P(defense)=1 exceeds P(defense)=0.
+    const t = beliefThreshold(dataset, cr, w, cachedEvaluator, decision, 'offenseDefense', 'defense');
+    expect(t.points[50].netDelta).toBeGreaterThan(t.points[0].netDelta);
+  });
+
+  it('a detected crossing actually separates the sign of the net delta', () => {
+    const t = beliefThreshold(dataset, cr, w, cachedEvaluator, decision, 'offenseDefense', 'defense');
+    for (const x of t.crossings) {
+      expect(x.p).toBeGreaterThanOrEqual(0);
+      expect(x.p).toBeLessThanOrEqual(1);
+    }
+    // The sign at the endpoints must differ iff there's an odd number of crossings.
+    const ends = Math.sign(t.points[0].netDelta) !== Math.sign(t.points[50].netDelta);
+    if (ends) expect(t.crossings.length % 2).toBe(1);
   });
 });
 

@@ -1,14 +1,16 @@
 import { useMemo, useState } from 'react';
 import { Box, FormControl, MenuItem, Select, Stack, Typography } from '@mui/material';
 import { dataset } from '@model/dataset';
-import type { Credences, Evaluator, Scenario, ValueVector } from '@model/types';
-import { conditionalContrast, contrastGrid, type Decision } from '@engine/index';
+import type { Credences, Evaluator, FactorId, Scenario, StateId, ValueVector } from '@model/types';
+import { beliefThreshold, conditionalContrast, contrastGrid, type Decision } from '@engine/index';
 import type { Pins } from '@engine/scenarios';
 import { Panel } from '@shell/Panel';
 import { c, fonts, valueColor } from '@shell/theme';
 import { ConditionTornado } from '@viz/ConditionTornado';
 import { ConditionHeatmap } from '@viz/ConditionHeatmap';
+import { BeliefThreshold } from '@viz/BeliefThreshold';
 import { InfoTip } from '@viz/InfoTip';
+import { VizHeading } from '@viz/VizHeading';
 
 interface Props {
   credences: Credences;
@@ -61,6 +63,25 @@ export function ConditionsTab({ credences, weights, evaluator, pins, jointProbab
     [credences, weights, evaluator, decision, pins, hmF1, hmF2, jointProbability],
   );
   const labelOf = (fid: string) => dataset.factors.find((f) => f.id === fid)?.label ?? fid;
+
+  // Belief threshold: which factor-state's credence to sweep. Defaults to the top
+  // crux factor (never the decision factor, which is integrated out of the contrast).
+  const [sweep, setSweep] = useState<{ factor: FactorId; state: StateId } | null>(null);
+  const sweepFactorId =
+    sweep && sweep.factor !== decision.factor && dataset.factors.some((f) => f.id === sweep.factor)
+      ? sweep.factor
+      : contrast.cruxes.find((x) => x.factorId !== decision.factor)?.factorId ??
+        dataset.factors.find((f) => f.id !== decision.factor)!.id;
+  const sweepFactor = dataset.factors.find((f) => f.id === sweepFactorId)!;
+  const sweepStateId =
+    sweep && sweep.factor === sweepFactorId && sweepFactor.states.some((s) => s.id === sweep.state)
+      ? sweep.state
+      : sweepFactor.states[0].id;
+  const sweepStateLabel = sweepFactor.states.find((s) => s.id === sweepStateId)?.label ?? sweepStateId;
+  const threshold = useMemo(
+    () => beliefThreshold(dataset, credences, weights, evaluator, decision, sweepFactorId, sweepStateId, pins),
+    [credences, weights, evaluator, decision, sweepFactorId, sweepStateId, pins],
+  );
 
   const stateSelectSx = { fontFamily: fonts.display, fontSize: '0.84rem' };
 
@@ -154,6 +175,47 @@ export function ConditionsTab({ credences, weights, evaluator, pins, jointProbab
           />
         </Panel>
       ) : null}
+
+      <Panel>
+        <VizHeading
+          title="How sure would you need to be?"
+          info={
+            <>
+              Sweeps your credence in one factor-state from 0 to 100% and traces the choice's net EV,
+              marking the break-even credence where the verdict flips. This varies a marginal belief, so
+              it uses the independence model regardless of the active probability model.
+            </>
+          }
+        />
+        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 0.5, mb: 1.5 }}>
+          <Typography variant="caption" sx={{ color: c.mute }}>credence in</Typography>
+          <FormControl size="small" sx={{ minWidth: 190 }}>
+            <Select
+              value={sweepFactorId}
+              onChange={(e) => {
+                const f = dataset.factors.find((x) => x.id === e.target.value)!;
+                setSweep({ factor: f.id, state: f.states[0].id });
+              }}
+              sx={stateSelectSx}
+            >
+              {dataset.factors
+                .filter((f) => f.id !== decision.factor)
+                .map((f) => (
+                  <MenuItem key={f.id} value={f.id} sx={stateSelectSx}>{f.label}</MenuItem>
+                ))}
+            </Select>
+          </FormControl>
+          <Typography sx={{ color: c.faint, fontFamily: fonts.body }}>=</Typography>
+          <FormControl size="small" sx={{ minWidth: 130 }}>
+            <Select value={sweepStateId} onChange={(e) => setSweep({ factor: sweepFactorId, state: e.target.value })} sx={stateSelectSx}>
+              {sweepFactor.states.map((s) => (
+                <MenuItem key={s.id} value={s.id} sx={stateSelectSx}>{s.label}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Stack>
+        <BeliefThreshold data={threshold} factorLabel={sweepFactor.label} stateLabel={sweepStateLabel} />
+      </Panel>
     </>
   );
 }
