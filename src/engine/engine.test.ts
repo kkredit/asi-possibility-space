@@ -6,6 +6,7 @@ import {
   cachedEvaluator,
   distribution,
   enumerateScenarios,
+  evaluators,
   getEvaluator,
   isReasoned,
   linearEvaluator,
@@ -191,8 +192,12 @@ describe('evaluators', () => {
     );
   });
 
-  it('registry falls back to linear for unknown ids', () => {
-    expect(getEvaluator('nope')).toBe(linearEvaluator);
+  it('registry falls back to cached for unknown ids', () => {
+    expect(getEvaluator('nope')).toBe(cachedEvaluator);
+  });
+
+  it('does not list the crude hand-set linear evaluator as selectable', () => {
+    expect(evaluators.some((e) => e.id === 'linear')).toBe(false);
   });
 });
 

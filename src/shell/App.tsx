@@ -11,8 +11,8 @@ import {
   distribution,
   evaluatorFit,
   evaluators,
+  fittedLinearEvaluator,
   getEvaluator,
-  linearEvaluator,
   rankActions,
   reconcileJoint,
   scalarize,
@@ -129,8 +129,8 @@ export function App() {
   }, [netMode, credences, weights, evaluator, pins, targets, bayesMarginals, analysis]);
   // The scatter plots a comparison model (x) against the hand-reasoned surface (y).
   // Comparing cached-vs-cached is a useless diagonal, so when cached is selected we
-  // fall back to the hand-set linear model (the original default view).
-  const compareEvaluator = evaluator.id === cachedEvaluator.id ? linearEvaluator : evaluator;
+  // fall back to the fitted additive model — the honest null model.
+  const compareEvaluator = evaluator.id === cachedEvaluator.id ? fittedLinearEvaluator : evaluator;
   const diffPoints = useMemo<DiffPoint[]>(
     () =>
       analysis.scenarios.map((s) => ({
@@ -151,7 +151,6 @@ export function App() {
       fittedPairwise: 'Best fit with two-way interactions. Its residual is genuinely higher-than-pairwise (3-way+) structure.',
       archetype: 'Four logical buckets (benign / aligned / control / doom), each predicting its mean value. Zero hand-tuning — yet it beats the fitted additive model, which means the surface is gated, not additive.',
       fitted: 'Best possible interaction-free fit. Its residual is the irreducible non-linearity — what no sum-of-factors can capture.',
-      linear: 'Hand-set additive coefficients. Its extra gap over the fitted model is just suboptimal coefficients, not real structure.',
     };
     return evaluators
       .map((e) => {

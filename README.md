@@ -52,12 +52,13 @@ src/
 └── shell/    # the UI wrapper — MUI theme, layout, controls, Zustand state, engine↔viz wiring.
 ```
 
-The evaluator is a **pluggable interface** ([`src/engine/evaluators/`](src/engine/evaluators)). Five
-ship today across two model families: a hand-set *linear* model, two least-squares *fitted* models
-(additive and additive-plus-pairwise), a *logical-gate* model, and the sparse *cached / hand-reasoned*
-surface they're all measured against. Comparing them is the point — their divergence is the research
-signal for how the factors actually relate. See [`docs/MODEL.md`](docs/MODEL.md) for the findings and
-[`AGENTS.md`](AGENTS.md) for how to extend the model.
+The evaluator is a **pluggable interface** ([`src/engine/evaluators/`](src/engine/evaluators)). Four
+selectable models across two families: two least-squares *fitted* models (additive and
+additive-plus-pairwise), a *logical-gate* model, and the sparse *cached / hand-reasoned* surface
+they're measured against. Comparing them is the point — their divergence is the research signal for
+how the factors actually relate. (A crude hand-set *linear* model is kept only as the internal
+fallback for un-authored cells; it's not offered in the picker.) See [`docs/MODEL.md`](docs/MODEL.md)
+for the findings and [`AGENTS.md`](AGENTS.md) for how to extend the model.
 
 ## Tech
 

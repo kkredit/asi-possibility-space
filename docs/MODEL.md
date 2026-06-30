@@ -39,7 +39,9 @@ spanning two model families, and the whole point is to **compare** them — thei
 divergence from the hand-reasoned surface is the research signal.
 
 **Additive family** — `V(s) = baseline + Σ contributions`:
-- **`linear`** — hand-set coefficients. Deliberately crude.
+- **`linear`** — hand-set coefficients. Deliberately crude, and so poor it's no longer
+  offered in the picker — it survives only as the internal fallback for un-authored
+  cells. Still shown below as the analytical "before fitting" baseline.
 - **`fitted`** — the *same additive form*, but coefficients solved by least squares
   against the hand-reasoned cells (ridge-regularised, [`fit.ts`](../src/engine/fit.ts)).
 - **`fitted + pairwise`** — adds an indicator for every pair of factor-states, so it
@@ -64,11 +66,15 @@ from cached over all 432 scenarios, in value-vector space (each dimension is in
 
 | Model | Free params | RMS to cached | What its residual *is* |
 |---|---:|---:|---|
-| `linear` (hand-set) | 18 | **0.528** | bad coefficients **+** non-linearity (conflated) |
+| `linear` (hand-set)¹ | 18 | **0.528** | bad coefficients **+** non-linearity (conflated) |
 | `fitted` (additive) | 18 | **0.330** | **irreducible non-linearity** — what no sum-of-factors can express |
 | `archetype` (4 gates) | 16 | **0.208** | structure beyond a 4-way logical split |
 | `fitted + pairwise` | 141 | **0.149** | genuinely **higher-than-pairwise** (3-way+) entanglement |
 | `cached` | — | 0 | (the reference) |
+
+¹ `linear` is the analytical baseline only; it's not selectable in the UI ladder (it
+was too crude to be worth picking) — the picker shows `fitted`, `archetype`, and
+`fitted + pairwise` against `cached`.
 
 Three things fall out of this ladder:
 

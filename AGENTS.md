@@ -187,13 +187,15 @@ interface Evaluator {
 
 Returning `undefined` means "no opinion on this cell." Steps:
 
-1. Add a file under [`src/engine/evaluators/`](src/engine/evaluators). Five ship:
-   `linear.ts` (hand-set coefficients), `fitted.ts` (two least-squares fits — main
-   effects and main+pairwise, both solved against the cached cells by
+1. Add a file under [`src/engine/evaluators/`](src/engine/evaluators). Four are
+   user-selectable (listed in the `evaluators` array): `fitted.ts` (two least-squares
+   fits — main effects and main+pairwise, both solved against the cached cells by
    [`src/engine/fit.ts`](src/engine/fit.ts)), `archetype.ts` (a domain-specific
    logical-gate model — classify into benign/aligned/control/doom, predict the
-   group mean), and `cached.ts` (the hand-reasoned surface, falling back to linear
-   for un-authored cells).
+   group mean), and `cached.ts` (the hand-reasoned surface). A fifth, `linear.ts`
+   (a crude hand-set additive model), is intentionally **not** in the registry — it
+   exists only as the internal fallback for un-authored cells (cached/archetype defer
+   to it; with all 432 cells authored it never actually fires).
 2. Register it in [`src/engine/evaluators/index.ts`](src/engine/evaluators/index.ts):
    add it to the `evaluators` array (ordered most- to least-faithful);
    `getEvaluator(id)` resolves by id and falls back to `linearEvaluator`.
