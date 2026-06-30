@@ -7,6 +7,7 @@ import {
   distribution,
   enumerateScenarios,
   getEvaluator,
+  isReasoned,
   linearEvaluator,
   rankActions,
   scalarize,
@@ -41,9 +42,10 @@ describe('dataset integrity (cached cells)', () => {
     }
   });
 
-  it('covers a substantial share of the 144-scenario space', () => {
-    // informational: current authored coverage
-    expect(dataset.cachedOutcomes.length).toBeGreaterThanOrEqual(50);
+  it('covers the full 144-scenario space (every scenario hand-reasoned)', () => {
+    expect(dataset.cachedOutcomes.length).toBe(144);
+    const scenarios = enumerateScenarios(dataset.factors);
+    expect(scenarios.every((s) => isReasoned(s, dataset))).toBe(true);
   });
 });
 
@@ -115,15 +117,18 @@ describe('evaluators', () => {
     expect(outcome.narrative).toMatch(/sadistic|nihilistic/);
   });
 
-  it('cached evaluator falls back to linear for un-authored cells', () => {
+  it('cached evaluator falls back to linear for an un-authored (synthetic) cell', () => {
+    // The 144 real scenarios are now all authored, so force the fallback path with
+    // a synthetic out-of-distribution state that has no cached cell.
     const scenario = {
-      orthogonality: 'fails',
+      orthogonality: '__synthetic',
       tractability: 'easy',
       offenseDefense: 'balanced',
       powerConcentration: 'concentrated',
       alignmentInTime: 'yes',
       controlDeployed: 'no',
     };
+    expect(isReasoned(scenario, dataset)).toBe(false);
     expect(cachedEvaluator.evaluate(scenario, dataset)).toEqual(
       linearEvaluator.evaluate(scenario, dataset),
     );

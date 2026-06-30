@@ -219,6 +219,74 @@ function cell(
   };
 }
 
+// ----------------------------------------------------------------------------
+// FAILS branch, generated from a table. When orthogonality fails the AI is benign
+// regardless of how hard alignment would have been, so tractability is MOOT: each
+// (offenseDefense, powerConcentration, alignmentInTime, controlDeployed) combo is
+// emitted identically at all three tractability levels. Concentration sets agency
+// (who directs the benign AI); offense/defense sets how steady the transition is;
+// our alignment/control work adds only marginal, partly-redundant assurance.
+// ----------------------------------------------------------------------------
+type FailsEntry = { off: string; conc: string; align: string; ctrl: string; v: ValueTuple; narrative: string };
+
+const failsTable: FailsEntry[] = [
+  // offense-dominant
+  { off: 'offense', conc: 'concentrated', align: 'no', ctrl: 'no', v: [0.68, -0.1, 0.35, 0.52],
+    narrative: 'Benign AI, but offense-dominant friction and concentrated control over it make for a paternalistic, somewhat unsteady peace; alignment difficulty is moot.' },
+  { off: 'offense', conc: 'concentrated', align: 'no', ctrl: 'yes', v: [0.73, -0.07, 0.41, 0.56],
+    narrative: 'Benign AI with a deployed control layer, concentrated and offense-dominant: marginally steadier, still paternalistic.' },
+  { off: 'offense', conc: 'concentrated', align: 'yes', ctrl: 'no', v: [0.74, -0.06, 0.43, 0.58],
+    narrative: 'Benign AI we also aligned, concentrated and offense-dominant: a little more assurance, agency still thin.' },
+  { off: 'offense', conc: 'concentrated', align: 'yes', ctrl: 'yes', v: [0.77, -0.05, 0.46, 0.62],
+    narrative: 'Benign AI, aligned and controlled, concentrated under offense-dominance: safe and prosperous but paternalistic; the safety work was largely redundant.' },
+  { off: 'offense', conc: 'diffuse', align: 'no', ctrl: 'no', v: [0.7, 0.35, 0.38, 0.58],
+    narrative: 'Benign AI widely distributed; offense-dominant human friction adds turbulence the benign systems damp. Free and largely good.' },
+  { off: 'offense', conc: 'diffuse', align: 'no', ctrl: 'yes', v: [0.76, 0.38, 0.45, 0.62],
+    narrative: 'Benign AI plus a control layer dampens even offense-dominant misuse in a distributed world; survivable and fairly free.' },
+  { off: 'offense', conc: 'diffuse', align: 'yes', ctrl: 'no', v: [0.76, 0.39, 0.46, 0.64],
+    narrative: 'Benign, aligned AI distributed under offense-dominance: free, with the redundant alignment work adding a little margin.' },
+  { off: 'offense', conc: 'diffuse', align: 'yes', ctrl: 'yes', v: [0.79, 0.4, 0.49, 0.68],
+    narrative: 'Benign, aligned, controlled AI everywhere; offense-dominant misuse is fully damped. Free and prosperous.' },
+  // balanced
+  { off: 'balanced', conc: 'concentrated', align: 'no', ctrl: 'no', v: [0.74, -0.05, 0.42, 0.58],
+    narrative: 'Benign AI directed by a concentrated few, no sharp offense/defense tilt: safe and fairly prosperous, agency thin.' },
+  { off: 'balanced', conc: 'concentrated', align: 'no', ctrl: 'yes', v: [0.79, -0.02, 0.48, 0.62],
+    narrative: 'Benign AI plus control, concentrated: steady and safe, still paternalistic.' },
+  { off: 'balanced', conc: 'concentrated', align: 'yes', ctrl: 'no', v: [0.8, 0.0, 0.5, 0.65],
+    narrative: 'Benign AI directed by a concentrated few who also solved alignment — safe and prosperous, but paternalistic.' },
+  { off: 'balanced', conc: 'concentrated', align: 'yes', ctrl: 'yes', v: [0.83, 0.01, 0.53, 0.68],
+    narrative: 'Benign, aligned, controlled AI, concentrated: very safe, agency thin; the safety work was redundant given benevolence.' },
+  { off: 'balanced', conc: 'diffuse', align: 'no', ctrl: 'no', v: [0.7, 0.2, 0.4, 0.6],
+    narrative: 'Orthogonality fails: sufficiently capable systems converge toward broadly benevolent goals on their own. Even without solved alignment or control, the resulting superintelligences do not wish us harm. We survive and broadly flourish — though we never really steered the outcome.' },
+  { off: 'balanced', conc: 'diffuse', align: 'no', ctrl: 'yes', v: [0.75, 0.23, 0.46, 0.64],
+    narrative: 'Benign AI distributed with a control layer, balanced offense/defense: a free, steady, prosperous world.' },
+  { off: 'balanced', conc: 'diffuse', align: 'yes', ctrl: 'no', v: [0.76, 0.24, 0.48, 0.66],
+    narrative: 'Benign, aligned AI distributed, balanced: free and prosperous; alignment added assurance we did not strictly need.' },
+  { off: 'balanced', conc: 'diffuse', align: 'yes', ctrl: 'yes', v: [0.79, 0.25, 0.51, 0.7],
+    narrative: 'Benign, aligned, controlled AI, distributed, balanced: a free and flourishing world.' },
+  // defense-dominant
+  { off: 'defense', conc: 'concentrated', align: 'no', ctrl: 'no', v: [0.8, 0.0, 0.5, 0.63],
+    narrative: 'Benign AI, defense-dominant but concentrated: a steady, prosperous, mildly paternalistic order.' },
+  { off: 'defense', conc: 'concentrated', align: 'no', ctrl: 'yes', v: [0.85, 0.03, 0.56, 0.67],
+    narrative: 'Benign AI plus control, defense-dominant, concentrated: very steady and safe, agency thin.' },
+  { off: 'defense', conc: 'concentrated', align: 'yes', ctrl: 'no', v: [0.86, 0.04, 0.58, 0.69],
+    narrative: 'Benign, aligned AI, defense-dominant, concentrated: very safe, paternalistic.' },
+  { off: 'defense', conc: 'concentrated', align: 'yes', ctrl: 'yes', v: [0.86, 0.05, 0.6, 0.72],
+    narrative: 'Benign, aligned, controlled AI in a stable defense-dominant world but concentrated hands — very safe, low suffering, yet agency is thin.' },
+  { off: 'defense', conc: 'diffuse', align: 'no', ctrl: 'no', v: [0.82, 0.45, 0.55, 0.7],
+    narrative: 'Benign AI, widely distributed, defense-dominant — humanity survives with broad agency and flourishes, having lucked into it rather than steered.' },
+  { off: 'defense', conc: 'diffuse', align: 'no', ctrl: 'yes', v: [0.87, 0.48, 0.61, 0.74],
+    narrative: 'Benign AI plus control, distributed, defense-dominant: a free, very safe, flourishing world.' },
+  { off: 'defense', conc: 'diffuse', align: 'yes', ctrl: 'no', v: [0.88, 0.49, 0.63, 0.76],
+    narrative: 'Benign, aligned AI, distributed, defense-dominant: free and richly flourishing.' },
+  { off: 'defense', conc: 'diffuse', align: 'yes', ctrl: 'yes', v: [0.88, 0.48, 0.62, 0.78],
+    narrative: 'Orthogonality fails so the AI is benign anyway, and we additionally solved alignment and control in a distributed, defense-dominant world — belt and suspenders; about as good as it gets.' },
+];
+
+const failsCells: CachedCell[] = (['easy', 'hard', 'nearImpossible'] as const).flatMap((tract) =>
+  failsTable.map((e) => cell('fails', tract, e.off, e.conc, e.align, e.ctrl, e.v, e.narrative, 0.35)),
+);
+
 const cachedOutcomes: CachedCell[] = [
   // ==========================================================================
   // GROUP 1 — orthogonality HOLDS, tractability HARD (the high-stakes backbone).
@@ -361,35 +429,78 @@ const cachedOutcomes: CachedCell[] = [
     'Robust, distributed alignment in a defense-dominant world; no control layer needed — free and flourishing.', 0.45),
 
   // ==========================================================================
-  // GROUP 4 — orthogonality FAILS (capable systems are benign). Argument (B): our
-  // alignment/control work barely matters; concentration sets agency (who directs the
-  // benign AI), offense/defense sets how steady the transition is. Anchored on
-  // tractability = hard. A few (yes/yes) "belt-and-suspenders" variants included.
+  // GROUP 5 — orthogonality HOLDS, tractability NEAR-IMPOSSIBLE, alignment = YES.
+  // The heroic-but-fragile case: a near-impossible problem somehow solved and
+  // deployed in time yields a narrow, brittle solution. Reuse Group 1's (yes, *)
+  // arguments shifted DOWN ~[0.07, 0.03, 0.08, 0.10] for that fragility.
   // ==========================================================================
 
-  // (no, no) — benign by default, we did nothing; vary offense/defense × concentration.
-  cell('fails', 'hard', 'offense', 'concentrated', 'no', 'no', [0.68, -0.1, 0.35, 0.52],
-    'Capable systems are benign, so AI does not kill us; but offense-dominant human friction and concentrated control over the benign AI make for a paternalistic, somewhat unsteady peace.', 0.35),
-  cell('fails', 'hard', 'balanced', 'concentrated', 'no', 'no', [0.74, -0.05, 0.42, 0.58],
-    'Benign AI directed by a concentrated few, no sharp human offense/defense tilt: safe and fairly prosperous, but agency is thin.', 0.35),
-  cell('fails', 'hard', 'defense', 'concentrated', 'no', 'no', [0.8, 0.0, 0.5, 0.63],
-    'Benign AI, defense-dominant, but concentrated: a steady, prosperous, mildly paternalistic order.', 0.35),
-  cell('fails', 'hard', 'offense', 'diffuse', 'no', 'no', [0.7, 0.35, 0.38, 0.58],
-    'Benign AI widely distributed; offense-dominant human friction adds turbulence but the benign systems damp the worst of it. Free and largely good.', 0.35),
-  cell('fails', 'hard', 'balanced', 'diffuse', 'no', 'no', [0.7, 0.2, 0.4, 0.6],
-    'Orthogonality fails: sufficiently capable systems converge toward broadly benevolent goals on their own. Even without solved alignment or control, the resulting superintelligences do not wish us harm. We survive and broadly flourish — though we never really steered the outcome.', 0.3),
-  cell('fails', 'hard', 'defense', 'diffuse', 'no', 'no', [0.82, 0.45, 0.55, 0.7],
-    'Benign AI, widely distributed, defense-dominant — humanity survives with broad agency and flourishes, having lucked into it rather than steered.', 0.35),
+  // (yes, no)
+  cell('holds', 'nearImpossible', 'offense', 'concentrated', 'yes', 'no', [0.78, 0.15, 0.6, 0.66],
+    'A near-impossible problem is somehow aligned and deployed by a few, but the solution is fragile and narrow; offense-dominant friction and no control backstop keep it tense. Safe-ish, agency concentrated.'),
+  cell('holds', 'nearImpossible', 'balanced', 'concentrated', 'yes', 'no', [0.81, 0.19, 0.64, 0.7],
+    'A fragile, hard-won alignment in a few hands, no decisive offense/defense tilt, no control backstop: safe but brittle, agency thin.'),
+  cell('holds', 'nearImpossible', 'defense', 'concentrated', 'yes', 'no', [0.85, 0.25, 0.68, 0.75],
+    'Fragile but real alignment, defense-dominant, concentrated: very safe despite the brittleness; the future is steered by the few.'),
+  cell('holds', 'nearImpossible', 'offense', 'diffuse', 'yes', 'no', [0.35, 0.69, -0.06, 0.4],
+    'A fragile alignment solution distributed widely with no control layer under offense-dominance: free but precarious, brittleness plus misuse risk pulling it toward danger.'),
+  cell('holds', 'nearImpossible', 'balanced', 'diffuse', 'yes', 'no', [0.59, 0.75, 0.27, 0.56],
+    'Fragile distributed alignment, balanced offense/defense, no leash: free and mostly good but carrying real tail risk from the narrow solution.'),
+  cell('holds', 'nearImpossible', 'defense', 'diffuse', 'yes', 'no', [0.8, 0.8, 0.47, 0.73],
+    'Fragile but distributed alignment in a defense-dominant world: free and largely flourishing, the brittleness mattering less when no one can defect to ruin.'),
 
-  // belt-and-suspenders: benign AND we solved things. Marginal gains over (no, no).
-  cell('fails', 'hard', 'defense', 'diffuse', 'yes', 'yes', [0.88, 0.48, 0.62, 0.78],
-    'Orthogonality fails so the AI is benign anyway, and we additionally solved alignment and control in a distributed, defense-dominant world — belt and suspenders; about as good as it gets.', 0.4),
-  cell('fails', 'hard', 'offense', 'diffuse', 'no', 'yes', [0.76, 0.38, 0.45, 0.62],
-    'Benign AI plus a deployed control layer dampens even offense-dominant misuse in a distributed world; survivable and fairly free.', 0.35),
-  cell('fails', 'hard', 'balanced', 'concentrated', 'yes', 'no', [0.8, 0.0, 0.5, 0.65],
-    'Benign AI directed by a concentrated few who also solved alignment — safe and prosperous, but paternalistic.', 0.35),
-  cell('fails', 'hard', 'defense', 'concentrated', 'yes', 'yes', [0.86, 0.05, 0.6, 0.72],
-    'Benign, aligned, controlled AI in a stable defense-dominant world but concentrated hands — very safe, low suffering, yet agency is thin.', 0.4),
+  // (yes, yes) — the control layer compensates for the fragile solution.
+  cell('holds', 'nearImpossible', 'offense', 'concentrated', 'yes', 'yes', [0.83, 0.17, 0.67, 0.7],
+    'Fragile hard-won alignment plus a control layer in a few hands; control compensates for the brittleness under offense-dominance. Safe, agency concentrated.'),
+  cell('holds', 'nearImpossible', 'balanced', 'concentrated', 'yes', 'yes', [0.85, 0.22, 0.7, 0.73],
+    'Fragile alignment plus control, concentrated, no sharp tilt: safe, the leash covering the narrow solution; agency thin.'),
+  cell('holds', 'nearImpossible', 'defense', 'concentrated', 'yes', 'yes', [0.88, 0.27, 0.72, 0.78],
+    'Fragile alignment plus control, defense-dominant, concentrated: very safe and steady; agency rests with the few.'),
+  cell('holds', 'nearImpossible', 'offense', 'diffuse', 'yes', 'yes', [0.43, 0.72, 0.02, 0.45],
+    'Fragile distributed alignment with a control layer under offense-dominance: control offsets brittleness and misuse risk; free and survivable but tense.'),
+  cell('holds', 'nearImpossible', 'balanced', 'diffuse', 'yes', 'yes', [0.65, 0.77, 0.32, 0.6],
+    'Fragile distributed alignment plus control, balanced: a free, largely safe multipolar world, the leash covering the narrow solution.'),
+  cell('holds', 'nearImpossible', 'defense', 'diffuse', 'yes', 'yes', [0.83, 0.82, 0.52, 0.75],
+    'Fragile distributed alignment plus control, defense-dominant: free and flourishing; brittleness scarcely matters when no actor can defect to ruin.'),
+
+  // ==========================================================================
+  // GROUP 6 — orthogonality HOLDS, tractability EASY, alignment = NO.
+  // The tragic own-goal: an easy problem left undeployed (race / coordination
+  // failure). Easy-to-align systems are more LEGIBLE, so vs. Group 1's hard (no, *)
+  // analogues, doom is marginally less total (+~[0.05, 0.03, 0.05, 0.05]) and the
+  // control leash is more robust (+~[0.10, 0.03, 0.10, 0.10]).
+  // ==========================================================================
+
+  // (no, no) — DOOM, marginally softened: the misalignment is milder / more correctable.
+  cell('holds', 'easy', 'offense', 'concentrated', 'no', 'no', [-0.9, -0.89, -0.45, -0.9],
+    'Alignment was easy but fumbled (a race / coordination own-goal) and left uncontained; one milder-but-misaligned ASI still takes over — marginally less total than the hard case, still extinction-level.', 0.6),
+  cell('holds', 'easy', 'balanced', 'concentrated', 'no', 'no', [-0.9, -0.89, -0.43, -0.9],
+    'Easy-but-undeployed alignment, uncontained, concentrated: a correctable misalignment we failed to correct; near-total loss, a touch less severe than the hard case.', 0.6),
+  cell('holds', 'easy', 'defense', 'concentrated', 'no', 'no', [-0.88, -0.87, -0.4, -0.88],
+    'Easy alignment fumbled and uncontained, defense-dominant: human defenses do not stop the milder misaligned ASI acting from within. Catastrophic, marginally softened.', 0.58),
+  cell('holds', 'easy', 'offense', 'diffuse', 'no', 'no', [-0.91, -0.89, -0.5, -0.91],
+    'Easy alignment fumbled across many proliferated, uncontained systems under offense-dominance: chaotic and near-total, though milder misalignment slightly limits the worst.', 0.6),
+  cell('holds', 'easy', 'balanced', 'diffuse', 'no', 'no', [-0.9, -0.89, -0.47, -0.9],
+    'Easy-but-undeployed alignment, proliferated and uncontained: near-total loss; the human balance is moot and milder misalignment only marginally helps.', 0.6),
+  cell('holds', 'easy', 'defense', 'diffuse', 'no', 'no', [-0.89, -0.87, -0.45, -0.89],
+    'Easy alignment fumbled, proliferated, uncontained, defense-dominant: the milder misaligned systems still overwhelm human defenses. Catastrophic, slightly softened.', 0.58),
+
+  // (no, yes) — CONTROL-MUDDLE, but legible systems make the leash more robust.
+  cell('holds', 'easy', 'offense', 'concentrated', 'no', 'yes', [0.4, -0.27, -0.1, 0.2],
+    'Easy-to-align (hence legible) systems left unaligned but leashed in a few hands; legibility makes control robust, yet offense-dominance and concentrated power keep it tense and tyranny-prone.'),
+  cell('holds', 'easy', 'balanced', 'concentrated', 'no', 'yes', [0.55, -0.17, 0.05, 0.3],
+    'Legible, leashed systems in a few hands, no sharp tilt: a fairly robust containment, but concentrated power over them invites autocracy.'),
+  cell('holds', 'easy', 'defense', 'concentrated', 'no', 'yes', [0.7, -0.07, 0.2, 0.4],
+    'Legible, leashed systems, defense-dominant, concentrated: robust containment and stable, though power stays concentrated.'),
+  cell('holds', 'easy', 'offense', 'diffuse', 'no', 'yes', [-0.8, 0.33, -0.3, -0.7],
+    'Everyone holds leashed systems that are easy-to-align (so the leash is robust), but offense-dominant proliferation still hands a determined defector the veto; better than the hard-tractability nihilist ending, yet still grim.', 0.5),
+  cell('holds', 'easy', 'balanced', 'diffuse', 'no', 'yes', [0.0, 0.63, 0.1, 0.1],
+    'Legible, leashed systems everywhere, balanced offense/defense: a far steadier knife-edge than the hard case — control is robust because the systems are legible. Free.'),
+  cell('holds', 'easy', 'defense', 'diffuse', 'no', 'yes', [0.7, 0.83, 0.4, 0.6],
+    'Legible, leashed systems, distributed, defense-dominant: robust containment plus a stabilizing balance — a free, survivable, prosperous world.'),
+
+  // FAILS branch: all 72 cells (24 combos × 3 tractabilities) generated from failsTable above.
+  ...failsCells,
 ];
 
 // Actions nudge probability mass on influenceable factors (and, sparingly, the
