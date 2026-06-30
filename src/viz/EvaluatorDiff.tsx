@@ -10,16 +10,18 @@ export interface DiffPoint {
 
 interface Props {
   points: DiffPoint[];
+  /** Name of the comparison model on the x-axis (e.g. "Fitted linear"). */
+  model?: string;
   /** Label for the x-axis (the comparison model). Defaults to "linear value →". */
   xLabel?: string;
 }
 
 /**
- * Scatter of cached (hand-reasoned) value vs. linear value per scenario. Points off
- * the diagonal are where careful reasoning disagrees with the simple additive model —
- * the residual is a direct measure of how non-linear the space is.
+ * Scatter of cached (hand-reasoned) value vs. the comparison model's value per
+ * scenario. Points off the diagonal are where careful reasoning disagrees with that
+ * model — the residual measures how much of the surface the model can't capture.
  */
-export function EvaluatorDiff({ points, xLabel = 'linear value →' }: Props) {
+export function EvaluatorDiff({ points, model = 'linear', xLabel = 'linear value →' }: Props) {
   const size = 340;
   const pad = 38;
   const plot = size - pad * 2;
@@ -36,10 +38,10 @@ export function EvaluatorDiff({ points, xLabel = 'linear value →' }: Props) {
   return (
     <Box>
       <Typography variant="subtitle2" gutterBottom>
-        Cached vs. linear
+        Cached vs. {model.toLowerCase()}
       </Typography>
       <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 1 }}>
-        residual measures how non-linear the space is · RMS divergence over {reasoned.length} cells{' '}
+        distance off the diagonal is what this model misses · RMS divergence over {reasoned.length} cells{' '}
         <Box component="span" sx={{ fontFamily: fonts.mono, color: c.bone }}>{rms.toFixed(3)}</Box>
       </Typography>
       <svg width="100%" viewBox={`0 0 ${size} ${size}`} role="img" aria-label="Evaluator comparison scatter" style={{ maxWidth: 380 }}>

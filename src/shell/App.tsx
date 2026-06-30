@@ -199,7 +199,7 @@ export function App() {
                   </Typography>
                 </Panel>
                 <Panel>
-                  <EvaluatorDiff points={diffPoints} xLabel={`${compareEvaluator.label} value →`} />
+                  <EvaluatorDiff points={diffPoints} model={compareEvaluator.label} xLabel={`${compareEvaluator.label} value →`} />
                   <Typography variant="body2" sx={{ mt: 2, color: c.mute, maxWidth: 620 }}>
                     Each dot is a scenario at its <strong>{compareEvaluator.label.toLowerCase()}</strong> value
                     (x) vs. hand-reasoned value (y). Distance from the dashed diagonal is where that model
