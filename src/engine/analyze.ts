@@ -1,5 +1,4 @@
 import type {
-  BayesNet,
   Credences,
   Dataset,
   Evaluator,
@@ -12,9 +11,8 @@ import {
   scenarioProbability,
   type Pins,
 } from '@engine/scenarios';
-import { bayesNetProbability } from '@engine/bayesnet';
 import { cachedEvaluator, isReasoned } from '@engine/evaluators';
-import { scalarize, VALUE_DIMENSION_IDS } from '@engine/value';
+import { scalarize, VALUE_DIMENSION_IDS, zeroVector } from '@engine/value';
 
 export interface EvaluatedScenario {
   scenario: Scenario;
@@ -35,7 +33,7 @@ export interface Analysis {
   totalProbability: number;
 }
 
-const ZERO: ValueVector = { survival: 0, agency: 0, suffering: 0, flourishing: 0 };
+const ZERO: ValueVector = zeroVector();
 
 export function analyze(
   dataset: Dataset,
@@ -43,33 +41,29 @@ export function analyze(
   weights: ValueVector,
   evaluator: Evaluator,
   pins: Pins = {},
-  /** Opt-in probability model. When supplied, the joint comes from the Bayes net
-   *  (P(scenario) = ∏ P(state | parents)) instead of independence×couplings. Both
-   *  share the same contract: probabilities sum to the pinned states' marginal mass
-   *  (1 with no pins). Defaults off, so every existing caller is unaffected. */
-  net?: BayesNet,
-  /** Most general probability source: a precomputed joint P(scenario). Takes
-   *  precedence over `net` and independence×couplings. Used by the soft-evidence
-   *  (IPF-reconciled) model, where the joint can't be factored into marginals. */
+  /** Opt-in probability model: a precomputed joint P(scenario) (e.g. the Bayes-net
+   *  or soft-evidence reconciled joint, which can't be factored into marginals).
+   *  When supplied it replaces independence×couplings, sharing the same contract:
+   *  probabilities sum to the pinned states' marginal mass (1 with no pins).
+   *  Defaults off, so every existing caller is unaffected. */
   jointProbability?: (s: Scenario) => number,
 ): Analysis {
   // Independent prior × coupling correction, then renormalized so the coupled
   // distribution carries the same total mass as the independent one (couplings
   // redistribute mass between scenarios; they never create or destroy it). With
-  // no pins that total is 1; with pins it is the pinned states' marginal mass. Under
-  // the Bayes-net model the net IS the joint, so we read it directly — no renorm.
+  // no pins that total is 1; with pins it is the pinned states' marginal mass. A
+  // supplied joint IS the distribution, so we read it directly — no renorm.
   const couplings = dataset.couplings ?? [];
   const enumerated = enumerateScenarios(dataset.factors, pins).map((scenario) => {
     if (jointProbability) return { scenario, prior: 0, coupled: jointProbability(scenario) };
-    if (net) return { scenario, prior: 0, coupled: bayesNetProbability(net, scenario, credences) };
     const prior = scenarioProbability(scenario, credences);
     return { scenario, prior, coupled: prior * couplingMultiplier(scenario, couplings) };
   });
   const priorMass = enumerated.reduce((a, s) => a + s.prior, 0);
   const coupledMass = enumerated.reduce((a, s) => a + s.coupled, 0);
-  // A precomputed joint (jointProbability) or the Bayes net is already correct, so the
-  // renorm is the identity. Otherwise rescale the coupled mass back to the prior mass.
-  const renorm = net || jointProbability ? 1 : coupledMass > 0 ? priorMass / coupledMass : 0;
+  // A precomputed joint is already correct, so the renorm is the identity. Otherwise
+  // rescale the coupled mass back to the independent prior mass.
+  const renorm = jointProbability ? 1 : coupledMass > 0 ? priorMass / coupledMass : 0;
 
   const scenarios = enumerated.map(({ scenario, coupled }) => {
     const probability = coupled * renorm;

@@ -90,15 +90,17 @@ describe('bayes net — joint', () => {
 });
 
 describe('bayes net — through analyze', () => {
+  const netJoint = (s: Parameters<typeof bayesNetProbability>[1]) => bayesNetProbability(net, s, cr);
+
   it('opt-in net path leaves total probability at 1 (no pins) and yields a finite EV', () => {
-    const a = analyze(dataset, cr, dataset.defaultWeights, cachedEvaluator, {}, net);
+    const a = analyze(dataset, cr, dataset.defaultWeights, cachedEvaluator, {}, netJoint);
     expect(a.totalProbability).toBeCloseTo(1, 8);
     expect(Number.isFinite(a.ev)).toBe(true);
   });
 
   it('the net and independence×couplings give different but comparable EVs', () => {
     const indep = analyze(dataset, cr, dataset.defaultWeights, cachedEvaluator);
-    const bn = analyze(dataset, cr, dataset.defaultWeights, cachedEvaluator, {}, net);
+    const bn = analyze(dataset, cr, dataset.defaultWeights, cachedEvaluator, {}, netJoint);
     // Both are valid joints over the same value surface, so EV should be in range and
     // in the same ballpark (the net is a refinement of the couplings, not a different
     // universe).

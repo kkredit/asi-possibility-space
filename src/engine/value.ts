@@ -7,6 +7,11 @@ export const VALUE_DIMENSION_IDS: ValueDimensionId[] = [
   'flourishing',
 ];
 
+/** A fresh all-zero value vector. */
+export function zeroVector(): ValueVector {
+  return { survival: 0, agency: 0, suffering: 0, flourishing: 0 };
+}
+
 export function clamp(x: number, lo = -1, hi = 1): number {
   return Math.max(lo, Math.min(hi, x));
 }

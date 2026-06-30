@@ -1,7 +1,7 @@
 import type { Dataset, Evaluator, Scenario, ValueVector } from '@model/types';
 import { isReasoned } from '@engine/evaluators/cached';
 import { linearEvaluator } from '@engine/evaluators/linear';
-import { VALUE_DIMENSION_IDS } from '@engine/value';
+import { VALUE_DIMENSION_IDS, zeroVector } from '@engine/value';
 
 /**
  * A logical-gating model — a different *family* from the additive evaluators.
@@ -57,7 +57,7 @@ function buildMeans(dataset: Dataset): Record<Archetype, ValueVector> {
     const a = classify(cell.scenario);
     if (!a) continue;
     if (!sum[a]) {
-      sum[a] = { survival: 0, agency: 0, suffering: 0, flourishing: 0 };
+      sum[a] = zeroVector();
       count[a] = 0;
     }
     count[a]++;
@@ -65,7 +65,7 @@ function buildMeans(dataset: Dataset): Record<Archetype, ValueVector> {
   }
   const means = {} as Record<Archetype, ValueVector>;
   for (const a of Object.keys(sum) as Archetype[]) {
-    means[a] = { survival: 0, agency: 0, suffering: 0, flourishing: 0 };
+    means[a] = zeroVector();
     for (const d of VALUE_DIMENSION_IDS) means[a][d] = sum[a][d] / count[a];
   }
   return means;

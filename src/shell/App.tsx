@@ -17,6 +17,7 @@ import {
   reconcileJoint,
   scalarize,
   sensitivity,
+  zeroVector,
 } from '@engine/index';
 import { Controls } from '@shell/controls/Controls';
 import { EvHeadline } from '@shell/EvHeadline';
@@ -89,7 +90,7 @@ export function App() {
   const netMode = probabilityModel === 'bayesNet';
 
   const analysis = useMemo(
-    () => analyze(dataset, credences, weights, evaluator, pins, undefined, jointProbability),
+    () => analyze(dataset, credences, weights, evaluator, pins, jointProbability),
     [credences, weights, evaluator, pins, jointProbability],
   );
   const bins = useMemo(() => distribution(analysis.scenarios), [analysis]);
@@ -101,7 +102,7 @@ export function App() {
       m[f.id] = {};
       for (const st of f.states) {
         const partial = dataset.linearContributions[f.id]?.[st.id] ?? {};
-        m[f.id][st.id] = scalarize({ survival: 0, agency: 0, suffering: 0, flourishing: 0, ...partial }, weights);
+        m[f.id][st.id] = scalarize({ ...zeroVector(), ...partial }, weights);
       }
     }
     return m;
@@ -121,7 +122,7 @@ export function App() {
         const newTargets = { ...targets };
         for (const d of action.deltas) newTargets[d.factor] = shifted[d.factor];
         const r = reconcileJoint(dataset.bayesNet!, dataset.factors, dataset.baselineCredences, newTargets);
-        const res = analyze(dataset, credences, weights, evaluator, pins, undefined, r.probability);
+        const res = analyze(dataset, credences, weights, evaluator, pins, r.probability);
         return { action, ev: res.ev, evGain: res.ev - baselineEv, evVector: res.evVector };
       })
       .sort((a, b) => b.evGain - a.evGain);

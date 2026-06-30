@@ -1,6 +1,6 @@
 import type { Dataset, Scenario, ValueVector } from '@model/types';
 import { isReasoned } from '@engine/evaluators/cached';
-import { VALUE_DIMENSION_IDS } from '@engine/value';
+import { VALUE_DIMENSION_IDS, zeroVector } from '@engine/value';
 
 /**
  * Least-squares fitting of additive value models against the hand-reasoned cells.
@@ -175,7 +175,7 @@ export function fitModel(dataset: Dataset, pairwise: boolean): FittedModel {
 
   function predict(scenario: Scenario): ValueVector {
     const on = spec.active(scenario);
-    const out: ValueVector = { survival: 0, agency: 0, suffering: 0, flourishing: 0 };
+    const out: ValueVector = zeroVector();
     for (const fi of on) {
       for (let d = 0; d < dims.length; d++) out[dims[d]] += beta[fi][d];
     }

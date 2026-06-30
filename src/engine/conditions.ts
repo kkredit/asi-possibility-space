@@ -106,7 +106,7 @@ function groupByRest(
   given: Pins,
   jointProbability?: (s: Scenario) => number,
 ): RestGroup[] {
-  const scenarios = analyze(dataset, credences, weights, evaluator, given, undefined, jointProbability).scenarios;
+  const scenarios = analyze(dataset, credences, weights, evaluator, given, jointProbability).scenarios;
   const map = new Map<string, { rest: Record<FactorId, StateId>; prob: number; a?: number; b?: number }>();
   for (const s of scenarios) {
     const rest = { ...s.scenario };

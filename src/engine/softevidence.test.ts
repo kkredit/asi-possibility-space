@@ -58,7 +58,7 @@ describe('soft evidence (IPF raking)', () => {
 
   it('drives analyze through the reconciled joint (sums to 1, finite EV)', () => {
     const r = reconcileJoint(net, factors, cr, { controlDeployed: { yes: 0.8, no: 0.2 } });
-    const a = analyze(dataset, cr, dataset.defaultWeights, cachedEvaluator, {}, undefined, r.probability);
+    const a = analyze(dataset, cr, dataset.defaultWeights, cachedEvaluator, {}, r.probability);
     expect(a.totalProbability).toBeCloseTo(1, 8);
     expect(Number.isFinite(a.ev)).toBe(true);
   });

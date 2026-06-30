@@ -47,7 +47,7 @@ export function sensitivity(
       const ev = analyze(dataset, credences, weights, evaluator, {
         ...pins,
         [factor.id]: state.id,
-      }, undefined, jointProbability).ev;
+      }, jointProbability).ev;
       if (ev > evHigh) {
         evHigh = ev;
         bestStateId = state.id;
