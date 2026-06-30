@@ -21,6 +21,7 @@ function describe(s: EvaluatedScenario, factors: Factor[]): string {
 /** Histogram of probability mass over the scalar value axis [-1, 1]. */
 export function EVDistribution({ bins, ev, factors }: Props) {
   const [hovered, setHovered] = useState<number | null>(null);
+  const [pinned, setPinned] = useState<number | null>(null);
   const width = 560;
   const height = 224;
   const padding = { top: 26, right: 18, bottom: 46, left: 18 };
@@ -32,8 +33,12 @@ export function EVDistribution({ bins, ev, factors }: Props) {
   const xOf = (v: number) => padding.left + ((v + 1) / 2) * plotW;
   const evAnchor = ev > 0.78 ? 'end' : ev < -0.78 ? 'start' : 'middle';
 
-  const active = hovered != null ? bins[hovered] : null;
+  // Pinned takes precedence over hover; pinning lets you scroll the full list.
+  const activeIndex = pinned != null ? pinned : hovered;
+  const active = activeIndex != null ? bins[activeIndex] : null;
+  const isPinned = pinned != null;
   const TOP = 4;
+  const shown = active ? (isPinned ? active.scenarios : active.scenarios.slice(0, TOP)) : [];
 
   return (
     <Box>
@@ -41,7 +46,7 @@ export function EVDistribution({ bins, ev, factors }: Props) {
         Outcome distribution
       </Typography>
       <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 1 }}>
-        probability mass across the value spectrum · hover a bar to see what lands there
+        probability mass across the value spectrum · hover a bar to preview, click to pin & scroll all
       </Typography>
       <svg
         width="100%"
@@ -54,10 +59,16 @@ export function EVDistribution({ bins, ev, factors }: Props) {
         {bins.map((b, i) => {
           const h = (b.probability / maxP) * plotH;
           const mid = (b.lo + b.hi) / 2;
-          const on = hovered === i;
+          const on = activeIndex === i;
+          const pinnedBar = pinned === i;
           return (
-            <g key={i} onMouseEnter={() => setHovered(i)} style={{ cursor: 'pointer' }}>
-              {/* full-height hit target so thin bars are still easy to hover */}
+            <g
+              key={i}
+              onMouseEnter={() => setHovered(i)}
+              onClick={() => setPinned((p) => (p === i ? null : i))}
+              style={{ cursor: 'pointer' }}
+            >
+              {/* full-height hit target so thin bars are still easy to hover/click */}
               <rect x={padding.left + i * barW} y={padding.top} width={barW} height={plotH} fill="transparent" />
               <rect
                 x={padding.left + i * barW + 1.5}
@@ -66,9 +77,9 @@ export function EVDistribution({ bins, ev, factors }: Props) {
                 height={h}
                 rx={2}
                 fill={valueColor(mid)}
-                opacity={hovered == null || on ? 0.9 : 0.4}
+                opacity={activeIndex == null || on ? 0.9 : 0.4}
                 stroke={on ? c.bone : 'none'}
-                strokeWidth={on ? 1 : 0}
+                strokeWidth={pinnedBar ? 1.5 : on ? 1 : 0}
               />
             </g>
           );
@@ -111,38 +122,52 @@ export function EVDistribution({ bins, ev, factors }: Props) {
       <Box sx={{ mt: 0.5, minHeight: 96 }}>
         {active ? (
           <>
-            <Typography variant="caption" sx={{ display: 'block', mb: 0.75 }}>
-              <Box component="span" sx={{ fontFamily: fonts.mono, color: valueColor((active.lo + active.hi) / 2) }}>
-                value {active.lo.toFixed(1)}…{active.hi.toFixed(1)}
-              </Box>
-              {' · '}
-              <Box component="span" sx={{ fontFamily: fonts.mono, color: c.bone }}>
-                {(active.probability * 100).toFixed(1)}%
-              </Box>{' '}
-              <Box component="span" sx={{ color: c.mute }}>
-                of probability mass, across {active.scenarios.length} scenario{active.scenarios.length === 1 ? '' : 's'}
-              </Box>
-            </Typography>
-            {active.scenarios.slice(0, TOP).map((s, i) => (
-              <Box key={i} sx={{ display: 'flex', gap: 0.75, mb: 0.4, alignItems: 'baseline' }}>
-                <Box sx={{ flexShrink: 0, width: 7, height: 7, borderRadius: '50%', bgcolor: valueColor(s.scalar), mt: 0.4 }} />
-                <Typography variant="caption" sx={{ fontFamily: fonts.mono, color: c.bone, flexShrink: 0, width: 38, textAlign: 'right' }}>
-                  {(s.probability * 100).toFixed(1)}%
-                </Typography>
-                <Typography variant="caption" sx={{ color: c.mute, lineHeight: 1.35 }}>
-                  {describe(s, factors)}
-                </Typography>
-              </Box>
-            ))}
-            {active.scenarios.length > TOP ? (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', mb: 0.75 }}>
+              <Typography variant="caption">
+                <Box component="span" sx={{ fontFamily: fonts.mono, color: valueColor((active.lo + active.hi) / 2) }}>
+                  value {active.lo.toFixed(1)}…{active.hi.toFixed(1)}
+                </Box>
+                {' · '}
+                <Box component="span" sx={{ fontFamily: fonts.mono, color: c.bone }}>
+                  {(active.probability * 100).toFixed(1)}%
+                </Box>{' '}
+                <Box component="span" sx={{ color: c.mute }}>
+                  of mass, across {active.scenarios.length} scenario{active.scenarios.length === 1 ? '' : 's'}
+                </Box>
+              </Typography>
+              {isPinned ? (
+                <Box
+                  component="span"
+                  onClick={() => setPinned(null)}
+                  sx={{ cursor: 'pointer', color: c.mute, fontFamily: fonts.mono, fontSize: '0.72rem', '&:hover': { color: c.bone } }}
+                >
+                  ✕ release
+                </Box>
+              ) : null}
+            </Box>
+            <Box sx={isPinned ? { maxHeight: 200, overflowY: 'auto', pr: 0.5 } : undefined}>
+              {shown.map((s, i) => (
+                <Box key={i} sx={{ display: 'flex', gap: 0.75, mb: 0.4, alignItems: 'baseline' }}>
+                  <Box sx={{ flexShrink: 0, width: 7, height: 7, borderRadius: '50%', bgcolor: valueColor(s.scalar), mt: 0.4 }} />
+                  <Typography variant="caption" sx={{ fontFamily: fonts.mono, color: c.bone, flexShrink: 0, width: 38, textAlign: 'right' }}>
+                    {(s.probability * 100).toFixed(1)}%
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: c.mute, lineHeight: 1.35 }}>
+                    {describe(s, factors)}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+            {!isPinned && active.scenarios.length > TOP ? (
               <Typography variant="caption" sx={{ color: c.faint, display: 'block', mt: 0.25 }}>
-                +{active.scenarios.length - TOP} more scenario{active.scenarios.length - TOP === 1 ? '' : 's'}
+                +{active.scenarios.length - TOP} more — click the bar to pin and scroll all{' '}
+                {active.scenarios.length}
               </Typography>
             ) : null}
           </>
         ) : (
           <Typography variant="caption" sx={{ color: c.faint }}>
-            Hover a bar to see its probability mass and the scenarios that land there.
+            Hover a bar to preview its mass and scenarios; click to pin and scroll the full list.
           </Typography>
         )}
       </Box>
