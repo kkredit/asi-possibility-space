@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Tooltip, Typography } from '@mui/material';
 import type { DistributionBin, EvaluatedScenario } from '@engine/analyze';
 import type { Factor } from '@model/types';
 import { c, fonts, valueColor } from '@shell/theme';
@@ -16,6 +16,14 @@ function describe(s: EvaluatedScenario, factors: Factor[]): string {
   return factors
     .map((f) => f.states.find((st) => st.id === s.scenario[f.id])?.label ?? s.scenario[f.id])
     .join(' · ');
+}
+
+/** The full factor-by-factor makeup of a scenario, for the hover tooltip. */
+function constitution(s: EvaluatedScenario, factors: Factor[]): string {
+  const parts = factors.map(
+    (f) => `${f.label}: ${f.states.find((st) => st.id === s.scenario[f.id])?.label ?? s.scenario[f.id]}`,
+  );
+  return `This scenario — ${parts.join(' · ')}`;
 }
 
 /** Histogram of probability mass over the scalar value axis [-1, 1]. */
@@ -139,23 +147,25 @@ export function EVDistribution({ bins, ev, factors }: Props) {
                 <Box
                   component="span"
                   onClick={() => setPinned(null)}
-                  sx={{ cursor: 'pointer', color: c.mute, fontFamily: fonts.mono, fontSize: '0.72rem', '&:hover': { color: c.bone } }}
+                  sx={{ cursor: 'pointer', color: c.mute, fontFamily: fonts.mono, fontSize: '0.72rem', whiteSpace: 'nowrap', '&:hover': { color: c.bone } }}
                 >
-                  ✕ release
+                  ✕ unpin this outcome
                 </Box>
               ) : null}
             </Box>
             <Box sx={isPinned ? { maxHeight: 200, overflowY: 'auto', pr: 0.5 } : undefined}>
               {shown.map((s, i) => (
-                <Box key={i} sx={{ display: 'flex', gap: 0.75, mb: 0.4, alignItems: 'baseline' }}>
-                  <Box sx={{ flexShrink: 0, width: 7, height: 7, borderRadius: '50%', bgcolor: valueColor(s.scalar), mt: 0.4 }} />
-                  <Typography variant="caption" sx={{ fontFamily: fonts.mono, color: c.bone, flexShrink: 0, width: 38, textAlign: 'right' }}>
-                    {(s.probability * 100).toFixed(1)}%
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: c.mute, lineHeight: 1.35 }}>
-                    {describe(s, factors)}
-                  </Typography>
-                </Box>
+                <Tooltip key={i} title={constitution(s, factors)} arrow placement="left">
+                  <Box sx={{ display: 'flex', gap: 0.75, mb: 0.4, alignItems: 'baseline', cursor: 'help' }}>
+                    <Box sx={{ flexShrink: 0, width: 7, height: 7, borderRadius: '50%', bgcolor: valueColor(s.scalar), mt: 0.4 }} />
+                    <Typography variant="caption" sx={{ fontFamily: fonts.mono, color: c.bone, flexShrink: 0, width: 38, textAlign: 'right' }}>
+                      {(s.probability * 100).toFixed(1)}%
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: c.mute, lineHeight: 1.35 }}>
+                      {describe(s, factors)}
+                    </Typography>
+                  </Box>
+                </Tooltip>
               ))}
             </Box>
             {!isPinned && active.scenarios.length > TOP ? (
