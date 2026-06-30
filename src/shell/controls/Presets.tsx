@@ -19,13 +19,24 @@ import { presets } from '@model/presets';
 import { dataset } from '@model/dataset';
 import { analyze, cachedEvaluator } from '@engine/index';
 import { useBeliefs } from '@shell/store';
+import { InfoTip } from '@viz/InfoTip';
 import { c, fonts, valueColor } from '@shell/theme';
 
-/** Each preset's own expected value (its credences + its weights), for color-coding. */
+/** Each preset's own analysis (its credences + its weights). */
+const presetAnalysis = Object.fromEntries(
+  presets.map((p) => [p.id, analyze(dataset, p.credences, p.weights ?? dataset.defaultWeights, cachedEvaluator)]),
+);
+/** Each preset's expected value, for color-coding. */
 const presetEv: Record<string, number> = Object.fromEntries(
+  presets.map((p) => [p.id, presetAnalysis[p.id].ev]),
+);
+/** Model-implied extinction-level mass: probability the outcome's survival is ~lost,
+ *  given the preset's credences + the shared outcome model. Compared with the stated
+ *  p(doom) to expose any divergence. */
+const presetDoom: Record<string, number> = Object.fromEntries(
   presets.map((p) => [
     p.id,
-    analyze(dataset, p.credences, p.weights ?? dataset.defaultWeights, cachedEvaluator).ev,
+    presetAnalysis[p.id].scenarios.reduce((m, s) => m + (s.value.survival < -0.5 ? s.probability : 0), 0),
   ]),
 );
 
@@ -124,12 +135,29 @@ export function Presets() {
             {active.summary}
           </Typography>
 
-          {active.pdoom && (
-            <Typography sx={{ fontSize: '0.72rem', color: c.mute, mb: 1 }}>
-              Stated risk:{' '}
-              <Box component="span" sx={{ fontFamily: fonts.mono, color: c.bone }}>{active.pdoom}</Box>
+          <Box sx={{ mb: 1 }}>
+            {active.pdoom && (
+              <Typography sx={{ fontSize: '0.72rem', color: c.mute }}>
+                Stated risk:{' '}
+                <Box component="span" sx={{ fontFamily: fonts.mono, color: c.bone }}>{active.pdoom}</Box>
+              </Typography>
+            )}
+            <Typography sx={{ fontSize: '0.72rem', color: c.mute, display: 'inline-flex', alignItems: 'center' }}>
+              Model-implied extinction mass:{' '}
+              <Box component="span" sx={{ fontFamily: fonts.mono, color: valueColor(-presetDoom[active.id]), ml: 0.5 }}>
+                {Math.round(presetDoom[active.id] * 100)}%
+              </Box>
+              <InfoTip>
+                The probability this model puts on extinction-level outcomes (survival ≈ lost), given
+                this entity's credences and the <em>shared</em> outcome model. It can diverge from a
+                stated p(doom) for two reasons: (1) a gestalt p(doom) often differs from the product of
+                someone's per-factor credences (people are not internally consistent), and (2) the
+                outcome model is shared — it may value a scenario like "misaligned but controlled" more
+                optimistically than a given pessimist would. Large gaps point at a credence worth
+                re-checking, or a value judgment the shared model can't express.
+              </InfoTip>
             </Typography>
-          )}
+          </Box>
 
           <Stack direction="row" spacing={2} alignItems="center">
             <Link
