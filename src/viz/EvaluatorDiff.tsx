@@ -52,13 +52,13 @@ export function EvaluatorDiff({ points, model = 'linear', xLabel = 'linear value
             key={i}
             cx={toX(p.linear)}
             cy={toY(p.cached)}
-            r={2 + 6 * (p.probability / maxP)}
+            r={0.4 + 7 * Math.sqrt(p.probability / maxP)}
             fill={valueColor(p.cached)}
             opacity={0.78}
             stroke={c.ink}
             strokeWidth={0.5}
           >
-            <title>{`linear ${p.linear.toFixed(2)} vs cached ${p.cached.toFixed(2)} · P=${(p.probability * 100).toFixed(1)}%`}</title>
+            <title>{`${model.toLowerCase()} ${p.linear.toFixed(2)} vs cached ${p.cached.toFixed(2)} · P=${(p.probability * 100).toFixed(1)}%`}</title>
           </circle>
         ))}
         <text x={size / 2} y={size - 6} fill={c.mute} fontSize={11} fontFamily={fonts.display} textAnchor="middle">
