@@ -43,6 +43,7 @@ export const presets: Preset[] = [
       powerConcentration: { concentrated: 0.55, diffuse: 0.45 },
       alignmentInTime: { yes: 0.02, no: 0.98 },
       controlDeployed: { yes: 0.02, no: 0.98 },
+      coordination: { regime: 0.1, none: 0.9 },
     },
     weights: { survival: 1.0, agency: 0.7, suffering: 0.85, flourishing: 0.4 },
     factorNotes: {
@@ -93,6 +94,7 @@ export const presets: Preset[] = [
       powerConcentration: { concentrated: 0.3, diffuse: 0.7 },
       alignmentInTime: { yes: 0.03, no: 0.97 },
       controlDeployed: { yes: 0.05, no: 0.95 },
+      coordination: { regime: 0.07, none: 0.93 },
     },
     weights: { survival: 1.0, agency: 0.3, suffering: 0.4, flourishing: 0.5 },
     factorNotes: {
@@ -143,6 +145,7 @@ export const presets: Preset[] = [
       powerConcentration: { concentrated: 0.75, diffuse: 0.25 },
       alignmentInTime: { yes: 0.45, no: 0.55 },
       controlDeployed: { yes: 0.4, no: 0.6 },
+      coordination: { regime: 0.45, none: 0.55 },
     },
     weights: { survival: 1.0, agency: 0.7, suffering: 0.5, flourishing: 0.6 },
     factorNotes: {
@@ -193,6 +196,7 @@ export const presets: Preset[] = [
       powerConcentration: { concentrated: 0.35, diffuse: 0.65 },
       alignmentInTime: { yes: 0.55, no: 0.45 },
       controlDeployed: { yes: 0.6, no: 0.4 },
+      coordination: { regime: 0.3, none: 0.7 },
     },
     weights: { survival: 0.9, agency: 0.65, suffering: 0.3, flourishing: 0.7 },
     factorNotes: {
@@ -243,6 +247,7 @@ export const presets: Preset[] = [
       powerConcentration: { concentrated: 0.4, diffuse: 0.6 },
       alignmentInTime: { yes: 0.65, no: 0.35 },
       controlDeployed: { yes: 0.6, no: 0.4 },
+      coordination: { regime: 0.4, none: 0.6 },
     },
     weights: { survival: 0.4, suffering: 0.25, agency: 0.15, flourishing: 0.2 },
     factorNotes: {
@@ -282,6 +287,7 @@ export const presets: Preset[] = [
       powerConcentration: { concentrated: 0.65, diffuse: 0.35 },
       alignmentInTime: { yes: 0.55, no: 0.45 },
       controlDeployed: { yes: 0.5, no: 0.5 },
+      coordination: { regime: 0.2, none: 0.8 },
     },
     weights: { survival: 0.9, agency: 0.5, suffering: 0.55, flourishing: 0.95 },
     factorNotes: {
@@ -332,6 +338,7 @@ export const presets: Preset[] = [
       powerConcentration: { concentrated: 0.3, diffuse: 0.7 },
       alignmentInTime: { yes: 0.9, no: 0.1 },
       controlDeployed: { yes: 0.9, no: 0.1 },
+      coordination: { regime: 0.15, none: 0.85 },
     },
     weights: { survival: 0.55, agency: 0.9, suffering: 0.35, flourishing: 0.8 },
     factorNotes: {
@@ -382,6 +389,7 @@ export const presets: Preset[] = [
       powerConcentration: { concentrated: 0.75, diffuse: 0.25 },
       alignmentInTime: { yes: 0.3, no: 0.7 },
       controlDeployed: { yes: 0.25, no: 0.75 },
+      coordination: { regime: 0.3, none: 0.7 },
     },
     weights: { survival: 0.95, agency: 0.55, suffering: 0.35, flourishing: 0.45 },
     factorNotes: {
@@ -432,6 +440,7 @@ export const presets: Preset[] = [
       powerConcentration: { concentrated: 0.4, diffuse: 0.6 },
       alignmentInTime: { yes: 0.55, no: 0.45 },
       controlDeployed: { yes: 0.5, no: 0.5 },
+      coordination: { regime: 0.3, none: 0.7 },
     },
     weights: { survival: 0.95, agency: 0.45, suffering: 0.7, flourishing: 0.8 },
     factorNotes: {
@@ -480,6 +489,7 @@ export const presets: Preset[] = [
       powerConcentration: { concentrated: 0.15, diffuse: 0.85 },
       alignmentInTime: { yes: 0.9, no: 0.1 },
       controlDeployed: { yes: 0.85, no: 0.15 },
+      coordination: { regime: 0.1, none: 0.9 },
     },
     weights: { survival: 0.15, agency: 0.9, suffering: 0.35, flourishing: 1.0 },
     factorNotes: {
@@ -529,6 +539,7 @@ export const presets: Preset[] = [
       powerConcentration: { concentrated: 0.55, diffuse: 0.45 },
       alignmentInTime: { yes: 0.65, no: 0.35 },
       controlDeployed: { yes: 0.6, no: 0.4 },
+      coordination: { regime: 0.4, none: 0.6 },
     },
     weights: { survival: 0.95, agency: 0.7, suffering: 0.55, flourishing: 0.9 },
     factorNotes: {
@@ -578,6 +589,7 @@ export const presets: Preset[] = [
       powerConcentration: { concentrated: 0.55, diffuse: 0.45 },
       alignmentInTime: { yes: 0.55, no: 0.45 },
       controlDeployed: { yes: 0.7, no: 0.3 },
+      coordination: { regime: 0.45, none: 0.55 },
     },
     weights: { survival: 0.85, agency: 0.75, suffering: 0.45, flourishing: 0.95 },
     factorNotes: {
@@ -626,6 +638,7 @@ export const presets: Preset[] = [
       powerConcentration: { concentrated: 0.65, diffuse: 0.35 },
       alignmentInTime: { yes: 0.55, no: 0.45 },
       controlDeployed: { yes: 0.45, no: 0.55 },
+      coordination: { regime: 0.2, none: 0.8 },
     },
     weights: { survival: 0.9, agency: 0.7, suffering: 0.4, flourishing: 0.85 },
     factorNotes: {
@@ -673,6 +686,7 @@ export const presets: Preset[] = [
       powerConcentration: { concentrated: 0.15, diffuse: 0.85 },
       alignmentInTime: { yes: 0.7, no: 0.3 },
       controlDeployed: { yes: 0.65, no: 0.35 },
+      coordination: { regime: 0.12, none: 0.88 },
     },
     weights: { survival: 0.55, agency: 0.95, suffering: 0.45, flourishing: 0.95 },
     factorNotes: {
