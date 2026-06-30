@@ -46,8 +46,29 @@ const keyOf = (factorId: string, stateId: string) => `${factorId}:${stateId}`;
  */
 export function ParallelCoordinates({ scenarios, factors }: Props) {
   const [hovered, setHovered] = useState<string | null>(null);
-  const [locked, setLocked] = useState<string | null>(null);
-  const active = hovered ?? locked;
+  // Locked constraints, one state per factor (clicking another state in the same
+  // factor replaces it; clicking the held state again releases it).
+  const [locked, setLocked] = useState<Record<string, string>>({});
+
+  // The constraints currently in force: everything locked, with the hovered state
+  // previewed on top of its factor. Futures matching ALL of them stay lit.
+  const constraints = useMemo<Record<string, string>>(() => {
+    const c2 = { ...locked };
+    if (hovered) {
+      const [fid, sid] = hovered.split(':');
+      c2[fid] = sid;
+    }
+    return c2;
+  }, [locked, hovered]);
+  const constraintEntries = Object.entries(constraints);
+  const active = constraintEntries.length > 0;
+  const toggleLock = (fid: string, sid: string) =>
+    setLocked((p) => {
+      const next = { ...p };
+      if (next[fid] === sid) delete next[fid];
+      else next[fid] = sid;
+      return next;
+    });
 
   const width = 760;
   const height = 380;
@@ -87,11 +108,8 @@ export function ParallelCoordinates({ scenarios, factors }: Props) {
   const maxStateP = Math.max(0.0001, ...[...stateStats.values()].map((e) => e.p));
 
   const ordered = [...scenarios].sort((a, b) => a.probability - b.probability);
-  const isActive = (s: EvaluatedScenario) => {
-    if (!active) return true;
-    const [fid, sid] = active.split(':');
-    return s.scenario[fid] === sid;
-  };
+  const isActive = (s: EvaluatedScenario) =>
+    constraintEntries.every(([fid, sid]) => s.scenario[fid] === sid);
 
   const pointsFor = (s: EvaluatedScenario) =>
     axes
@@ -106,22 +124,26 @@ export function ParallelCoordinates({ scenarios, factors }: Props) {
   const dim = active ? ordered.filter((s) => !isActive(s)) : [];
   const lit = active ? ordered.filter(isActive) : ordered;
 
-  // Readout for the active selection.
+  // Readout for the active constraint set: the futures matching ALL of them, the
+  // probability mass they carry, and their mean value.
   const readout = useMemo(() => {
     if (!active) return null;
-    const [fid, sid] = active.split(':');
-    const factor = factors.find((f) => f.id === fid);
-    const state = factor?.states.find((s) => s.id === sid);
-    const e = stateStats.get(active);
-    if (!factor || !state || !e) return null;
-    return {
-      label: factor.label,
-      state: state.label,
-      pct: e.p * 100,
-      count: e.count,
-      mean: e.p > 0 ? e.ev / e.p : 0,
-    };
-  }, [active, factors, stateStats]);
+    const chips = constraintEntries.map(([fid, sid]) => {
+      const factor = factors.find((f) => f.id === fid);
+      const state = factor?.states.find((s) => s.id === sid);
+      return { label: factor?.label ?? fid, state: state?.label ?? sid };
+    });
+    let p = 0;
+    let ev = 0;
+    let count = 0;
+    for (const s of scenarios) {
+      if (!constraintEntries.every(([fid, sid]) => s.scenario[fid] === sid)) continue;
+      p += s.probability;
+      ev += s.probability * s.scalar;
+      count += 1;
+    }
+    return { chips, pct: p * 100, count, mean: p > 0 ? ev / p : 0 };
+  }, [active, constraintEntries, factors, scenarios]);
 
   // text with an ink halo so it stays legible on top of the polylines
   const halo = { stroke: c.ink, strokeWidth: 3, paintOrder: 'stroke' as const, strokeLinejoin: 'round' as const };
@@ -137,27 +159,44 @@ export function ParallelCoordinates({ scenarios, factors }: Props) {
         futures; each axis dot is colored by the average value of the futures through it.
       </Typography>
 
-      {/* readout / hint + value legend */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 0.75, minHeight: 22 }}>
+      {/* value legend — its own line, so it never shifts with the readout text */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.5 }}>
+        <Typography variant="caption" sx={{ color: c.red, fontFamily: fonts.mono }}>catastrophe</Typography>
+        <Box sx={{ width: 70, height: 7, borderRadius: 4, background: valueGradient }} />
+        <Typography variant="caption" sx={{ color: c.teal, fontFamily: fonts.mono }}>flourishing</Typography>
+      </Box>
+
+      {/* readout / hint — its own line, min-height so it never jumps the chart */}
+      <Box sx={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: 1, mb: 0.75, minHeight: 22 }}>
         <Typography variant="caption" sx={{ color: readout ? c.bone : c.faint, fontFamily: fonts.body }}>
           {readout ? (
             <>
-              <Box component="span" sx={{ fontFamily: fonts.display }}>{readout.label} = {readout.state}</Box>
+              <Box component="span" sx={{ fontFamily: fonts.display }}>
+                {readout.chips.map((ch, i) => (
+                  <Box component="span" key={i}>
+                    {i > 0 ? <Box component="span" sx={{ color: c.faint }}> + </Box> : null}
+                    {ch.label} = {ch.state}
+                  </Box>
+                ))}
+              </Box>
               {' · '}
               <Box component="span" sx={{ fontFamily: fonts.mono }}>{readout.pct.toFixed(1)}%</Box> of futures
               {' · mean value '}
               <Box component="span" sx={{ fontFamily: fonts.mono, color: valueColor(readout.mean) }}>{readout.mean >= 0 ? '+' : ''}{readout.mean.toFixed(2)}</Box>
-              {locked ? ' · click again to release' : ''}
             </>
           ) : (
-            'Hover a factor state to trace the futures that share it. Click to keep it lit.'
+            'Hover a factor state to trace its futures. Click to hold states across factors and narrow the set.'
           )}
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <Typography variant="caption" sx={{ color: c.red, fontFamily: fonts.mono }}>catastrophe</Typography>
-          <Box sx={{ width: 70, height: 7, borderRadius: 4, background: valueGradient }} />
-          <Typography variant="caption" sx={{ color: c.teal, fontFamily: fonts.mono }}>flourishing</Typography>
-        </Box>
+        {Object.keys(locked).length > 0 ? (
+          <Box
+            component="span"
+            onClick={() => setLocked({})}
+            sx={{ cursor: 'pointer', color: c.mute, fontFamily: fonts.mono, fontSize: '0.72rem', '&:hover': { color: c.bone } }}
+          >
+            clear ✕
+          </Box>
+        ) : null}
       </Box>
 
       <Box sx={{ overflowX: 'auto' }}>
@@ -199,24 +238,29 @@ export function ParallelCoordinates({ scenarios, factors }: Props) {
                   const e = stateStats.get(k)!;
                   const cy = factorY(axis.factor, st.id);
                   const r = 2.5 + 4 * Math.sqrt(e.p / maxStateP);
-                  const on = active === k;
+                  const isLocked = locked[axis.factor.id] === st.id;
+                  const isHover = hovered === k;
+                  const on = isLocked || isHover;
                   const bandH = plotH / axis.factor.states.length;
                   return (
                     <g
                       key={k}
                       onMouseEnter={() => setHovered(k)}
-                      onClick={() => setLocked((p) => (p === k ? null : k))}
+                      onClick={() => toggleLock(axis.factor.id, st.id)}
                       style={{ cursor: 'pointer' }}
                     >
                       {/* invisible hit target spanning this state's band */}
                       <rect x={axisX(i) - 26} y={cy - bandH / 2} width={52} height={bandH} fill="transparent" />
+                      {isLocked ? (
+                        <circle cx={axisX(i)} cy={cy} r={r + 4.5} fill="none" stroke={c.bone} strokeWidth={1} opacity={0.5} />
+                      ) : null}
                       <circle
                         cx={axisX(i)}
                         cy={cy}
                         r={on ? r + 2 : r}
                         fill={e.p > 0 ? valueColor(e.ev / e.p) : c.faint}
                         stroke={on ? c.bone : c.ink}
-                        strokeWidth={on ? 1.5 : 0.75}
+                        strokeWidth={isLocked ? 2 : on ? 1.5 : 0.75}
                       />
                     </g>
                   );
