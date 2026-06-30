@@ -148,39 +148,48 @@ A Bayes net is the principled version of what couplings approximate. It is a
 P(s) = ∏_f  P(s_f | parents(f))
 ```
 
-For the current factor set a plausible DAG is:
+**This is now implemented (opt-in).** The DAG and CPTs ship in the dataset
+(`bayesNet` in [`dataset.ts`](../src/model/dataset.ts)); the engine is in
+[`bayesnet.ts`](../src/engine/bayesnet.ts) and `analyze` takes an optional `net`
+argument that swaps the joint over to it. The implemented graph:
 
 ```
-            takeoff ───────┐
-              │            ▼
-              ▼      alignmentInTime
-      powerConcentration   ▲
-                           │
-orthogonality ─► tractability
-        │                  │
-        └────► alignmentInTime, controlDeployed ◄── takeoff
+  roots (priors from your sliders):   orthogonality   offenseDefense   takeoff
+                                            │                              │
+                                            ▼                  ┌───────────┼───────────┐
+                                       tractability ───────────┤           ▼           ▼
+                                            │                  ▼   powerConcentration  controlDeployed
+                                            └──────────► alignmentInTime ◄── takeoff
 ```
 
-i.e. takeoff drives concentration and the two "in time" factors; orthogonality
-drives tractability; the objective facts (orthogonality, tractability,
-offense/defense) are roots. The marginal sliders the user sets would become the
-**root priors**; child factors would be set by CPTs conditioned on their parents.
+i.e. **takeoff** drives power concentration, alignment-in-time, and control-deployed;
+**orthogonality** drives tractability; tractability also gates alignment-in-time. The
+three objective-ish roots (orthogonality, offense/defense, takeoff) read their priors
+**live from the sliders**; the four child factors are set by CPTs conditioned on their
+parents. The CPTs mirror the couplings (e.g. `P(concentrated | fast) = 0.9`).
 
-**Why we haven't switched yet** (and what it would take):
-- It moves authoring cost from "a handful of couplings" to "a CPT per node" — more
-  numbers to defend, though each is locally interpretable (`P(alignment in time |
-  fast takeoff, hard tractability)`).
-- The UI question becomes subtler: a slider on a *child* factor is no longer a free
-  marginal — it's either a do-operator (intervention) or a soft-evidence update.
-- The engine change is contained: `scenarioProbability` would consult a topological
-  order of CPTs instead of a flat product, and `analyze` would no longer need the
-  renormalisation step. The `Coupling` type would be replaced (or kept as a
-  compile-to-CPT sugar).
+**It validates as a faithful refinement, not a different universe.** The net's joint
+sums to 1; its root marginals reproduce the sliders exactly; its child marginals stay
+in the baseline ballpark but are now *derived* (tractability skews easier because
+orthogonality-fails implies easy). At baseline beliefs the headline EV is **0.113**
+under the net vs. **0.116** under independence×couplings — a small, explainable shift.
+`validateBayesNet` checks acyclicity and CPT completeness/normalisation;
+[`bayesnet.test.ts`](../src/engine/bayesnet.test.ts) pins all of this.
 
-**Recommended interim step:** couplings already express the most important
-dependencies and are honest about being an approximation. The clean migration is to
-treat the current couplings as the *specification* of a Bayes net's edges, then
-author CPTs for exactly those edges — nothing else changes shape.
+**What remains before it becomes the default** (the genuinely hard parts):
+- **The child-slider question.** Under the net a slider on a *child* factor is no
+  longer a free marginal — its marginal is implied by its parents' CPTs. The UI needs
+  to decide what a child slider *does*: show it read-only (derived), treat an edit as
+  soft evidence (a Bayesian update), or as a do-operator (intervention that cuts the
+  parent edges). Until that's designed, the net stays opt-in so the sliders keep their
+  current, simple meaning.
+- **A probability-model toggle** in the shell (independence×couplings ↔ Bayes net),
+  parallel to the evaluator selector, plus surfacing the implied child marginals.
+- **Pin semantics.** `analyze`'s probabilities sum to the pinned mass `P(pins)` (EV
+  under pins is mass-weighted, not conditional). The net path mirrors this exactly
+  today; if we want true conditional EVs under pins, that normalisation choice should
+  be made for *both* models together.
+- Then the `Coupling` type can be retired (or kept as compile-to-CPT sugar).
 
 ---
 

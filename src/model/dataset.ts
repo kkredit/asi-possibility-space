@@ -1,5 +1,6 @@
 import type {
   Action,
+  BayesNet,
   CachedCell,
   Coupling,
   Credences,
@@ -688,6 +689,83 @@ const couplings: Coupling[] = [
   },
 ];
 
+// ============================================================================
+//  BAYES NET — the principled successor to independence×couplings (DESIGN §9.4,
+//  docs/MODEL.md §5). A DAG over the factors with a CPT per node defines the joint
+//  exactly: P(scenario) = ∏ P(state | parents). Root nodes (the objective facts plus
+//  takeoff) read their prior live from the sliders; child nodes are conditioned on
+//  their parents. These CPTs are PRESUMED FIRST-PASS — argue with them and edit. The
+//  edges mirror the couplings above: takeoff drives concentration and the "in time"
+//  factors; orthogonality drives tractability.
+//
+//  This is OPT-IN: `analyze` still uses independence×couplings by default. The net is
+//  validated and ready to wire in as a selectable probability model (see MODEL.md §5
+//  for what remains — the UI toggle and the child-slider semantics).
+// ============================================================================
+const bayesNet: BayesNet = {
+  description:
+    'First-pass DAG: objective facts + takeoff are roots (priors from your sliders); tractability depends on orthogonality; power concentration and the “solved in time” factors depend on takeoff (and tractability for alignment).',
+  nodes: [
+    // --- roots: priors read live from credences (no CPT) -----------------------
+    { factor: 'orthogonality', parents: [], note: 'Root: a structural fact; prior from your slider.' },
+    { factor: 'offenseDefense', parents: [], note: 'Root: a structural fact; prior from your slider.' },
+    { factor: 'takeoff', parents: [], note: 'Root: treated as exogenous; prior from your slider.' },
+
+    // --- tractability | orthogonality -----------------------------------------
+    {
+      factor: 'tractability',
+      parents: ['orthogonality'],
+      note: 'If orthogonality fails (benign convergence), alignment is effectively a non-problem, so tractability skews easy.',
+      cpt: {
+        holds: { easy: 0.2, hard: 0.5, nearImpossible: 0.3 },
+        fails: { easy: 0.6, hard: 0.3, nearImpossible: 0.1 },
+      },
+    },
+
+    // --- powerConcentration | takeoff -----------------------------------------
+    {
+      factor: 'powerConcentration',
+      parents: ['takeoff'],
+      note: 'A fast takeoff hands a decisive first-mover advantage, so capability concentrates; a slow one lets others catch up.',
+      cpt: {
+        fast: { concentrated: 0.9, diffuse: 0.1 },
+        medium: { concentrated: 0.55, diffuse: 0.45 },
+        slow: { concentrated: 0.35, diffuse: 0.65 },
+      },
+    },
+
+    // --- alignmentInTime | (takeoff, tractability) ----------------------------
+    {
+      factor: 'alignmentInTime',
+      parents: ['takeoff', 'tractability'],
+      note: 'Solving & deploying alignment in time is a race against the calendar (takeoff) gated by how hard the problem is (tractability).',
+      cpt: {
+        'fast|easy': { yes: 0.4, no: 0.6 },
+        'fast|hard': { yes: 0.2, no: 0.8 },
+        'fast|nearImpossible': { yes: 0.05, no: 0.95 },
+        'medium|easy': { yes: 0.6, no: 0.4 },
+        'medium|hard': { yes: 0.35, no: 0.65 },
+        'medium|nearImpossible': { yes: 0.1, no: 0.9 },
+        'slow|easy': { yes: 0.8, no: 0.2 },
+        'slow|hard': { yes: 0.55, no: 0.45 },
+        'slow|nearImpossible': { yes: 0.2, no: 0.8 },
+      },
+    },
+
+    // --- controlDeployed | takeoff --------------------------------------------
+    {
+      factor: 'controlDeployed',
+      parents: ['takeoff'],
+      note: 'Standing up and deploying control/monitoring also takes calendar time.',
+      cpt: {
+        fast: { yes: 0.3, no: 0.7 },
+        medium: { yes: 0.5, no: 0.5 },
+        slow: { yes: 0.65, no: 0.35 },
+      },
+    },
+  ],
+};
+
 // Actions nudge probability mass on influenceable factors (and, sparingly, the
 // contingent one). Objective factors are off-limits by construction.
 const actions: Action[] = [
@@ -728,6 +806,7 @@ export const dataset: Dataset = {
   valueDimensions,
   actions,
   couplings,
+  bayesNet,
   baselineCredences,
   defaultWeights,
   linearBaseline,

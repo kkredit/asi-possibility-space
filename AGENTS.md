@@ -151,6 +151,11 @@ its medium anchor and both derived variants), or adjust the `takeoffDelta` /
 unchanged — couplings only *redistribute* probability. Example: `fastTakeoff_
 concentrates` suppresses the (fast, diffuse) corner to `0.12×`.
 
+There's also an **opt-in Bayes net** (`bayesNet` in dataset.ts, engine in
+[`bayesnet.ts`](src/engine/bayesnet.ts)) — the principled successor to
+independence×couplings. `analyze(..., pins, net)` swaps the joint over to it; it's
+off by default. Validate edits with `validateBayesNet`. See docs/MODEL.md §5.
+
 ### Actions
 
 `actions` ([dataset.ts:693](src/model/dataset.ts), shape at

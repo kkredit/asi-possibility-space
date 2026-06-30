@@ -113,6 +113,33 @@ export interface Coupling {
   multiplier: number;
 }
 
+/**
+ * One node of a Bayes net over the factors: a factor plus its parents and a
+ * conditional probability table. The net is the principled successor to the
+ * independence-plus-`Coupling` probability model (see docs/MODEL.md §5): it defines
+ * the joint exactly as `P(scenario) = ∏_f P(state_f | parents(f))`.
+ *
+ * The `cpt` maps each combination of parent states to a distribution over THIS
+ * factor's states. The key is the parents' state ids joined by '|' in `parents`
+ * order (e.g. parents `['takeoff','tractability']` → key `'fast|hard'`). A root node
+ * (no parents) omits the table: its prior is read live from the user's credences, so
+ * the sliders on root factors stay meaningful (they ARE the root priors).
+ */
+export interface BayesNetNode {
+  factor: FactorId;
+  parents: FactorId[];
+  /** Distribution over this factor's states per parent-state combination. Omitted
+   *  (or empty) for roots, whose prior comes from the current credences. */
+  cpt?: Record<string, Record<StateId, number>>;
+  /** Human-readable rationale for this node's dependence on its parents. */
+  note?: string;
+}
+
+export interface BayesNet {
+  description: string;
+  nodes: BayesNetNode[];
+}
+
 /** A single nudge: shift probability mass of `factor` toward `towardState`. */
 export interface ActionDelta {
   factor: FactorId;
@@ -189,6 +216,9 @@ export interface Dataset {
   actions: Action[];
   /** Dependencies between factors; corrects the independence assumption. */
   couplings: Coupling[];
+  /** Optional Bayes net — the principled alternative to independence×couplings as
+   *  the probability model. When present, `analyze` can use it instead. */
+  bayesNet?: BayesNet;
   /** Default credences (the starting odds). */
   baselineCredences: Credences;
   /** Default value-dimension weights (sum normalized at use). */
