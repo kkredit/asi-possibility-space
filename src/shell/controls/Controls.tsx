@@ -17,6 +17,7 @@ import { dataset } from '@model/dataset';
 import { evaluators } from '@engine/index';
 import type { Factor, FactorKind } from '@model/types';
 import { useBeliefs } from '@shell/store';
+import { Presets } from '@shell/controls/Presets';
 import { c, fonts, kindColor } from '@shell/theme';
 
 const KIND_ORDER: FactorKind[] = ['objective', 'contingent', 'influenceable'];
@@ -109,6 +110,10 @@ export function Controls() {
           Reset
         </Button>
       </Stack>
+
+      <Presets />
+
+      <Divider />
 
       <Box>
         <Typography sx={{ ...monoPct, color: c.faint, mb: 0.75, letterSpacing: '0.04em' }}>EVALUATOR</Typography>

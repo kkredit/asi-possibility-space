@@ -121,6 +121,40 @@ export interface CachedCell {
   outcome: Outcome;
 }
 
+/** A linked public statement backing a preset. */
+export interface PresetCitation {
+  label: string;
+  url: string;
+  /** Verbatim quote from the source, if pulled. */
+  quote?: string;
+}
+
+/**
+ * A belief preset reflecting a public figure's or organization's stated views,
+ * grounded in cited public statements. `accuracy` is how directly the public
+ * record pins these specific factors: ~1.0 when they give explicit probabilities
+ * for each category, low when the mapping is inferred from general statements.
+ */
+export interface Preset {
+  id: string;
+  name: string;
+  /** Short affiliation / role. */
+  role: string;
+  /** One-line characterization of their view. */
+  summary: string;
+  credences: Credences;
+  /** Optional value-weight override; falls back to the dataset default. */
+  weights?: ValueVector;
+  /** Estimated fidelity of this mapping, 0–1. */
+  accuracy: number;
+  accuracyNote: string;
+  /** Their stated p(doom)/p(catastrophe) as a display string, if on record. */
+  pdoom?: string;
+  /** Per-factor rationale / quote behind the numbers. */
+  factorNotes?: Partial<Record<FactorId, string>>;
+  citations: PresetCitation[];
+}
+
 export interface Dataset {
   name: string;
   factors: Factor[];
