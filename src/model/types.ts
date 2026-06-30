@@ -138,6 +138,8 @@ export interface PresetCitation {
 export interface Preset {
   id: string;
   name: string;
+  /** Grouping for the preset picker. */
+  category: 'person' | 'lab';
   /** Short affiliation / role. */
   role: string;
   /** One-line characterization of their view. */

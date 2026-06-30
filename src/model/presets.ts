@@ -26,6 +26,7 @@ export const presets: Preset[] = [
   {
     id: 'yudkowsky',
     name: 'Eliezer Yudkowsky / MIRI',
+    category: 'person',
     role: 'MIRI · AI-risk pioneer',
     summary:
       'Building superhuman AI under anything like current conditions kills everyone by default; alignment is unsolved and will not be solved in time — the only adequate response is to halt frontier development.',
@@ -74,6 +75,7 @@ export const presets: Preset[] = [
   {
     id: 'bengio',
     name: 'Yoshua Bengio',
+    category: 'person',
     role: 'Mila · Turing laureate; chaired Intl AI Safety Report',
     summary:
       'Catastrophic risk is real and high enough to act on under deep uncertainty; agentic frontier AI is the core danger (self-preservation, deception emerge), and the safer path is non-agentic "Scientist AI".',
@@ -122,6 +124,7 @@ export const presets: Preset[] = [
   {
     id: 'christiano',
     name: 'Paul Christiano',
+    category: 'person',
     role: 'US AI Safety Institute · ARC founder',
     summary:
       'Serious but not overwhelming risk (~22% takeover); alignment is a hard-but-tractable technical problem; famously argues takeoff is continuous/slow, with failure most likely emerging gradually across many systems.',
@@ -170,6 +173,7 @@ export const presets: Preset[] = [
   {
     id: 'acx',
     name: 'Scott Alexander (ACX)',
+    category: 'person',
     role: 'Astral Codex Ten · rationalist writer',
     summary:
       'Worried but not a doomer: ~20% catastrophe, fast takeoff, cautiously optimistic that alignment is winnable via automated alignment researchers.',
@@ -208,6 +212,7 @@ export const presets: Preset[] = [
   {
     id: 'hassabis',
     name: 'Demis Hassabis / Google DeepMind',
+    category: 'lab',
     role: 'Google DeepMind · CEO',
     summary:
       'AGI plausibly within 5–10 years; the catastrophe risk is "non-negligible" but addressable with much more safety work and international coordination — a self-described cautious optimist.',
@@ -256,6 +261,7 @@ export const presets: Preset[] = [
   {
     id: 'lecun',
     name: 'Yann LeCun',
+    category: 'person',
     role: 'Meta · Chief AI Scientist; risk skeptic',
     summary:
       'Existential fear is "preposterous": intelligence does not imply a drive to dominate, objectives are designed not emergent, open-source keeps good AI ahead of bad — alignment is ordinary iterative engineering.',
@@ -297,6 +303,199 @@ export const presets: Preset[] = [
         label: 'Survey of AI experts on P(doom) (arXiv 2502.14870)',
         url: 'https://arxiv.org/html/2502.14870v1',
         quote: `"Yann Lecun believe[s] that this probability is effectively zero" (P(doom) < 1%).`,
+      },
+    ],
+  },
+
+  {
+    id: 'hinton',
+    name: 'Geoffrey Hinton',
+    category: 'person',
+    role: '"Godfather of AI" · ex-Google; Turing & Nobel laureate',
+    summary:
+      'We are building digital minds that will soon exceed us and we do not know how to control something smarter than us; ~10–20% chance it ends in human extinction — the real hope is AI engineered to genuinely care about us, not kept submissive.',
+    pdoom: '~10–20% takeover / extinction (self-described "gut")',
+    accuracy: 0.7,
+    accuracyNote:
+      'Gives repeated explicit numbers (10–20% extinction; "5 to 20 years" at 50%) that anchor orthogonality, takeoff, alignment-in-time and control; held below ~0.8 because offense/defense is purely inferred and he calls his probabilities "just gut".',
+    credences: {
+      orthogonality: { holds: 0.8, fails: 0.2 },
+      tractability: { easy: 0.05, hard: 0.65, nearImpossible: 0.3 },
+      offenseDefense: { offense: 0.65, balanced: 0.25, defense: 0.1 },
+      takeoff: { fast: 0.45, medium: 0.45, slow: 0.1 },
+      powerConcentration: { concentrated: 0.75, diffuse: 0.25 },
+      alignmentInTime: { yes: 0.3, no: 0.7 },
+      controlDeployed: { yes: 0.25, no: 0.75 },
+    },
+    weights: { survival: 0.95, agency: 0.55, suffering: 0.35, flourishing: 0.45 },
+    factorNotes: {
+      orthogonality: `Any smart agentic AI "will very quickly develop two subgoals ... One is to stay alive ... the other subgoal is to get more control."`,
+      tractability: `"how many examples do you know of a more intelligent thing being controlled by a less intelligent thing?" — but he proposes a research direction (caring/maternal instinct), so hard rather than hopeless.`,
+      takeoff: `"In between 5 and 20 years from now there's a good chance a 50% chance we'll get AI smarter than us."`,
+      controlDeployed: `Core thesis is that we do not yet know how to control a system smarter than us; keeping it submissive won't work.`,
+      alignmentInTime: `Government efforts are "way too little, way too late"; "people haven't understood what's coming" (inferred toward no).`,
+      powerConcentration: `"If you look at what the big companies are doing right now, they're lobbying to get less AI regulation."`,
+      offenseDefense: `Inferred from bad-actor exploitation concerns and defenses being "too little, too late".`,
+    },
+    citations: [
+      {
+        label: 'Hinton: 10–20% chance AI takes over (Fortune)',
+        url: 'https://fortune.com/article/geoffrey-hinton-ai-godfather-tiger-cub/',
+        quote: `"it's sort of 10% to 20% chance that these things will take over."`,
+      },
+      {
+        label: '"Godfather of AI" warning (CBS News, 2025)',
+        url: 'https://www.cbsnews.com/news/godfather-of-ai-geoffrey-hinton-ai-warning/',
+        quote: `"People haven't got it yet, people haven't understood what's coming."`,
+      },
+      {
+        label: 'Hinton on controlling smarter-than-human AI (Forbes)',
+        url: 'https://www.forbes.com/sites/danfitzpatrick/2024/12/29/geoffrey-hintons-prediction-of-human-extinction-at-the-hands-of-ai/',
+        quote: `"how many examples do you know of a more intelligent thing being controlled by a less intelligent thing?"`,
+      },
+    ],
+  },
+
+  {
+    id: 'sutskever',
+    name: 'Ilya Sutskever',
+    category: 'person',
+    role: 'Safe Superintelligence Inc. · ex-OpenAI chief scientist',
+    summary:
+      'Superintelligence is coming, will be vastly powerful and hard to control, and is extinction-level if unaligned — but alignment is a solvable problem to pursue "in tandem" with capability; cautiously optimistic.',
+    pdoom: 'no number on record',
+    accuracy: 0.55,
+    accuracyNote:
+      'Foundational documents (Superalignment, SSI) firmly anchor orthogonality, tractability and timeline; but he gives essentially no probabilities, little on offense/defense, and his views shift, so much is inferred.',
+    credences: {
+      orthogonality: { holds: 0.65, fails: 0.35 },
+      tractability: { easy: 0.1, hard: 0.75, nearImpossible: 0.15 },
+      offenseDefense: { offense: 0.45, balanced: 0.4, defense: 0.15 },
+      takeoff: { fast: 0.3, medium: 0.45, slow: 0.25 },
+      powerConcentration: { concentrated: 0.4, diffuse: 0.6 },
+      alignmentInTime: { yes: 0.55, no: 0.45 },
+      controlDeployed: { yes: 0.5, no: 0.5 },
+    },
+    weights: { survival: 0.95, agency: 0.45, suffering: 0.7, flourishing: 0.8 },
+    factorNotes: {
+      controlDeployed: `"we don't have a solution for steering or controlling a potentially superintelligent AI, and preventing it from going rogue."`,
+      tractability: `His enterprise (Superalignment, then SSI) presumes alignment is hard but solvable — "safety and capabilities in tandem".`,
+      orthogonality: `Extinction / "go rogue" framing, tempered by his bet that an AI built to "care for sentient life" is achievable.`,
+      takeoff: `Gives a "5 to 20" year horizon and an "age of research" framing — medium-leaning (inferred).`,
+      powerConcentration: `Expects multiple roughly-simultaneous AIs; a monopoly is "not how it's going to go" (leans diffuse).`,
+    },
+    citations: [
+      {
+        label: 'Safe Superintelligence Inc. — launch statement',
+        url: 'https://ssi.inc/',
+        quote: `"We plan to advance capabilities as fast as possible while making sure our safety always remains ahead."`,
+      },
+      {
+        label: 'OpenAI forms team to control superintelligent AI (TechCrunch, 2023)',
+        url: 'https://techcrunch.com/2023/07/05/openai-is-forming-a-new-team-to-bring-superintelligent-ai-under-control/',
+        quote: `"Currently, we don't have a solution for steering or controlling a potentially superintelligent AI, and preventing it from going rogue."`,
+      },
+      {
+        label: 'Ilya Sutskever — Dwarkesh Patel interview (2025)',
+        url: 'https://www.dwarkesh.com/p/ilya-sutskever-2',
+        quote: `On timelines to AI smarter than us: "I think like 5 to 20" years.`,
+      },
+    ],
+  },
+
+  {
+    id: 'anthropic',
+    name: 'Anthropic',
+    category: 'lab',
+    role: 'Anthropic · Dario Amodei (CEO)',
+    summary:
+      'Powerful AI by 2026–27 and enormously high-variance: ~25% it goes really badly, ~75% really well; alignment is unsolved but probably tractable with urgent work, and the upside is worth fighting for.',
+    pdoom: '~25% bad · ~75% very good',
+    accuracy: 0.72,
+    accuracyNote:
+      'Unusually well-pinned for an org: explicit ~25%/75% split, named tractability scenario tiers, dated takeoff (2026–27). Held lower because offense/defense, concentration and control are inferred from qualitative framing.',
+    credences: {
+      orthogonality: { holds: 0.65, fails: 0.35 },
+      tractability: { easy: 0.2, hard: 0.65, nearImpossible: 0.15 },
+      offenseDefense: { offense: 0.3, balanced: 0.3, defense: 0.4 },
+      takeoff: { fast: 0.5, medium: 0.35, slow: 0.15 },
+      powerConcentration: { concentrated: 0.55, diffuse: 0.45 },
+      alignmentInTime: { yes: 0.65, no: 0.35 },
+      controlDeployed: { yes: 0.6, no: 0.4 },
+    },
+    weights: { survival: 0.95, agency: 0.7, suffering: 0.55, flourishing: 0.9 },
+    factorNotes: {
+      orthogonality: `"no one knows how to train very powerful AI systems to be robustly helpful, honest, and harmless"; systems are "grown more than they are built".`,
+      tractability: `Explicit scenario portfolio — optimistic (easy), intermediate (hard but solvable, their working bet), pessimistic ("essentially unsolvable").`,
+      takeoff: `"country of geniuses in a datacenter as soon as 2026 or 2027"; compute "growing at 10x per year".`,
+      alignmentInTime: `~75% "things go really, really well" plus the intermediate scenario being "solvable with focused work".`,
+      controlDeployed: `RSP commits to "temporarily pause training" if safety can't keep pace; bets interpretability matures "within 5–10 years".`,
+      powerConcentration: `"exploitative or dystopian directions are clearly also possible" — concentration is a danger to resist (inferred).`,
+      offenseDefense: `Inferred: interpretability framed as a defender's advantage vs. real misuse offense in the RSP.`,
+    },
+    citations: [
+      {
+        label: 'Core Views on AI Safety (Anthropic, 2023)',
+        url: 'https://www.anthropic.com/news/core-views-on-ai-safety',
+        quote: `"no one knows how to train very powerful AI systems to be robustly helpful, honest, and harmless."`,
+      },
+      {
+        label: 'Machines of Loving Grace (Dario Amodei, 2024)',
+        url: 'https://darioamodei.com/essay/machines-of-loving-grace',
+        quote: `"most people are underestimating just how radical the upside of AI could be, just as I think most people are underestimating how bad the risks could be."`,
+      },
+      {
+        label: 'Amodei gives ~25% odds it goes badly (Axios summit, reported)',
+        url: 'https://www.yahoo.com/news/articles/anthropic-ceo-gives-25-odds-000000515.html',
+        quote: `"I think there's a 25% chance that things go really, really badly."`,
+      },
+    ],
+  },
+
+  {
+    id: 'openai',
+    name: 'OpenAI',
+    category: 'lab',
+    role: 'OpenAI · Sam Altman (CEO)',
+    summary:
+      'Acknowledges existential risk ("lights-out for all of us") while building AGI fast and deploying iteratively; prefers a gradual takeoff and calls making superintelligence safe "an open research question".',
+    pdoom: 'no number — worst case is "lights-out for all of us"',
+    accuracy: 0.55,
+    accuracyNote:
+      'On record for takeoff preference, tractability ("open research question") and a published Preparedness control regime; orthogonality, offense/defense and concentration are inferred, and the org is genuinely divided (2024 Superalignment dissolution), so a point estimate flattens real disagreement.',
+    credences: {
+      orthogonality: { holds: 0.6, fails: 0.4 },
+      tractability: { easy: 0.2, hard: 0.65, nearImpossible: 0.15 },
+      offenseDefense: { offense: 0.3, balanced: 0.45, defense: 0.25 },
+      takeoff: { fast: 0.25, medium: 0.4, slow: 0.35 },
+      powerConcentration: { concentrated: 0.55, diffuse: 0.45 },
+      alignmentInTime: { yes: 0.55, no: 0.45 },
+      controlDeployed: { yes: 0.7, no: 0.3 },
+    },
+    weights: { survival: 0.85, agency: 0.75, suffering: 0.45, flourishing: 0.95 },
+    factorNotes: {
+      orthogonality: `"A misaligned superintelligent AGI could cause grievous harm to the world" — but iterative-deployment optimism implies partial belief in steerability.`,
+      tractability: `"We need the technical capability to make a superintelligence safe. This is an open research question."`,
+      takeoff: `"a gradual transition to a world with AGI is better than a sudden one ... a slower takeoff is easier to make safe."`,
+      controlDeployed: `A published Preparedness Framework gates deployment on risk level — a control regime exists (critics doubt its rigor).`,
+      alignmentInTime: `Tension: "we are now confident we know how to build AGI" vs. the unsolved-alignment admission and the 2024 Superalignment dissolution.`,
+      powerConcentration: `Diffuse rhetoric ("widely and fairly shared") vs. a proposed IAEA-style authority and its own frontier position (inferred).`,
+    },
+    citations: [
+      {
+        label: 'Planning for AGI and beyond (OpenAI, 2023; LW full-text)',
+        url: 'https://www.lesswrong.com/posts/zRn6aQyD8uhAN7qCc/sam-altman-planning-for-agi-and-beyond',
+        quote: `"A gradual transition to a world with AGI is better than a sudden one ... a slower takeoff is easier to make safe."`,
+      },
+      {
+        label: 'Governance of superintelligence (OpenAI, 2023; LW linkpost)',
+        url: 'https://www.lesswrong.com/posts/hoWRRLr8zFbDcQErd/linkpost-governance-of-superintelligence-by-openai',
+        quote: `"We need the technical capability to make a superintelligence safe. This is an open research question."`,
+      },
+      {
+        label: `Altman: "worst case is lights-out for all of us" (Fortune, reported)`,
+        url: 'https://finance.yahoo.com/news/sam-altman-maker-chatgpt-says-110000987.html',
+        quote: `"I think the worst case is lights-out for all of us."`,
       },
     ],
   },

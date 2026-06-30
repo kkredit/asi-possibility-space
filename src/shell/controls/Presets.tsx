@@ -1,6 +1,18 @@
 import { useState } from 'react';
-import { Box, Collapse, Link, Stack, Tooltip, Typography } from '@mui/material';
+import {
+  Box,
+  Collapse,
+  FormControl,
+  Link,
+  ListSubheader,
+  MenuItem,
+  Select,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import type { Preset } from '@model/types';
 import { presets } from '@model/presets';
 import { dataset } from '@model/dataset';
 import { useBeliefs } from '@shell/store';
@@ -20,68 +32,64 @@ function accuracyColor(a: number): string {
   return a >= 0.66 ? c.teal : a >= 0.45 ? c.amber : c.red;
 }
 
+const people = presets.filter((p) => p.category === 'person');
+const labs = presets.filter((p) => p.category === 'lab');
+
+function presetItem(p: Preset) {
+  return (
+    <MenuItem key={p.id} value={p.id} sx={{ fontSize: '0.82rem' }}>
+      <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: accuracyColor(p.accuracy), mr: 1, flexShrink: 0 }} />
+      <Box component="span" sx={{ flex: 1 }}>{p.name}</Box>
+      <Box component="span" sx={{ fontFamily: fonts.mono, fontSize: '0.68rem', color: c.faint, ml: 1.5 }}>
+        {Math.round(p.accuracy * 100)}%
+      </Box>
+    </MenuItem>
+  );
+}
+
 export function Presets() {
   const activePresetId = useBeliefs((s) => s.activePresetId);
   const applyPreset = useBeliefs((s) => s.applyPreset);
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [showSources, setShowSources] = useState(false);
 
   const active = presets.find((p) => p.id === activePresetId);
 
   return (
     <Box>
       <Typography sx={{ ...sectionLabel, mb: 0.25 }}>Belief presets</Typography>
-      <Typography sx={{ fontSize: '0.72rem', color: c.faint, mb: 1.25 }}>
-        load a public figure's cited views · accuracy = how directly their record pins these factors
+      <Typography sx={{ fontSize: '0.72rem', color: c.faint, mb: 1 }}>
+        load a public figure's or lab's cited views · % = how directly their record pins these factors
       </Typography>
 
-      <Stack direction="row" flexWrap="wrap" useFlexGap gap={0.75}>
-        {presets.map((p) => {
-          const selected = p.id === activePresetId;
-          return (
-            <Tooltip key={p.id} title={p.summary} arrow placement="top">
-              <Box
-                role="button"
-                tabIndex={0}
-                onClick={() => applyPreset(p.id)}
-                onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && applyPreset(p.id)}
-                sx={{
-                  cursor: 'pointer',
-                  px: 1,
-                  py: 0.6,
-                  borderRadius: 1.5,
-                  border: `1px solid ${selected ? c.teal : c.line}`,
-                  bgcolor: selected ? 'rgba(52,211,181,0.12)' : 'transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.75,
-                  transition: 'border-color 120ms, background-color 120ms',
-                  '&:hover': { borderColor: selected ? c.teal : c.mute },
-                }}
-              >
-                <Typography sx={{ fontFamily: fonts.display, fontSize: '0.76rem', color: selected ? c.bone : c.mute, lineHeight: 1.1 }}>
-                  {p.name}
-                </Typography>
-                <Box
-                  sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: accuracyColor(p.accuracy), flexShrink: 0 }}
-                  title={`estimated accuracy ${Math.round(p.accuracy * 100)}%`}
-                />
-              </Box>
-            </Tooltip>
-          );
-        })}
-      </Stack>
+      <FormControl fullWidth size="small">
+        <Select
+          value={active ? active.id : ''}
+          displayEmpty
+          onChange={(e) => applyPreset(e.target.value)}
+          renderValue={(val) =>
+            val ? (
+              presets.find((p) => p.id === val)?.name
+            ) : (
+              <Box component="span" sx={{ color: c.faint }}>Choose a figure or lab…</Box>
+            )
+          }
+          sx={{ fontFamily: fonts.display, fontSize: '0.84rem', '& .MuiSelect-select': { display: 'flex', alignItems: 'center' } }}
+          MenuProps={{ PaperProps: { sx: { maxHeight: 420, bgcolor: c.panel, border: `1px solid ${c.line}` } } }}
+        >
+          <ListSubheader sx={{ ...sectionLabel, bgcolor: c.panel, lineHeight: '28px', color: c.faint }}>People</ListSubheader>
+          {people.map(presetItem)}
+          <ListSubheader sx={{ ...sectionLabel, bgcolor: c.panel, lineHeight: '28px', color: c.faint }}>Labs</ListSubheader>
+          {labs.map(presetItem)}
+        </Select>
+      </FormControl>
 
       {active && (
         <Box sx={{ mt: 1.5, p: 1.5, border: `1px solid ${c.line}`, borderRadius: 1.5, bgcolor: c.panel2 }}>
-          <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', fontWeight: 600, color: c.bone }}>
-            {active.name}
-          </Typography>
           <Typography sx={{ fontSize: '0.72rem', color: c.mute, mb: 1 }}>{active.role}</Typography>
           <Typography sx={{ fontSize: '0.78rem', color: c.bone, lineHeight: 1.45, mb: 1.25 }}>
             {active.summary}
           </Typography>
 
-          {/* accuracy meter */}
           <Tooltip title={active.accuracyNote} arrow placement="top">
             <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: active.pdoom ? 0.75 : 1 }}>
               <Typography sx={{ fontSize: '0.68rem', color: c.mute, width: 96 }}>est. accuracy</Typography>
@@ -104,13 +112,13 @@ export function Presets() {
           <Link
             component="button"
             type="button"
-            onClick={() => setOpenId(openId === active.id ? null : active.id)}
+            onClick={() => setShowSources((v) => !v)}
             sx={{ fontSize: '0.72rem', color: c.teal, textDecorationColor: c.teal }}
           >
-            {openId === active.id ? 'Hide' : 'Sources & reasoning'}
+            {showSources ? 'Hide' : 'Sources & reasoning'}
           </Link>
 
-          <Collapse in={openId === active.id}>
+          <Collapse in={showSources}>
             <Box sx={{ mt: 1 }}>
               {active.citations.map((cit, i) => (
                 <Box key={i} sx={{ mb: 1.25 }}>
