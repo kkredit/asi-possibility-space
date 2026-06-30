@@ -139,6 +139,9 @@ export function App() {
   const decisionFactor = dataset.factors.find((f) => f.id === decision.factor)!;
   const towardLabel = decisionFactor.states.find((s) => s.id === decision.toward)?.label ?? decision.toward;
   const baselineLabel = decisionFactor.states.find((s) => s.id === decision.baseline)?.label ?? decision.baseline;
+  // Objective factors can't be steered — the same contrast reads as value of
+  // information ("if it turns out A vs B…"), not an intervention ("steer toward A").
+  const isObjectiveDecision = decisionFactor.kind === 'objective';
 
   // Pick the decision factor; reset toward/baseline to its first two states.
   const pickFactor = (fid: string) => {
@@ -256,7 +259,10 @@ export function App() {
                   {/* Verdict headline */}
                   <Box sx={{ borderTop: `1px solid ${c.line}`, pt: 1.5 }}>
                     <Typography variant="body2" sx={{ color: c.mute, mb: 0.5 }}>
-                      At your current beliefs, steering <Box component="span" sx={{ color: c.teal }}>{decisionFactor.label} → {towardLabel}</Box> (vs {baselineLabel}) is
+                      At your current beliefs,{' '}
+                      {isObjectiveDecision ? 'if it turns out ' : 'steering '}
+                      <Box component="span" sx={{ color: c.teal }}>{decisionFactor.label} {isObjectiveDecision ? '=' : '→'} {towardLabel}</Box>
+                      {' '}(vs {baselineLabel}) {isObjectiveDecision ? 'would be' : 'is'}
                     </Typography>
                     <Stack direction="row" spacing={3} alignItems="baseline" flexWrap="wrap" useFlexGap>
                       <Typography sx={{ fontFamily: fonts.display, fontSize: '1.5rem', color: valueColor(Math.max(-1, Math.min(1, contrast.netDelta * 3))) }}>
@@ -265,10 +271,15 @@ export function App() {
                       </Typography>
                       <Typography sx={{ fontFamily: fonts.mono, fontSize: '1.05rem', color: c.bone }}>
                         {(contrast.favorableShare * 100).toFixed(0)}%
-                        <Box component="span" sx={{ fontSize: '0.78rem', color: c.mute, ml: 0.75 }}>of probability-weighted futures favor it</Box>
+                        <Box component="span" sx={{ fontSize: '0.78rem', color: c.mute, ml: 0.75 }}>
+                          of probability-weighted futures {isObjectiveDecision ? 'come out better that way' : 'favor it'}
+                        </Box>
                       </Typography>
                     </Stack>
                     <Typography variant="caption" sx={{ color: c.faint, display: 'block', mt: 1 }}>
+                      {isObjectiveDecision
+                        ? 'This factor is objective — you can’t steer it, so read this as value of information: how much the verdict moves if it turns out one way vs. the other. '
+                        : ''}
                       Each future is compared to itself with only this factor changed (all else held fixed), so net EV and the favorable share always agree in sign.
                       {Object.keys(pins).length > 0 ? ` Holding fixed the ${Object.keys(pins).length} condition(s) you pinned in Beliefs.` : ''}
                     </Typography>
@@ -278,7 +289,11 @@ export function App() {
                 <Panel>
                   <ConditionTornado
                     rows={contrast.cruxes}
-                    decisionLabel={`${decisionFactor.label.toLowerCase()} → ${towardLabel.toLowerCase()}`}
+                    decisionLabel={
+                      isObjectiveDecision
+                        ? `${decisionFactor.label.toLowerCase()} turning out ${towardLabel.toLowerCase()}`
+                        : `${decisionFactor.label.toLowerCase()} → ${towardLabel.toLowerCase()}`
+                    }
                   />
                   <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mt: 2 }}>
                     <Box sx={{ flex: 1, minWidth: 220 }}>
