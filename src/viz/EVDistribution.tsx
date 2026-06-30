@@ -8,6 +8,16 @@ interface Props {
   bins: DistributionBin[];
   ev: number;
   factors: Factor[];
+  /** Standalone value contribution of each factor-state (signed), for the valence
+   *  glyphs in the per-scenario tooltip. */
+  valence?: Record<string, Record<string, number>>;
+}
+
+/** Valence glyph for a state's standalone value pull. */
+function glyph(v: number | undefined): { ch: string; color: string } {
+  if (v != null && v > 0.03) return { ch: '▲', color: c.teal };
+  if (v != null && v < -0.03) return { ch: '▼', color: c.red };
+  return { ch: '◆', color: c.slate };
 }
 
 /** A scenario's description: its authored narrative, else its factor-state list. */
@@ -18,16 +28,37 @@ function describe(s: EvaluatedScenario, factors: Factor[]): string {
     .join(' · ');
 }
 
-/** The full factor-by-factor makeup of a scenario, for the hover tooltip. */
-function constitution(s: EvaluatedScenario, factors: Factor[]): string {
-  const parts = factors.map(
-    (f) => `${f.label}: ${f.states.find((st) => st.id === s.scenario[f.id])?.label ?? s.scenario[f.id]}`,
+/** The full factor-by-factor makeup of a scenario — one condition per line, each
+ *  prefixed with a valence glyph illustrating that state's pull on the outcome. */
+function Constitution({
+  s,
+  factors,
+  valence,
+}: {
+  s: EvaluatedScenario;
+  factors: Factor[];
+  valence?: Record<string, Record<string, number>>;
+}) {
+  return (
+    <Box sx={{ py: 0.25 }}>
+      {factors.map((f) => {
+        const stateId = s.scenario[f.id];
+        const label = f.states.find((st) => st.id === stateId)?.label ?? stateId;
+        const g = glyph(valence?.[f.id]?.[stateId]);
+        return (
+          <Box key={f.id} sx={{ display: 'flex', gap: 0.75, alignItems: 'baseline', lineHeight: 1.5 }}>
+            <Box component="span" sx={{ color: g.color, width: 10, flexShrink: 0, textAlign: 'center' }}>{g.ch}</Box>
+            <Box component="span" sx={{ color: c.mute }}>{f.label}:</Box>
+            <Box component="span" sx={{ color: c.bone, fontWeight: 600 }}>{label}</Box>
+          </Box>
+        );
+      })}
+    </Box>
   );
-  return `This scenario — ${parts.join(' · ')}`;
 }
 
 /** Histogram of probability mass over the scalar value axis [-1, 1]. */
-export function EVDistribution({ bins, ev, factors }: Props) {
+export function EVDistribution({ bins, ev, factors, valence }: Props) {
   const [hovered, setHovered] = useState<number | null>(null);
   const [pinned, setPinned] = useState<number | null>(null);
   const width = 560;
@@ -155,7 +186,7 @@ export function EVDistribution({ bins, ev, factors }: Props) {
             </Box>
             <Box sx={isPinned ? { maxHeight: 200, overflowY: 'auto', pr: 0.5 } : undefined}>
               {shown.map((s, i) => (
-                <Tooltip key={i} title={constitution(s, factors)} arrow placement="left">
+                <Tooltip key={i} title={<Constitution s={s} factors={factors} valence={valence} />} arrow placement="left">
                   <Box sx={{ display: 'flex', gap: 0.75, mb: 0.4, alignItems: 'baseline', cursor: 'help' }}>
                     <Box sx={{ flexShrink: 0, width: 7, height: 7, borderRadius: '50%', bgcolor: valueColor(s.scalar), mt: 0.4 }} />
                     <Typography variant="caption" sx={{ fontFamily: fonts.mono, color: c.bone, flexShrink: 0, width: 38, textAlign: 'right' }}>

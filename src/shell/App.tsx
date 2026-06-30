@@ -92,6 +92,19 @@ export function App() {
     [credences, weights, evaluator, pins, jointProbability],
   );
   const bins = useMemo(() => distribution(analysis.scenarios), [analysis]);
+  // Standalone (linear) value pull of each factor-state, for the distribution
+  // tooltip's valence glyphs. Recomputed when weights change.
+  const stateValence = useMemo(() => {
+    const m: Record<string, Record<string, number>> = {};
+    for (const f of dataset.factors) {
+      m[f.id] = {};
+      for (const st of f.states) {
+        const partial = dataset.linearContributions[f.id]?.[st.id] ?? {};
+        m[f.id][st.id] = scalarize({ survival: 0, agency: 0, suffering: 0, flourishing: 0, ...partial }, weights);
+      }
+    }
+    return m;
+  }, [weights]);
   const sens = useMemo(
     () => sensitivity(dataset, credences, weights, evaluator, pins, jointProbability),
     [credences, weights, evaluator, pins, jointProbability],
@@ -231,7 +244,7 @@ export function App() {
             {tab === 0 && (
               <>
                 <Panel>
-                  <EVDistribution bins={bins} ev={analysis.ev} factors={dataset.factors} />
+                  <EVDistribution bins={bins} ev={analysis.ev} factors={dataset.factors} valence={stateValence} />
                 </Panel>
                 <Panel>
                   <ParallelCoordinates scenarios={analysis.scenarios} factors={dataset.factors} />
