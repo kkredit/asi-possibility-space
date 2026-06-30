@@ -137,10 +137,13 @@ export interface PresetCitation {
  */
 export interface Preset {
   id: string;
+  /** For `person`, the individual's name; for `lab`, the organization's name. */
   name: string;
-  /** Grouping for the preset picker. */
+  /** Whether this preset represents an individual's personal views or an org's institutional position. */
   category: 'person' | 'lab';
-  /** Short affiliation / role. */
+  /** For individuals: the org/venue shown in parens after the name (e.g. "MIRI"). Omitted for orgs. */
+  affiliation?: string;
+  /** Fuller affiliation / role line shown in the detail card. */
   role: string;
   /** One-line characterization of their view. */
   summary: string;

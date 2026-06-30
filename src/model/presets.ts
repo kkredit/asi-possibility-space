@@ -24,9 +24,60 @@ import type { Preset } from './types';
 
 export const presets: Preset[] = [
   {
-    id: 'yudkowsky',
-    name: 'Eliezer Yudkowsky / MIRI',
+    id: 'yampolskiy',
+    name: 'Roman Yampolskiy',
     category: 'person',
+    affiliation: 'Univ. of Louisville',
+    role: 'Univ. of Louisville Â· AI-safety researcher',
+    summary:
+      'Control of superintelligence is not merely hard but fundamentally impossible — a "perpetual safety machine" — so building AGI is near-certain catastrophe; the only winning move is not to build it.',
+    pdoom: '~99.999999%',
+    accuracy: 0.78,
+    accuracyNote:
+      'Headline number, uncontrollability thesis, and s-risk/i-risk taxonomy are explicit and on record, pinning tractability, control, alignment-in-time and the value weights well; takeoff and concentration are hedged, so partly inferred.',
+    credences: {
+      orthogonality: { holds: 0.92, fails: 0.08 },
+      tractability: { easy: 0.0, hard: 0.03, nearImpossible: 0.97 },
+      offenseDefense: { offense: 0.85, balanced: 0.1, defense: 0.05 },
+      takeoff: { fast: 0.55, medium: 0.35, slow: 0.1 },
+      powerConcentration: { concentrated: 0.55, diffuse: 0.45 },
+      alignmentInTime: { yes: 0.02, no: 0.98 },
+      controlDeployed: { yes: 0.02, no: 0.98 },
+    },
+    weights: { survival: 1.0, agency: 0.7, suffering: 0.85, flourishing: 0.4 },
+    factorNotes: {
+      tractability: `Core thesis: controlling superintelligence "is like a problem of creating a perpetual safety machine ... it's impossible"; control "cannot be fully" established.`,
+      controlDeployed: `His controllability papers argue control is fundamentally impossible — deployed control is near-zero.`,
+      alignmentInTime: `"The only way to win this game is not to play it" — expects no alignment solution.`,
+      offenseDefense: `"Superintelligence will come up with something completely new ... We may not even recognize that as a possible path" — unanticipatable offense.`,
+      orthogonality: `Treats safe outcomes as the rare exception requiring an unsolvable feat; "I don't see a good outcome long term for humanity".`,
+      takeoff: `Cites prediction markets ("maybe we're two years away") but can accept decades — hedged (partly inferred).`,
+      powerConcentration: `Mixed: warns open-source gives "weapons to psychopaths" yet says it is "equally bad, no matter who makes it" (partly inferred).`,
+    },
+    citations: [
+      {
+        label: 'Lex Fridman Podcast #431 — transcript',
+        url: 'https://lexfridman.com/roman-yampolskiy-transcript/',
+        quote: `"the problem of controlling AGI or superintelligence ... is like a problem of creating a perpetual safety machine ... it's impossible."`,
+      },
+      {
+        label: 'On the Controllability of AI (arXiv:2008.04071)',
+        url: 'https://arxiv.org/abs/2008.04071',
+        quote: `"advanced AI can't be fully controlled ... the possibility of controlling [AGI/superintelligence] has not been formally established."`,
+      },
+      {
+        label: 'Yampolskiy puts catastrophe odds at 99.999999% (Business Insider, syndicated)',
+        url: 'https://tech.yahoo.com/roman-yampolskiy-says-theres-99-171220674.html',
+        quote: `Places the odds of catastrophe at "99.999999%" and called Musk's ~20% "a bit too conservative".`,
+      },
+    ],
+  },
+
+  {
+    id: 'yudkowsky',
+    name: 'Eliezer Yudkowsky',
+    category: 'person',
+    affiliation: 'MIRI',
     role: 'MIRI · AI-risk pioneer',
     summary:
       'Building superhuman AI under anything like current conditions kills everyone by default; alignment is unsolved and will not be solved in time — the only adequate response is to halt frontier development.',
@@ -76,6 +127,7 @@ export const presets: Preset[] = [
     id: 'bengio',
     name: 'Yoshua Bengio',
     category: 'person',
+    affiliation: 'Mila',
     role: 'Mila · Turing laureate; chaired Intl AI Safety Report',
     summary:
       'Catastrophic risk is real and high enough to act on under deep uncertainty; agentic frontier AI is the core danger (self-preservation, deception emerge), and the safer path is non-agentic "Scientist AI".',
@@ -125,6 +177,7 @@ export const presets: Preset[] = [
     id: 'christiano',
     name: 'Paul Christiano',
     category: 'person',
+    affiliation: 'ARC',
     role: 'US AI Safety Institute · ARC founder',
     summary:
       'Serious but not overwhelming risk (~22% takeover); alignment is a hard-but-tractable technical problem; famously argues takeoff is continuous/slow, with failure most likely emerging gradually across many systems.',
@@ -172,8 +225,9 @@ export const presets: Preset[] = [
 
   {
     id: 'acx',
-    name: 'Scott Alexander (ACX)',
+    name: 'Scott Alexander',
     category: 'person',
+    affiliation: 'ACX',
     role: 'Astral Codex Ten · rationalist writer',
     summary:
       'Worried but not a doomer: ~20% catastrophe, fast takeoff, cautiously optimistic that alignment is winnable via automated alignment researchers.',
@@ -211,9 +265,9 @@ export const presets: Preset[] = [
 
   {
     id: 'hassabis',
-    name: 'Demis Hassabis / Google DeepMind',
+    name: 'Google DeepMind',
     category: 'lab',
-    role: 'Google DeepMind · CEO',
+    role: 'Google DeepMind · Demis Hassabis (CEO)',
     summary:
       'AGI plausibly within 5–10 years; the catastrophe risk is "non-negligible" but addressable with much more safety work and international coordination — a self-described cautious optimist.',
     pdoom: 'declines a number — "non-zero and probably non-negligible"',
@@ -262,6 +316,7 @@ export const presets: Preset[] = [
     id: 'lecun',
     name: 'Yann LeCun',
     category: 'person',
+    affiliation: 'Meta',
     role: 'Meta · Chief AI Scientist; risk skeptic',
     summary:
       'Existential fear is "preposterous": intelligence does not imply a drive to dominate, objectives are designed not emergent, open-source keeps good AI ahead of bad — alignment is ordinary iterative engineering.',
@@ -311,6 +366,7 @@ export const presets: Preset[] = [
     id: 'hinton',
     name: 'Geoffrey Hinton',
     category: 'person',
+    affiliation: 'ex-Google',
     role: '"Godfather of AI" · ex-Google; Turing & Nobel laureate',
     summary:
       'We are building digital minds that will soon exceed us and we do not know how to control something smarter than us; ~10–20% chance it ends in human extinction — the real hope is AI engineered to genuinely care about us, not kept submissive.',
@@ -360,6 +416,7 @@ export const presets: Preset[] = [
     id: 'sutskever',
     name: 'Ilya Sutskever',
     category: 'person',
+    affiliation: 'SSI',
     role: 'Safe Superintelligence Inc. · ex-OpenAI chief scientist',
     summary:
       'Superintelligence is coming, will be vastly powerful and hard to control, and is extinction-level if unaligned — but alignment is a solvable problem to pursue "in tandem" with capability; cautiously optimistic.',
@@ -399,6 +456,56 @@ export const presets: Preset[] = [
         label: 'Ilya Sutskever — Dwarkesh Patel interview (2025)',
         url: 'https://www.dwarkesh.com/p/ilya-sutskever-2',
         quote: `On timelines to AI smarter than us: "I think like 5 to 20" years.`,
+      },
+    ],
+  },
+
+  {
+    id: 'andreessen',
+    name: 'Marc Andreessen',
+    category: 'person',
+    affiliation: 'a16z',
+    role: 'a16z Â· co-founder; techno-optimist',
+    summary:
+      'AI is "math, code, computers" controlled by people — it cannot want to kill us; the only real danger is slowing it down or letting incumbents capture regulators. Accelerate, and keep it open.',
+    pdoom: 'rejects the framing (effectively ~0)',
+    accuracy: 0.2,
+    accuracyNote:
+      'Prolific and emphatic but gives essentially no calibrated probabilities — argues by category claim ("not alive", "moral panic") rather than forecasts. Almost every credence here is inferred from strong directional rhetoric.',
+    credences: {
+      orthogonality: { holds: 0.1, fails: 0.9 },
+      tractability: { easy: 0.85, hard: 0.13, nearImpossible: 0.02 },
+      offenseDefense: { offense: 0.05, balanced: 0.2, defense: 0.75 },
+      takeoff: { fast: 0.05, medium: 0.3, slow: 0.65 },
+      powerConcentration: { concentrated: 0.15, diffuse: 0.85 },
+      alignmentInTime: { yes: 0.9, no: 0.1 },
+      controlDeployed: { yes: 0.85, no: 0.15 },
+    },
+    weights: { survival: 0.15, agency: 0.9, suffering: 0.35, flourishing: 1.0 },
+    factorNotes: {
+      orthogonality: `AI "doesn't want, it doesn't have goals, it doesn't want to kill you, because it's not alive"; calling it a humanity-killer is "a profound category error".`,
+      tractability: `"This moral panic is by its very nature irrational"; bad uses are covered because "we have laws on the books".`,
+      offenseDefense: `"The same capabilities that make AI dangerous in the hands of bad guys ... make it powerful in the hands of good guys."`,
+      takeoff: `"not going to come alive any more than your toaster will"; AI is "math — code — computers, built by people".`,
+      powerConcentration: `Wants open and diffuse; warns regulation builds "a cartel of government-blessed AI vendors".`,
+      alignmentInTime: `Inferred: treats alignment as a near-non-problem solvable with normal engineering and law.`,
+      controlDeployed: `Inferred: "owned by people, used by people, controlled by people" treats control as the default.`,
+    },
+    citations: [
+      {
+        label: 'Why AI Will Save the World (a16z, 2023)',
+        url: 'https://a16z.com/ai-will-save-the-world/',
+        quote: `"AI doesn't want, it doesn't have goals, it doesn't want to kill you, because it's not alive."`,
+      },
+      {
+        label: 'The Techno-Optimist Manifesto (a16z, 2023)',
+        url: 'https://a16z.com/the-techno-optimist-manifesto/',
+        quote: `"We believe any deceleration of AI will cost lives ... is a form of murder." (lists "existential risk" among the ideas it opposes)`,
+      },
+      {
+        label: 'Andreessen on AI doomers (Slashdot report, 2023)',
+        url: 'https://yro.slashdot.org/story/23/06/11/0522204/marc-andreessen-criticizes-ai-doomers-warns-the-bigger-danger-is-china-gaining-ai-dominance',
+        quote: `"AI is a machine — it's not going to come alive any more than your toaster will."`,
       },
     ],
   },

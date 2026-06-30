@@ -40,7 +40,30 @@ function setStateProbability(
   return next;
 }
 
-function defaults() {
+/** Read a `#preset=<id>` from the URL (SSR-safe); only returns known preset ids. */
+function readUrlPresetId(): string | null {
+  if (typeof window === 'undefined') return null;
+  const id = window.location.hash.match(/preset=([A-Za-z0-9_-]+)/)?.[1];
+  return id && presets.some((p) => p.id === id) ? id : null;
+}
+
+/** Reflect the active preset in the URL so a chosen figure is shareable (SSR-safe). */
+function writeUrlPresetId(id: string | null): void {
+  if (typeof window === 'undefined') return;
+  const url = new URL(window.location.href);
+  url.hash = id ? `preset=${id}` : '';
+  window.history.replaceState(null, '', url.toString());
+}
+
+function presetCredencesWeights(id: string) {
+  const preset = presets.find((p) => p.id === id)!;
+  return {
+    credences: structuredClone(preset.credences),
+    weights: preset.weights ? { ...preset.weights } : { ...dataset.defaultWeights },
+  };
+}
+
+function baselineState() {
   return {
     credences: structuredClone(dataset.baselineCredences),
     weights: { ...dataset.defaultWeights },
@@ -50,21 +73,31 @@ function defaults() {
   };
 }
 
+/** Initial state honors a shared `#preset=<id>` URL if present. */
+function initialState() {
+  const urlId = readUrlPresetId();
+  if (urlId) return { ...baselineState(), activePresetId: urlId, ...presetCredencesWeights(urlId) };
+  return baselineState();
+}
+
 export const useBeliefs = create<BeliefState>((set) => ({
-  ...defaults(),
+  ...initialState(),
 
   // Manual credence/weight edits mean the beliefs no longer match a preset.
   setCredence: (factor, state, value) =>
-    set((s) => ({
-      activePresetId: null,
-      credences: {
-        ...s.credences,
-        [factor]: setStateProbability(s.credences[factor], state, value),
-      },
-    })),
+    set((s) => {
+      if (s.activePresetId) writeUrlPresetId(null);
+      return {
+        activePresetId: null,
+        credences: { ...s.credences, [factor]: setStateProbability(s.credences[factor], state, value) },
+      };
+    }),
 
   setWeight: (dim, value) =>
-    set((s) => ({ activePresetId: null, weights: { ...s.weights, [dim]: Math.max(0, value) } })),
+    set((s) => {
+      if (s.activePresetId) writeUrlPresetId(null);
+      return { activePresetId: null, weights: { ...s.weights, [dim]: Math.max(0, value) } };
+    }),
 
   setEvaluator: (id) => set({ evaluatorId: id }),
 
@@ -76,16 +109,14 @@ export const useBeliefs = create<BeliefState>((set) => ({
       return { pins };
     }),
 
-  applyPreset: (id) =>
-    set(() => {
-      const preset = presets.find((p) => p.id === id);
-      if (!preset) return {};
-      return {
-        activePresetId: id,
-        credences: structuredClone(preset.credences),
-        weights: preset.weights ? { ...preset.weights } : { ...dataset.defaultWeights },
-      };
-    }),
+  applyPreset: (id) => {
+    if (!presets.some((p) => p.id === id)) return;
+    writeUrlPresetId(id);
+    set({ activePresetId: id, ...presetCredencesWeights(id) });
+  },
 
-  reset: () => set(defaults()),
+  reset: () => {
+    writeUrlPresetId(null);
+    set(baselineState());
+  },
 }));

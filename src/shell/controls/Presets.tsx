@@ -32,6 +32,11 @@ function accuracyColor(a: number): string {
   return a >= 0.66 ? c.teal : a >= 0.45 ? c.amber : c.red;
 }
 
+/** Individuals show "Name (Affiliation)"; orgs show just the org name. */
+function displayName(p: Preset): string {
+  return p.affiliation ? `${p.name} (${p.affiliation})` : p.name;
+}
+
 const people = presets.filter((p) => p.category === 'person');
 const labs = presets.filter((p) => p.category === 'lab');
 
@@ -39,7 +44,7 @@ function presetItem(p: Preset) {
   return (
     <MenuItem key={p.id} value={p.id} sx={{ fontSize: '0.82rem' }}>
       <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: accuracyColor(p.accuracy), mr: 1, flexShrink: 0 }} />
-      <Box component="span" sx={{ flex: 1 }}>{p.name}</Box>
+      <Box component="span" sx={{ flex: 1 }}>{displayName(p)}</Box>
       <Box component="span" sx={{ fontFamily: fonts.mono, fontSize: '0.68rem', color: c.faint, ml: 1.5 }}>
         {Math.round(p.accuracy * 100)}%
       </Box>
@@ -51,8 +56,20 @@ export function Presets() {
   const activePresetId = useBeliefs((s) => s.activePresetId);
   const applyPreset = useBeliefs((s) => s.applyPreset);
   const [showSources, setShowSources] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const active = presets.find((p) => p.id === activePresetId);
+
+  const copyLink = async () => {
+    if (typeof navigator === 'undefined' || !navigator.clipboard) return;
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard unavailable */
+    }
+  };
 
   return (
     <Box>
@@ -66,13 +83,10 @@ export function Presets() {
           value={active ? active.id : ''}
           displayEmpty
           onChange={(e) => applyPreset(e.target.value)}
-          renderValue={(val) =>
-            val ? (
-              presets.find((p) => p.id === val)?.name
-            ) : (
-              <Box component="span" sx={{ color: c.faint }}>Choose a figure or lab…</Box>
-            )
-          }
+          renderValue={(val) => {
+            const p = presets.find((x) => x.id === val);
+            return p ? displayName(p) : <Box component="span" sx={{ color: c.faint }}>Choose a figure or lab…</Box>;
+          }}
           sx={{ fontFamily: fonts.display, fontSize: '0.84rem', '& .MuiSelect-select': { display: 'flex', alignItems: 'center' } }}
           MenuProps={{ PaperProps: { sx: { maxHeight: 420, bgcolor: c.panel, border: `1px solid ${c.line}` } } }}
         >
@@ -85,6 +99,9 @@ export function Presets() {
 
       {active && (
         <Box sx={{ mt: 1.5, p: 1.5, border: `1px solid ${c.line}`, borderRadius: 1.5, bgcolor: c.panel2 }}>
+          <Typography sx={{ fontFamily: fonts.display, fontSize: '0.85rem', fontWeight: 600, color: c.bone }}>
+            {displayName(active)}
+          </Typography>
           <Typography sx={{ fontSize: '0.72rem', color: c.mute, mb: 1 }}>{active.role}</Typography>
           <Typography sx={{ fontSize: '0.78rem', color: c.bone, lineHeight: 1.45, mb: 1.25 }}>
             {active.summary}
@@ -109,14 +126,24 @@ export function Presets() {
             </Typography>
           )}
 
-          <Link
-            component="button"
-            type="button"
-            onClick={() => setShowSources((v) => !v)}
-            sx={{ fontSize: '0.72rem', color: c.teal, textDecorationColor: c.teal }}
-          >
-            {showSources ? 'Hide' : 'Sources & reasoning'}
-          </Link>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Link
+              component="button"
+              type="button"
+              onClick={() => setShowSources((v) => !v)}
+              sx={{ fontSize: '0.72rem', color: c.teal, textDecorationColor: c.teal }}
+            >
+              {showSources ? 'Hide' : 'Sources & reasoning'}
+            </Link>
+            <Link
+              component="button"
+              type="button"
+              onClick={copyLink}
+              sx={{ fontSize: '0.72rem', color: c.mute, textDecorationColor: c.faint }}
+            >
+              {copied ? 'Link copied ✓' : 'Copy link'}
+            </Link>
+          </Stack>
 
           <Collapse in={showSources}>
             <Box sx={{ mt: 1 }}>
