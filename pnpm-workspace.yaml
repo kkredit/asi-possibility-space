@@ -1,0 +1,4 @@
+# Standalone workspace root. This project lives physically inside the kodex
+# monorepo tree but is its own git repo; without this file pnpm walks up to the
+# monorepo's pnpm-workspace.yaml and installs against that instead.
+packages: []
