@@ -132,6 +132,18 @@ const factors: Factor[] = [
       { id: 'no', label: 'No', blurb: 'no effective control' },
     ],
   },
+  {
+    id: 'coordination',
+    label: 'Coordination regime',
+    kind: 'influenceable',
+    question: 'Do we achieve a binding regime that coordinates frontier development?',
+    description:
+      'Whether a real coordination/governance regime over frontier AI is achieved — international agreements, compute governance, enforced safety standards — versus an uncoordinated free-for-all. Our choices can move it; its main effect is upstream, buying time and raising the odds that alignment and control are solved and deployed in time.',
+    states: [
+      { id: 'regime', label: 'Regime', blurb: 'binding coordination / governance achieved' },
+      { id: 'none', label: 'None', blurb: 'uncoordinated; each actor races' },
+    ],
+  },
 ];
 
 // Presumed starting odds (credences). Each factor's states sum to 1.
@@ -143,6 +155,7 @@ const baselineCredences: Credences = {
   powerConcentration: { concentrated: 0.55, diffuse: 0.45 },
   alignmentInTime: { yes: 0.35, no: 0.65 },
   controlDeployed: { yes: 0.45, no: 0.55 },
+  coordination: { regime: 0.3, none: 0.7 },
 };
 
 // Presumed default weights — survival & suffering weighted highest.
@@ -189,6 +202,14 @@ const linearContributions: LinearContributions = {
   controlDeployed: {
     yes: { survival: 0.25, agency: 0.25, suffering: 0.05, flourishing: 0.15 },
     no: { survival: -0.2 },
+  },
+  // Coordination's DIRECT effect is small and mixed — collective restraint helps a
+  // little (survival, less unilateral catastrophe) at a small agency cost
+  // (centralization). Its real leverage is INDIRECT, via the couplings/Bayes net
+  // below (it buys time for alignment & control).
+  coordination: {
+    regime: { survival: 0.06, agency: -0.07, suffering: 0.05, flourishing: 0.02 },
+    none: {},
   },
 };
 
@@ -615,8 +636,33 @@ function expandTakeoff(base: CachedCell): CachedCell[] {
   ];
 }
 
-// The full 432-cell space: every base cell × {fast, medium, slow}.
-const cachedOutcomes: CachedCell[] = baseCells.flatMap(expandTakeoff);
+// Coordination's small, mixed direct delta (see linearContributions.coordination).
+// Its big effect is on the ODDS of alignment/control (couplings + Bayes net), not on
+// the value of an already-specified world — so the direct delta here is deliberately
+// modest and régime-independent.
+const coordinationDelta: ValueTuple = [0.06, -0.07, 0.05, 0.02];
+
+/** Expand one cell into its coordination = {none, regime} variants. */
+function expandCoordination(base: CachedCell): CachedCell[] {
+  const { survival, agency, suffering, flourishing } = base.outcome.value;
+  const tuple: ValueTuple = [survival, agency, suffering, flourishing];
+  const conf = base.outcome.confidence ?? 0.4;
+  const make = (coordination: string, [s, a, su, f]: ValueTuple, narrative: string): CachedCell => ({
+    scenario: { ...base.scenario, coordination },
+    outcome: { narrative, value: { survival: s, agency: a, suffering: su, flourishing: f }, confidence: conf },
+  });
+  return [
+    make('none', tuple, base.outcome.narrative),
+    make(
+      'regime',
+      shiftTuple(tuple, coordinationDelta),
+      `${base.outcome.narrative} A standing coordination regime adds a measure of collective restraint, at a measure of centralization.`,
+    ),
+  ];
+}
+
+// The full 864-cell space: every base cell × {fast, medium, slow} × {none, regime}.
+const cachedOutcomes: CachedCell[] = baseCells.flatMap(expandTakeoff).flatMap(expandCoordination);
 
 // ============================================================================
 //  COUPLINGS — dependencies that correct the independence assumption (§9.4).
@@ -687,6 +733,29 @@ const couplings: Coupling[] = [
     when: [{ factor: 'orthogonality', state: 'fails' }, { factor: 'tractability', state: 'nearImpossible' }],
     multiplier: 0.2,
   },
+
+  // --- Coordination regime ↔ getting alignment / control in time ----------------
+  // A coordination regime buys calendar time and standardizes safety, so it raises
+  // the odds that alignment and control are actually fielded in time. (This is
+  // coordination's main leverage — its direct value effect is small.)
+  {
+    id: 'coordination_aidsAlignment',
+    description: 'A coordination regime buys time and standards ⇒ alignment-in-time is more likely.',
+    when: [{ factor: 'coordination', state: 'regime' }, { factor: 'alignmentInTime', state: 'yes' }],
+    multiplier: 1.6,
+  },
+  {
+    id: 'coordination_aidsControl',
+    description: 'A coordination regime mandates monitoring/control ⇒ control-deployed is more likely.',
+    when: [{ factor: 'coordination', state: 'regime' }, { factor: 'controlDeployed', state: 'yes' }],
+    multiplier: 1.5,
+  },
+  {
+    id: 'noCoordination_missesAlignment',
+    description: 'No coordination ⇒ an uncoordinated race makes alignment-in-time less likely.',
+    when: [{ factor: 'coordination', state: 'none' }, { factor: 'alignmentInTime', state: 'yes' }],
+    multiplier: 0.8,
+  },
 ];
 
 // ============================================================================
@@ -702,14 +771,38 @@ const couplings: Coupling[] = [
 //  validated and ready to wire in as a selectable probability model (see MODEL.md §5
 //  for what remains — the UI toggle and the child-slider semantics).
 // ============================================================================
+// Base P(yes) for the "solved in time" factors before the coordination modifier.
+const alignBaseYes: Record<string, number> = {
+  'fast|easy': 0.4, 'fast|hard': 0.2, 'fast|nearImpossible': 0.05,
+  'medium|easy': 0.6, 'medium|hard': 0.35, 'medium|nearImpossible': 0.1,
+  'slow|easy': 0.8, 'slow|hard': 0.55, 'slow|nearImpossible': 0.2,
+};
+const controlBaseYes: Record<string, number> = { fast: 0.3, medium: 0.5, slow: 0.65 };
+
+// Fold a coordination modifier into a binary "yes/no" CPT: a regime scales the odds
+// of "yes" up, no coordination scales them down. The parent key gains a trailing
+// `|regime` / `|none` segment (coordination is the last parent).
+const clampP = (p: number): number => Math.max(0.02, Math.min(0.98, p));
+function withCoordination(baseYes: Record<string, number>): Record<string, Record<string, number>> {
+  const out: Record<string, Record<string, number>> = {};
+  for (const base of Object.keys(baseYes)) {
+    for (const coord of ['regime', 'none'] as const) {
+      const p = clampP(baseYes[base] * (coord === 'regime' ? 1.5 : 0.75));
+      out[`${base}|${coord}`] = { yes: p, no: 1 - p };
+    }
+  }
+  return out;
+}
+
 const bayesNet: BayesNet = {
   description:
-    'First-pass DAG: objective facts + takeoff are roots (priors from your sliders); tractability depends on orthogonality; power concentration and the “solved in time” factors depend on takeoff (and tractability for alignment).',
+    'First-pass DAG: objective facts, takeoff, and the coordination regime are roots (priors from your sliders); tractability depends on orthogonality; power concentration depends on takeoff; and the “solved in time” factors depend on takeoff, tractability, and whether a coordination regime is in place.',
   nodes: [
     // --- roots: priors read live from credences (no CPT) -----------------------
     { factor: 'orthogonality', parents: [], note: 'Root: a structural fact; prior from your slider.' },
     { factor: 'offenseDefense', parents: [], note: 'Root: a structural fact; prior from your slider.' },
     { factor: 'takeoff', parents: [], note: 'Root: treated as exogenous; prior from your slider.' },
+    { factor: 'coordination', parents: [], note: 'Root: our collective choice; prior from your slider. Buys time for alignment & control.' },
 
     // --- tractability | orthogonality -----------------------------------------
     {
@@ -734,34 +827,20 @@ const bayesNet: BayesNet = {
       },
     },
 
-    // --- alignmentInTime | (takeoff, tractability) ----------------------------
+    // --- alignmentInTime | (takeoff, tractability, coordination) --------------
     {
       factor: 'alignmentInTime',
-      parents: ['takeoff', 'tractability'],
-      note: 'Solving & deploying alignment in time is a race against the calendar (takeoff) gated by how hard the problem is (tractability).',
-      cpt: {
-        'fast|easy': { yes: 0.4, no: 0.6 },
-        'fast|hard': { yes: 0.2, no: 0.8 },
-        'fast|nearImpossible': { yes: 0.05, no: 0.95 },
-        'medium|easy': { yes: 0.6, no: 0.4 },
-        'medium|hard': { yes: 0.35, no: 0.65 },
-        'medium|nearImpossible': { yes: 0.1, no: 0.9 },
-        'slow|easy': { yes: 0.8, no: 0.2 },
-        'slow|hard': { yes: 0.55, no: 0.45 },
-        'slow|nearImpossible': { yes: 0.2, no: 0.8 },
-      },
+      parents: ['takeoff', 'tractability', 'coordination'],
+      note: 'A race against the calendar (takeoff) gated by problem difficulty (tractability); a coordination regime buys time and standards, raising the odds.',
+      cpt: withCoordination(alignBaseYes),
     },
 
-    // --- controlDeployed | takeoff --------------------------------------------
+    // --- controlDeployed | (takeoff, coordination) ----------------------------
     {
       factor: 'controlDeployed',
-      parents: ['takeoff'],
-      note: 'Standing up and deploying control/monitoring also takes calendar time.',
-      cpt: {
-        fast: { yes: 0.3, no: 0.7 },
-        medium: { yes: 0.5, no: 0.5 },
-        slow: { yes: 0.65, no: 0.35 },
-      },
+      parents: ['takeoff', 'coordination'],
+      note: 'Standing up and deploying control/monitoring takes calendar time; a coordination regime mandates and accelerates it.',
+      cpt: withCoordination(controlBaseYes),
     },
   ],
 };
@@ -785,10 +864,10 @@ const actions: Action[] = [
     id: 'computeGovernance',
     label: 'Compute-governance / coordination regime',
     description:
-      'International coordination on frontier compute — buys time for alignment and tilts toward a more concentrated, governable frontier.',
+      'International coordination on frontier compute. Pushes toward a coordination regime — which buys time for alignment and control (via the couplings / Bayes net) — and tilts toward a more concentrated, governable frontier.',
     deltas: [
-      { factor: 'alignmentInTime', towardState: 'yes', magnitude: 0.1 },
-      { factor: 'powerConcentration', towardState: 'concentrated', magnitude: 0.1 },
+      { factor: 'coordination', towardState: 'regime', magnitude: 0.2 },
+      { factor: 'powerConcentration', towardState: 'concentrated', magnitude: 0.08 },
     ],
   },
   {

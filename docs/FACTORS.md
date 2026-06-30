@@ -12,22 +12,23 @@ modulates one).
 
 ---
 
-## 1. The current set (7 factors → 432 scenarios)
+## 1. The current set (8 factors → 864 scenarios)
 
 | # | Factor | Kind | States | Role |
 |---|--------|------|:---:|------|
 | 1 | Orthogonality | objective | 2 | top gate: benign-attractor vs misalignment-default |
 | 2 | Alignment tractability | objective | 3 | difficulty in principle |
 | 3 | Offense/defense balance | objective | 3 | does one defector end everyone |
-| 4 | Takeoff speed | objective | 3 | calendar time to react; couples to 5–7 |
+| 4 | Takeoff speed | objective | 3 | calendar time to react; couples to 5–8 |
 | 5 | Power concentration | contingent | 2 | few actors vs proliferated |
 | 6 | Alignment solved in time | influenceable | 2 | gate: did we field aligned ASI |
 | 7 | Control deployed | influenceable | 2 | gate: is a misaligned system leashed |
+| 8 | Coordination regime | influenceable | 2 | upstream cause: buys time for 6 & 7 (added — §2/§4) |
 
-**The imbalance worth noting:** 4 objective, 1 contingent, **2 influenceable**. The
-tool's whole "where to act" thesis runs on influenceable factors, yet they're the
-scarcest kind. The three factors that set the four logical gates (1, 6, 7 — see
-[`MODEL.md`](MODEL.md) §3) are well-chosen, but the model is **objective-heavy**.
+**The (improving) imbalance:** 4 objective, 1 contingent, now **3 influenceable**
+after adding coordination (#8). The tool's whole "where to act" thesis runs on
+influenceable factors, and they were the scarcest kind. The three factors that set
+the four logical gates (1, 6, 7 — see [`MODEL.md`](MODEL.md) §3) are well-chosen.
 *All else equal, a new influenceable or contingent factor is worth more than a new
 objective one*, because it adds somewhere to act or something to track rather than
 one more thing to forecast.
@@ -42,8 +43,8 @@ and arguable.
 
 | Candidate | Kind | States | Verdict | One-line reason |
 |-----------|------|:---:|:---:|-----------------|
+| **Coordination regime achieved** | influenceable | 2 | ✅ **Added** | Now factor #8 — fills the influenceable gap; `computeGovernance` targets it; causes 6 & 7 via couplings + Bayes net |
 | **Deceptive alignment / sharp left turn** | objective | 2 | **High** | Decides whether "control" can work at all — currently assumed, not modelled |
-| **Coordination regime achieved** | influenceable | 2 | **High** | Fills the influenceable gap; an action already aims at it with nowhere to attach |
 | **Competitive race pressure** | contingent | 2–3 | **Med-High** | Fills the contingent gap; drives whether 6 & 7 land in time |
 | **Warning shot occurs** | contingent | 2 | **Medium** | A real driver of response, but acts *through* 6/7 — maybe a coupling, not a factor |
 | **Timeline to ASI** | objective | 3 | **Low-Med** | Largely collinear with takeoff speed |
@@ -63,14 +64,13 @@ interaction** [`MODEL.md`](MODEL.md) shows the space is made of. Cost: ×2 → 8
 scenarios. The one objective factor I'd still add, because it changes the *meaning*
 of an existing gate rather than adding an independent pull.
 
-**Coordination regime achieved** *(influenceable, 2: `regime` / `none`; or 3 with `partial`)*.
-There is already a `computeGovernance` **action** in the dataset, but it can only
-nudge `alignment-in-time` and `power-concentration` because **there is no factor for
-the thing it actually produces** — a coordination/governance regime. Adding it gives
-that action a natural home, fills the under-represented influenceable kind, and lets
-"we coordinated" modulate the in-time factors (it buys calendar time) and tilt
-concentration. This is the highest-leverage *structural* addition. Keep it binary to
-hold cost (×2 → 864); add `partial` only if the 3-way distinction earns it.
+**Coordination regime achieved** *(influenceable, 2: `regime` / `none`)* — ✅ **shipped as factor #8.**
+`computeGovernance` now targets it directly; its small direct value delta is mixed
+(collective restraint vs. centralization), and its real leverage is upstream — it
+raises the odds of alignment-in-time and control-deployed via two couplings (and,
+under the Bayes net, as a parent of both, viewable in the network diagram). Space
+doubled 432 → 864; the cached cells were extended with a régime-independent delta
+(`expandCoordination`) rather than re-authored.
 
 **Competitive race pressure** *(contingent, 2–3: `cooperative` / `racing` / `all-out`)*.
 The only contingent factor today is power concentration; race intensity is a
@@ -108,10 +108,9 @@ in `dataset.ts`):
 
 | Action | Scenarios | Hand-authored cells to keep coverage |
 |--------|----------:|-------------------------------------:|
-| today | 432 | 432 |
-| + one binary factor | 864 | 864 |
-| + one 3-state factor | 1,296 | 1,296 |
-| + two binary factors | 1,728 | 1,728 |
+| today (8 factors) | 864 | 864 |
+| + one binary factor | 1,728 | 1,728 |
+| + one 3-state factor | 2,592 | 2,592 |
 
 The engine handles any size; the **authored content** is the bottleneck. Three
 disciplines keep this sane:
@@ -120,25 +119,23 @@ disciplines keep this sane:
    marginal resolution. The hard ≤3 cap is a ceiling, not a target.
 2. **Lean on the anchor-plus-delta pattern.** New factors should, where possible, be
    added the way takeoff was: author the surface over the *core* factors, then derive
-   the new factor's variants with a reasoned, gate-dependent delta — not 432 fresh
-   cells.
+   the new factor's variants with a reasoned, gate-dependent delta — not a fresh
+   hand-authored cell per scenario (this is how coordination was added).
 3. **Pin by default.** A newly added factor can ship pinned to its modal state, so
-   the default view stays at 432 and the new dimension is opt-in for exploration.
+   the default view stays smaller and the new dimension is opt-in for exploration.
 
 ---
 
 ## 4. Recommendation
 
-If we add anything, add **at most two**, in this order:
+1. **Coordination regime** (influenceable, binary) — ✅ **done** (factor #8). Best
+   structural fit; gave the governance action a target and rebalanced the kinds.
+2. **Deceptive alignment** (objective, binary) — *next, if any.* Makes the control gate
+   honest. Binary → 1,728 scenarios; manageable via the anchor-plus-delta pattern.
 
-1. **Coordination regime** (influenceable, binary) — best structural fit; gives the
-   existing governance action a target and rebalances the kind distribution.
-2. **Deceptive alignment** (objective, binary) — makes the control gate honest.
+I would still **defer** competitive race pressure to a later step and model
+warning-shots / timeline as **couplings**, not factors.
 
-Both are binary (→ 1,728 scenarios with both, manageable via the anchor-plus-delta
-authoring pattern and default pins). I would **defer** competitive race pressure to a
-third step and model warning-shots / timeline as **couplings**, not factors.
-
-Before adding any of them, the cheaper win is to **re-reason the high-residual cells**
-the `archetype` model flags ([`MODEL.md`](MODEL.md) §3) — improving the existing 432
+Before adding more, the cheaper win is to **re-reason the high-residual cells**
+the `archetype` model flags ([`MODEL.md`](MODEL.md) §3) — improving the existing 864
 sharpens every model on the ladder at zero space cost.

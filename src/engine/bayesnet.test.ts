@@ -35,7 +35,7 @@ describe('bayes net — structure', () => {
       description: 'x',
       nodes: net.nodes.map((n) =>
         n.factor === 'controlDeployed'
-          ? { ...n, cpt: { ...n.cpt, fast: { yes: 0.3, no: 0.3 } } }
+          ? { ...n, cpt: { ...n.cpt, 'fast|none': { yes: 0.3, no: 0.3 } } }
           : n,
       ),
     };

@@ -77,13 +77,13 @@ describe('fitted models', () => {
   it('reports the expected feature and sample counts', () => {
     const main = fitModel(dataset, false);
     const pair = fitModel(dataset, true);
-    // intercept + Σ|states| = 1 + (2+3+3+3+2+2+2) = 18 main features.
-    expect(main.featureCount).toBe(18);
+    // intercept + Σ|states| = 1 + (2+3+3+3+2+2+2+2) = 20 main features.
+    expect(main.featureCount).toBe(20);
     // + Σ_{i<j} |states_i|·|states_j| pairwise indicators.
     expect(pair.featureCount).toBeGreaterThan(main.featureCount);
     // Trained on every authored cell.
-    expect(main.sampleCount).toBe(432);
-    expect(pair.sampleCount).toBe(432);
+    expect(main.sampleCount).toBe(864);
+    expect(pair.sampleCount).toBe(864);
   });
 
   it('predictions are finite and within a sane range before clamping', () => {

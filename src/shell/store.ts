@@ -73,7 +73,9 @@ function writeUrlPresetId(id: string | null): void {
 function presetCredencesWeights(id: string) {
   const preset = presets.find((p) => p.id === id)!;
   return {
-    credences: structuredClone(preset.credences),
+    // Factors a preset doesn't state (e.g. a newer factor like coordination) fall
+    // back to the dataset baseline, so every factor always has a full distribution.
+    credences: { ...structuredClone(dataset.baselineCredences), ...structuredClone(preset.credences) },
     weights: preset.weights ? { ...preset.weights } : { ...dataset.defaultWeights },
   };
 }

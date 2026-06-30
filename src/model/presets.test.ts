@@ -9,10 +9,13 @@ describe('belief presets', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('cover every factor with valid states that sum to 1', () => {
+  it('cover every factor with valid states that sum to 1 (unstated fall back to baseline)', () => {
     for (const p of presets) {
+      // What the app actually applies: the preset over the dataset baseline, so a
+      // factor a preset doesn't state (e.g. coordination) inherits the baseline.
+      const effective = { ...dataset.baselineCredences, ...p.credences };
       for (const factor of dataset.factors) {
-        const dist = p.credences[factor.id];
+        const dist = effective[factor.id];
         expect(dist, `${p.id} missing ${factor.id}`).toBeDefined();
         const stateIds = factor.states.map((s) => s.id);
         for (const sid of Object.keys(dist)) expect(stateIds).toContain(sid);

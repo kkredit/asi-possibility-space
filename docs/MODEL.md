@@ -61,15 +61,15 @@ divergence from the hand-reasoned surface is the research signal.
 ## 3. The model ladder — what we learned
 
 Fit each model to the same hand-reasoned cells and measure the **RMS divergence**
-from cached over all 432 scenarios, in value-vector space (each dimension is in
+from cached over all 864 scenarios, in value-vector space (each dimension is in
 `[-1, 1]`, so the RMS is in value-units and weight-independent):
 
 | Model | Free params | RMS to cached | What its residual *is* |
 |---|---:|---:|---|
-| `linear` (hand-set)¹ | 18 | **0.528** | bad coefficients **+** non-linearity (conflated) |
-| `fitted` (additive) | 18 | **0.330** | **irreducible non-linearity** — what no sum-of-factors can express |
-| `archetype` (4 gates) | 16 | **0.208** | structure beyond a 4-way logical split |
-| `fitted + pairwise` | 141 | **0.149** | genuinely **higher-than-pairwise** (3-way+) entanglement |
+| `linear` (hand-set)¹ | 20 | **0.528** | bad coefficients **+** non-linearity (conflated) |
+| `fitted` (additive) | 20 | **0.330** | **irreducible non-linearity** — what no sum-of-factors can express |
+| `archetype` (4 gates) | 16 | **0.209** | structure beyond a 4-way logical split |
+| `fitted + pairwise` | 177 | **0.148** | genuinely **higher-than-pairwise** (3-way+) entanglement |
 | `cached` | — | 0 | (the reference) |
 
 ¹ `linear` is the analytical baseline only; it's not selectable in the UI ladder (it
@@ -90,9 +90,9 @@ Three things fall out of this ladder:
    on *combinations* of factors, not a sum of independent pulls.
 
 3. **The space is fundamentally *gated*, not additive — the most useful single
-   finding.** Four logical buckets (0.208) beat the best 18-parameter additive
-   model (0.330) outright, and get most of the way to the 141-parameter pairwise
-   fit (0.149) — with sixteen numbers and no tuning. That is strong evidence that
+   finding.** Four logical buckets (0.209) beat the best 20-parameter additive
+   model (0.330) outright, and get most of the way to the 177-parameter pairwise
+   fit (0.148) — with sixteen numbers and no tuning. That is strong evidence that
    the AI-safety value surface is organised by **logical gates**, not by additive
    contributions: *which régime you are in* dominates *how much each factor adds*.
 
