@@ -101,6 +101,46 @@ export const presets: Preset[] = [
   },
 
   {
+    id: 'kokotajlo',
+    name: 'Daniel Kokotajlo',
+    category: 'person',
+    affiliation: 'AI Futures Project',
+    role: 'AI Futures Project · "AI 2027" lead; ex-OpenAI',
+    summary:
+      'A US–China race drives labs to build superintelligence within a few years, before alignment is solved — making misaligned takeover and extreme power concentration the default absent a deliberate, costly slowdown.',
+    pdoom: '~70%',
+    credences: {
+      orthogonality: { holds: 0.82, fails: 0.18 },
+      tractability: { easy: 0.07, hard: 0.7, nearImpossible: 0.23 },
+      offenseDefense: { offense: 0.65, balanced: 0.25, defense: 0.1 },
+      takeoff: { fast: 0.55, medium: 0.35, slow: 0.1 },
+      powerConcentration: { concentrated: 0.85, diffuse: 0.15 },
+      alignmentInTime: { yes: 0.3, no: 0.7 },
+      controlDeployed: { yes: 0.4, no: 0.6 },
+      coordination: { regime: 0.25, none: 0.75 },
+    },
+    weights: { survival: 1.0, agency: 0.8, suffering: 0.45, flourishing: 0.55 },
+    references: [
+      { label: 'AI 2027 — About / track record', url: 'https://ai-2027.com/about', quote: `"Daniel oversees our research and policy recommendations ... he wrote What 2026 Looks Like, an AI scenario forecast ... that held up well."` },
+      { label: 'AI 2027 — Takeoff Forecast', url: 'https://ai-2027.com/research/takeoff-forecast', quote: `"median forecast for the time from the superhuman coder milestone ... to artificial superintelligence is ~1 year."` },
+      { label: 'Ex-OpenAI researcher puts p(doom) at ~70% (NYT, via Futurism, 2024)', url: 'https://futurism.com/the-byte/openai-insider-70-percent-doom', quote: `"the chance AI will wreck humanity is around 70 percent ... The world isn't ready, and we aren't ready."` },
+      { label: 'Kokotajlo on control & tractability (LessWrong)', url: 'https://www.greaterwrong.com/users/daniel-kokotajlo', quote: `Control monitoring "helps ... but I think it is far from sufficient"; not enough "for getting p(doom) < 25%."` },
+      { label: 'Kokotajlo on coordination (LessWrong)', url: 'https://www.lesswrong.com/users/daniel-kokotajlo', quote: `"what is it that we get the companies of the world to agree to ... and how do we enforce that?"; the rest of the world is "unlikely to do anything to prevent the mad race."` },
+      { label: 'TIME100 AI 2025 — quit OpenAI refusing non-disparagement', url: 'https://time.com/collections/time100-ai-2025/7305823/daniel-kokotajlo-ai/', quote: `Lost confidence "that OpenAI will behave responsibly ... recklessly racing to be the first there."` },
+    ],
+    factors: {
+      orthogonality: { accuracy: 0.8, refs: [3, 4], note: `AI 2027 treats deceptive misalignment (its "Agent-4") as the default training outcome; calls a <5% extinction belief "extremely unjustified."` },
+      tractability: { accuracy: 0.75, refs: [4], note: `Hard but not hopeless: current techniques "plausibly" suffice for today's models but fall far short of ASI; refuses p(doom) < 25% on current methods.` },
+      offenseDefense: { accuracy: 0.35, refs: [2], note: `Inferred: an ASI decisive strategic advantage plus bioweapon/mass-shutdown scenarios imply offense-dominance at scale; not stated explicitly.` },
+      takeoff: { accuracy: 0.9, refs: [2], note: `Explicit: a software-driven intelligence explosion, ~1-year median from superhuman coder to ASI (with wide error bars).` },
+      powerConcentration: { accuracy: 0.85, refs: [1, 5], note: `AI 2027 centers a single leading project plus the US government — enabling unprecedented power concentration in a tiny group.` },
+      alignmentInTime: { accuracy: 0.85, refs: [2, 3], note: `~70% p(doom) and the race-driven timeline imply alignment is usually not fielded before catastrophe; the good ending needs a deliberate slowdown.` },
+      controlDeployed: { accuracy: 0.6, refs: [4], note: `Control/monitoring "helps ... but far from sufficient"; may be partly deployed yet routinely overridden by competitive pressure.` },
+      coordination: { accuracy: 0.7, refs: [5], note: `Deeply skeptical a binding international regime is achieved or enforceable; the rest of the world is "unlikely" to halt the US–China race.` },
+    },
+  },
+
+  {
     id: 'bengio',
     name: 'Yoshua Bengio',
     category: 'person',
