@@ -143,7 +143,7 @@ export function App() {
     const NOTES: Record<string, string> = {
       cached: 'The hand-reasoned surface itself — the reference every model is measured against.',
       fittedPairwise: 'Best fit with two-way interactions. Its residual is genuinely higher-than-pairwise (3-way+) structure.',
-      archetype: 'Four logical buckets (benign / aligned / control / doom), each predicting its mean value. Zero hand-tuning — yet it beats the fitted additive model, which means the surface is gated, not additive.',
+      archetype: 'Four logical buckets (benign / aligned / control / doom), each predicting its mean value. Zero hand-tuning — it still edges out the fitted additive model (the surface is gated, not additive), though its lead shrank once deception became a 5th gate it ignores.',
       fitted: 'Best possible interaction-free fit. Its residual is the irreducible non-linearity — what no sum-of-factors can capture.',
     };
     return evaluators

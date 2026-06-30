@@ -45,11 +45,11 @@ describe('dataset integrity (cached cells)', () => {
     }
   });
 
-  it('every scenario is hand-reasoned across the full 864-cell space', () => {
-    // 144 anchor cells × {fast, medium, slow} × {none, regime} = 864 authored cells.
-    expect(dataset.cachedOutcomes.length).toBe(864);
+  it('every scenario is hand-reasoned across the full 1,728-cell space', () => {
+    // 144 anchor cells × {fast,medium,slow} × {none,regime} × {faithful,deceptive} = 1,728.
+    expect(dataset.cachedOutcomes.length).toBe(1728);
     const scenarios = enumerateScenarios(dataset.factors);
-    expect(scenarios).toHaveLength(864);
+    expect(scenarios).toHaveLength(1728);
     expect(scenarios.every((s) => isReasoned(s, dataset))).toBe(true);
   });
 
@@ -59,7 +59,7 @@ describe('dataset integrity (cached cells)', () => {
     const corner = {
       orthogonality: 'holds', tractability: 'hard', offenseDefense: 'balanced',
       powerConcentration: 'concentrated', alignmentInTime: 'yes', controlDeployed: 'yes',
-      coordination: 'none',
+      coordination: 'none', deception: 'faithful',
     } as const;
     const surv = (takeoff: string) =>
       cachedEvaluator.evaluate({ ...corner, takeoff }, dataset)!.value.survival;
@@ -69,13 +69,13 @@ describe('dataset integrity (cached cells)', () => {
 });
 
 describe('scenario enumeration', () => {
-  it('produces the full cross-product (2·3·3·3·2·2·2·2 = 864)', () => {
-    expect(enumerateScenarios(dataset.factors)).toHaveLength(864);
+  it('produces the full cross-product (2·3·3·3·2·2·2·2·2 = 1,728)', () => {
+    expect(enumerateScenarios(dataset.factors)).toHaveLength(1728);
   });
 
   it('collapses a pinned factor', () => {
     const pinned = enumerateScenarios(dataset.factors, { tractability: 'hard' });
-    expect(pinned).toHaveLength(288); // 864 / 3
+    expect(pinned).toHaveLength(576); // 1728 / 3
     expect(pinned.every((s) => s.tractability === 'hard')).toBe(true);
   });
 
@@ -171,6 +171,7 @@ describe('evaluators', () => {
       controlDeployed: 'yes',
       takeoff: 'medium', // medium is the hand-reasoned anchor — value verbatim
       coordination: 'none', // none is the anchor — value verbatim (regime adds a delta)
+      deception: 'faithful', // faithful is the anchor — verbatim (deceptive guts control/aligned corners)
     };
     const outcome = cachedEvaluator.evaluate(scenario, dataset)!;
     expect(outcome.value.survival).toBe(-0.9);

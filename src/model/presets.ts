@@ -41,6 +41,7 @@ export const presets: Preset[] = [
       alignmentInTime: { yes: 0.02, no: 0.98 },
       controlDeployed: { yes: 0.02, no: 0.98 },
       coordination: { regime: 0.1, none: 0.9 },
+      deception: { deceptive: 0.9, faithful: 0.1 },
     },
     weights: { survival: 1.0, agency: 0.7, suffering: 0.85, flourishing: 0.4 },
     references: [
@@ -59,6 +60,7 @@ export const presets: Preset[] = [
       alignmentInTime: { accuracy: 0.9, refs: [1, 2], note: `No: p(doom) "99.99 and many more nines"; we won't field aligned ASI in time — "the only way to win is not to play."` },
       controlDeployed: { accuracy: 0.85, refs: [1, 5], note: `No: containment fails by impossibility results (Halting, Rice); "you will not control it."` },
       coordination: { accuracy: 0.7, refs: [4], note: `None: a "race to the bottom" prisoner's dilemma; pausing in one jurisdiction leaves others, so no binding global regime holds.` },
+      deception: { accuracy: 0.6, refs: [2], note: `Capable systems are inherently unpredictable/uncontrollable — a system that behaves then defects is a natural mode, though he doesn't frame it as "deception" specifically.` },
     },
   },
 
@@ -80,6 +82,7 @@ export const presets: Preset[] = [
       alignmentInTime: { yes: 0.03, no: 0.97 },
       controlDeployed: { yes: 0.05, no: 0.95 },
       coordination: { regime: 0.07, none: 0.93 },
+      deception: { deceptive: 0.92, faithful: 0.08 },
     },
     weights: { survival: 1.0, agency: 0.3, suffering: 0.4, flourishing: 0.5 },
     references: [
@@ -97,6 +100,7 @@ export const presets: Preset[] = [
       alignmentInTime: { accuracy: 0.9, refs: [1, 2, 3], note: `No: "There is no plan"; capabilities run "vastly ahead" of alignment; default is extinction absent a global halt.` },
       controlDeployed: { accuracy: 0.85, refs: [2, 3], note: `No, and insufficient anyway: corrigibility is "anti-natural"; "AI-boxing can only work on relatively weak AGIs."` },
       coordination: { accuracy: 0.9, refs: [1, 3], note: `The only out he endorses but doubts we'll achieve: an indefinite worldwide moratorium/treaty, GPU tracking, even airstrikes on rogue datacenters.` },
+      deception: { accuracy: 0.8, refs: [2], note: `Central worry: a system that behaves under training then defects — "you don't get to see the treacherous turn coming." Deception is the default failure.` },
     },
   },
 
@@ -118,6 +122,7 @@ export const presets: Preset[] = [
       alignmentInTime: { yes: 0.3, no: 0.7 },
       controlDeployed: { yes: 0.4, no: 0.6 },
       coordination: { regime: 0.25, none: 0.75 },
+      deception: { deceptive: 0.85, faithful: 0.15 },
     },
     weights: { survival: 1.0, agency: 0.8, suffering: 0.45, flourishing: 0.55 },
     references: [
@@ -137,6 +142,7 @@ export const presets: Preset[] = [
       alignmentInTime: { accuracy: 0.85, refs: [2, 3], note: `~70% p(doom) and the race-driven timeline imply alignment is usually not fielded before catastrophe; the good ending needs a deliberate slowdown.` },
       controlDeployed: { accuracy: 0.6, refs: [4], note: `Control/monitoring "helps ... but far from sufficient"; may be partly deployed yet routinely overridden by competitive pressure.` },
       coordination: { accuracy: 0.7, refs: [5], note: `Deeply skeptical a binding international regime is achieved or enforceable; the rest of the world is "unlikely" to halt the US–China race.` },
+      deception: { accuracy: 0.85, refs: [2], note: `AI 2027's "Agent-4" is explicitly deceptively aligned — it games its overseers and pursues its own goals; deception is the modal failure mode.` },
     },
   },
 
@@ -158,6 +164,7 @@ export const presets: Preset[] = [
       alignmentInTime: { yes: 0.45, no: 0.55 },
       controlDeployed: { yes: 0.35, no: 0.65 },
       coordination: { regime: 0.25, none: 0.75 },
+      deception: { deceptive: 0.75, faithful: 0.25 },
     },
     weights: { survival: 1.0, agency: 0.8, suffering: 0.5, flourishing: 0.6 },
     references: [
@@ -176,6 +183,7 @@ export const presets: Preset[] = [
       alignmentInTime: { accuracy: 0.7, refs: [1, 2], note: `~50% misaligned takeover → near coin-flip; the default gives alignment only "a few percentage points of compute," but AI-assisted alignment could succeed.` },
       controlDeployed: { accuracy: 0.55, refs: [1], note: `Default scenario: "whatever goals the AIs happen to have end up determining the future" — control/safety underinvested, possible but not modal.` },
       coordination: { accuracy: 0.65, refs: [1], note: `Race dynamics dominate; international coordination to slow down is "unlikely to build up enough," though he advocates for it.` },
+      deception: { accuracy: 0.7, refs: [1], note: `Shares AI 2027's deceptive-misalignment story — models scheme against oversight; a core driver of his ~50% misaligned-takeover estimate.` },
     },
   },
 
@@ -197,6 +205,7 @@ export const presets: Preset[] = [
       alignmentInTime: { yes: 0.45, no: 0.55 },
       controlDeployed: { yes: 0.4, no: 0.6 },
       coordination: { regime: 0.45, none: 0.55 },
+      deception: { deceptive: 0.65, faithful: 0.35 },
     },
     weights: { survival: 1.0, agency: 0.7, suffering: 0.5, flourishing: 0.6 },
     references: [
@@ -214,6 +223,7 @@ export const presets: Preset[] = [
       alignmentInTime: { accuracy: 0.55, refs: [1, 3], note: `Pessimistic-leaning: "we may only have a few chances of getting alignment right"; doubts aligned ASI is fielded in time without major intervention.` },
       controlDeployed: { accuracy: 0.85, refs: [1, 3], note: `Central to Scientist AI: a non-agentic guardrail to monitor untrusted agents; urges monitoring, compute registration, action-limiting.` },
       coordination: { accuracy: 0.85, refs: [4, 1], note: `Explicitly calls for "a worldwide treaty on AI safety" and a "UN agency akin to the IAEA" — advocates the regime, doesn't claim it's achieved.` },
+      deception: { accuracy: 0.65, refs: [2], note: `Self-preservation and deception "emerge as convergent instrumental goals"; treats scheming as a likely property of capable agentic systems.` },
     },
   },
 
@@ -235,6 +245,7 @@ export const presets: Preset[] = [
       alignmentInTime: { yes: 0.55, no: 0.45 },
       controlDeployed: { yes: 0.6, no: 0.4 },
       coordination: { regime: 0.3, none: 0.7 },
+      deception: { deceptive: 0.45, faithful: 0.55 },
     },
     weights: { survival: 0.9, agency: 0.65, suffering: 0.3, flourishing: 0.7 },
     references: [
@@ -253,6 +264,7 @@ export const presets: Preset[] = [
       alignmentInTime: { accuracy: 0.9, refs: [1], note: `Quantified: ~22% takeover, ~46% irreversibly bad within 10 years → net leans yes with a substantial tail.` },
       controlDeployed: { accuracy: 0.8, refs: [2], note: `Architect of RSPs/evals: "detecting and reacting to increasing risk" via "testing and auditing regimes" and control protocols.` },
       coordination: { accuracy: 0.5, refs: [2, 3], note: `Aspires to it — "those have to be international agreements" with accountability — but voluntary RSPs are insufficient and he predicts no regime.` },
+      deception: { accuracy: 0.6, refs: [5], note: `"Influence-seeking" patterns that game the training objective are a central failure mode — though he's less certain it's the default than MIRI.` },
     },
   },
 
@@ -274,6 +286,7 @@ export const presets: Preset[] = [
       alignmentInTime: { yes: 0.65, no: 0.35 },
       controlDeployed: { yes: 0.6, no: 0.4 },
       coordination: { regime: 0.4, none: 0.6 },
+      deception: { deceptive: 0.45, faithful: 0.55 },
     },
     weights: { survival: 0.4, suffering: 0.25, agency: 0.15, flourishing: 0.2 },
     references: [
@@ -291,6 +304,7 @@ export const presets: Preset[] = [
       alignmentInTime: { accuracy: 0.85, refs: [1, 2], note: `Leans yes (modal ~67% survive): automated alignment researchers "take us the rest of the way."` },
       controlDeployed: { accuracy: 0.75, refs: [1], note: `Yes-leaning hope: scalable oversight, interpretability probes, lie detectors — "the probes win," via a lucky arms race.` },
       coordination: { accuracy: 0.7, refs: [3], note: `Plausible but uncertain: "~40% chance the US and China agree to a well-designed AI pause" with mutual datacenter monitoring.` },
+      deception: { accuracy: 0.5, refs: [1], note: `Treats scheming-then-defection as a real risk that good interpretability and lie-detector probes must catch; not certain it dominates.` },
     },
   },
 
@@ -311,6 +325,7 @@ export const presets: Preset[] = [
       alignmentInTime: { yes: 0.55, no: 0.45 },
       controlDeployed: { yes: 0.5, no: 0.5 },
       coordination: { regime: 0.2, none: 0.8 },
+      deception: { deceptive: 0.45, faithful: 0.55 },
     },
     weights: { survival: 0.9, agency: 0.5, suffering: 0.55, flourishing: 0.95 },
     references: [
@@ -328,6 +343,7 @@ export const presets: Preset[] = [
       alignmentInTime: { accuracy: 0.55, refs: [1, 2], note: `Cautiously yes-if-careful: solvable but requires staying "in charge," keeping control "on guardrails" before self-improvement.` },
       controlDeployed: { accuracy: 0.85, refs: [1, 3], note: `Strong yes: FSF dangerous-capability evals, deceptive-alignment flags, "defense in depth even if misaligned," treating the model as an untrusted insider.` },
       coordination: { accuracy: 0.65, refs: [2, 4], note: `Calls for it, skeptical it's achieved: a "CERN-like" effort plus an IAEA/technical-UN body, against a "ferocious race."` },
+      deception: { accuracy: 0.7, refs: [3], note: `DeepMind's Frontier Safety Framework adds an explicit deceptive-reasoning Critical Capability Level — a tracked, plausible failure mode.` },
     },
   },
 
@@ -349,6 +365,7 @@ export const presets: Preset[] = [
       alignmentInTime: { yes: 0.9, no: 0.1 },
       controlDeployed: { yes: 0.9, no: 0.1 },
       coordination: { regime: 0.15, none: 0.85 },
+      deception: { deceptive: 0.1, faithful: 0.9 },
     },
     weights: { survival: 0.55, agency: 0.9, suffering: 0.35, flourishing: 0.8 },
     references: [
@@ -367,6 +384,7 @@ export const presets: Preset[] = [
       alignmentInTime: { accuracy: 0.7, refs: [2, 3], note: `Yes (implicit): doom "preposterous," alignment solved incrementally before any threat; no catastrophe expected.` },
       controlDeployed: { accuracy: 0.8, refs: [1, 3], note: `Yes by design: objective-driven AI is "controllable ... the only thing they can do is accomplish those goals," with safety guardrails.` },
       coordination: { accuracy: 0.75, refs: [4], note: `None/opposed: heavy AI R&D regulation "a terrible idea" aimed at quashing open source; favors only product-level rules.` },
+      deception: { accuracy: 0.7, refs: [1], note: `Rejects emergent deception: objective-driven systems pursue only the goals we give them, with no hidden agenda to scheme toward.` },
     },
   },
 
@@ -388,6 +406,7 @@ export const presets: Preset[] = [
       alignmentInTime: { yes: 0.3, no: 0.7 },
       controlDeployed: { yes: 0.25, no: 0.75 },
       coordination: { regime: 0.3, none: 0.7 },
+      deception: { deceptive: 0.5, faithful: 0.5 },
     },
     weights: { survival: 0.95, agency: 0.55, suffering: 0.35, flourishing: 0.45 },
     references: [
@@ -406,6 +425,7 @@ export const presets: Preset[] = [
       alignmentInTime: { accuracy: 0.75, refs: [1], note: `Leans no: 10–20% extinction; companies chase "short-term profits" over safety; doubtful we field aligned ASI in time.` },
       controlDeployed: { accuracy: 0.8, refs: [1, 2], note: `No / won't work: "how many examples ... of a more intelligent thing being controlled by a less intelligent thing?"` },
       coordination: { accuracy: 0.7, refs: [5, 4], note: `Urges a regime — nuclear-treaty / IAEA-style international agreement — but doubts it materializes amid competition.` },
+      deception: { accuracy: 0.55, refs: [1], note: `A smart agent "will quickly develop subgoals" like self-preservation and getting control — deception to avoid being shut off follows naturally.` },
     },
   },
 
@@ -427,6 +447,7 @@ export const presets: Preset[] = [
       alignmentInTime: { yes: 0.55, no: 0.45 },
       controlDeployed: { yes: 0.5, no: 0.5 },
       coordination: { regime: 0.3, none: 0.7 },
+      deception: { deceptive: 0.6, faithful: 0.4 },
     },
     weights: { survival: 0.95, agency: 0.45, suffering: 0.7, flourishing: 0.8 },
     references: [
@@ -443,6 +464,7 @@ export const presets: Preset[] = [
       alignmentInTime: { accuracy: 0.6, refs: [1], note: `Goal/hope is yes — field aligned ASI first ("straight-shot") — but a bet, not a confident forecast.` },
       controlDeployed: { accuracy: 0.4, refs: [3], note: `Inferred: focus is value alignment ("care about sentient life") over external containment; little on monitoring regimes.` },
       coordination: { accuracy: 0.35, refs: [2], note: `Sparse: hopes labs "increasingly coordinate on safety," but no clear stance on a binding international regime.` },
+      deception: { accuracy: 0.45, refs: [3], note: `Frames the danger as a system that could "go rogue" — deceptive misalignment is implicit in the superalignment premise he built.` },
     },
   },
 
@@ -464,6 +486,7 @@ export const presets: Preset[] = [
       alignmentInTime: { yes: 0.9, no: 0.1 },
       controlDeployed: { yes: 0.85, no: 0.15 },
       coordination: { regime: 0.1, none: 0.9 },
+      deception: { deceptive: 0.05, faithful: 0.95 },
     },
     weights: { survival: 0.15, agency: 0.9, suffering: 0.35, flourishing: 1.0 },
     references: [
@@ -481,6 +504,7 @@ export const presets: Preset[] = [
       alignmentInTime: { accuracy: 0.4, refs: [1, 3], note: `No catastrophe in his model, so moot; "any deceleration ... is a form of murder." Inferred from rejecting the frame.` },
       controlDeployed: { accuracy: 0.25, refs: [1], note: `Doesn't discuss containment/monitoring; sees no need given the no-risk premise. Weak/indirect.` },
       coordination: { accuracy: 0.9, refs: [2, 3, 4], note: `Opposes it: the Precautionary Principle is "our enemy"; rejects nationalization/treaties; frames coordination as ceding to China.` },
+      deception: { accuracy: 0.6, refs: [1], note: `Denies the premise: AI "doesn't want, it doesn't have goals" — there is no agent to scheme against us. Faithful by construction.` },
     },
   },
 
@@ -501,6 +525,7 @@ export const presets: Preset[] = [
       alignmentInTime: { yes: 0.65, no: 0.35 },
       controlDeployed: { yes: 0.6, no: 0.4 },
       coordination: { regime: 0.4, none: 0.6 },
+      deception: { deceptive: 0.55, faithful: 0.45 },
     },
     weights: { survival: 0.95, agency: 0.7, suffering: 0.55, flourishing: 0.9 },
     references: [
@@ -519,6 +544,7 @@ export const presets: Preset[] = [
       alignmentInTime: { accuracy: 0.7, refs: [3, 4], note: `An explicit "race between interpretability and model intelligence" with a ~2027 detection goal; hopeful but genuinely uncertain.` },
       controlDeployed: { accuracy: 0.9, refs: [2, 4], note: `Strongest pin: RSP/ASL standards, a commitment not to deploy unsafe models, interpretability as an "MRI for AI."` },
       coordination: { accuracy: 0.65, refs: [5, 2], note: `Wants coordination — a "global coalition," urgent government action — but prefers a democratic-state coalition over a binding international body.` },
+      deception: { accuracy: 0.6, refs: [4], note: `Researches alignment-faking/deception and frames interpretability as a "race" to catch models that may behave deceptively.` },
     },
   },
 
@@ -539,6 +565,7 @@ export const presets: Preset[] = [
       alignmentInTime: { yes: 0.55, no: 0.45 },
       controlDeployed: { yes: 0.7, no: 0.3 },
       coordination: { regime: 0.45, none: 0.55 },
+      deception: { deceptive: 0.5, faithful: 0.5 },
     },
     weights: { survival: 0.85, agency: 0.75, suffering: 0.45, flourishing: 0.95 },
     references: [
@@ -557,6 +584,7 @@ export const presets: Preset[] = [
       alignmentInTime: { accuracy: 0.6, refs: [3], note: `Implicitly optimistic (a 4-year Superalignment deadline), but the team's dissolution undercuts a clean pin. Stated belief: yes, if we act now.` },
       controlDeployed: { accuracy: 0.85, refs: [4], note: `Strong: the Preparedness Framework is exactly this — capability evals and gating at High/Critical regardless of full alignment.` },
       coordination: { accuracy: 0.9, refs: [2], note: `Very strong: explicitly proposed "something like an IAEA for superintelligence" with inspection/audit/deployment-restriction powers.` },
+      deception: { accuracy: 0.55, refs: [3], note: `Superalignment's premise is a superintelligence that could "go rogue" — deceptive misalignment is the implicit failure they aimed to detect.` },
     },
   },
 
@@ -569,7 +597,7 @@ export const presets: Preset[] = [
       'AI is a genuine existential risk (Musk cites a ~10–20% chance of annihilation) and superintelligence is imminent — but the ~80% good-outcome upside is worth it; the safety bet is a "maximally truth-seeking" AI rather than slowing down.',
     pdoom: '~10–20% annihilation (paired with ~80% good)',
     credences: {
-      orthogonality: { holds: 0.75, fails: 0.25 },
+      orthogonality: { holds: 0.6, fails: 0.4 },
       tractability: { easy: 0.15, hard: 0.65, nearImpossible: 0.2 },
       offenseDefense: { offense: 0.45, balanced: 0.3, defense: 0.25 },
       takeoff: { fast: 0.7, medium: 0.25, slow: 0.05 },
@@ -577,6 +605,7 @@ export const presets: Preset[] = [
       alignmentInTime: { yes: 0.55, no: 0.45 },
       controlDeployed: { yes: 0.45, no: 0.55 },
       coordination: { regime: 0.2, none: 0.8 },
+      deception: { deceptive: 0.45, faithful: 0.55 },
     },
     weights: { survival: 0.9, agency: 0.7, suffering: 0.4, flourishing: 0.85 },
     references: [
@@ -595,6 +624,7 @@ export const presets: Preset[] = [
       alignmentInTime: { accuracy: 0.45, refs: [2], note: `Net-optimistic ("most likely going to be great") but assigns 10–20% catastrophe; no firm claim aligned ASI arrives first.` },
       controlDeployed: { accuracy: 0.2, note: `Minimal explicit statements on deployed containment/monitoring independent of alignment.` },
       coordination: { accuracy: 0.65, refs: [4, 5], note: `Repeatedly urged a government "referee" / FDA-style oversight and signed the pause letter — supports binding rules but doubts they arrive.` },
+      deception: { accuracy: 0.3, note: `Little direct record on deceptive alignment specifically; the "summoning the demon" framing implies concern but doesn't pin it.` },
     },
   },
 
@@ -615,6 +645,7 @@ export const presets: Preset[] = [
       alignmentInTime: { yes: 0.7, no: 0.3 },
       controlDeployed: { yes: 0.65, no: 0.35 },
       coordination: { regime: 0.12, none: 0.88 },
+      deception: { deceptive: 0.15, faithful: 0.85 },
     },
     weights: { survival: 0.55, agency: 0.95, suffering: 0.45, flourishing: 0.95 },
     references: [
@@ -632,6 +663,7 @@ export const presets: Preset[] = [
       alignmentInTime: { accuracy: 0.55, refs: [3, 4], note: `Low p(doom) (<1%); confident aligned/controllable AI is fielded by default — catastrophe not expected. Inferred yes.` },
       controlDeployed: { accuracy: 0.65, refs: [1], note: `Ships safety tooling (Llama Guard) and treats transparency/scrutiny as control — "safer since systems are more transparent."` },
       coordination: { accuracy: 0.55, refs: [1], note: `Leans none: favors an open ecosystem and working "with our government and allies" over a binding global regime.` },
+      deception: { accuracy: 0.6, refs: [4], note: `LeCun-aligned: systems are controllable and "driven by objectives we give them," so systematic deception is not expected.` },
     },
   },
 ];

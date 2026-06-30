@@ -61,15 +61,15 @@ divergence from the hand-reasoned surface is the research signal.
 ## 3. The model ladder — what we learned
 
 Fit each model to the same hand-reasoned cells and measure the **RMS divergence**
-from cached over all 864 scenarios, in value-vector space (each dimension is in
+from cached over all 1,728 scenarios, in value-vector space (each dimension is in
 `[-1, 1]`, so the RMS is in value-units and weight-independent):
 
 | Model | Free params | RMS to cached | What its residual *is* |
 |---|---:|---:|---|
-| `linear` (hand-set)¹ | 20 | **0.528** | bad coefficients **+** non-linearity (conflated) |
-| `fitted` (additive) | 20 | **0.330** | **irreducible non-linearity** — what no sum-of-factors can express |
-| `archetype` (4 gates) | 16 | **0.209** | structure beyond a 4-way logical split |
-| `fitted + pairwise` | 177 | **0.148** | genuinely **higher-than-pairwise** (3-way+) entanglement |
+| `linear` (hand-set)¹ | 22 | **0.533** | bad coefficients **+** non-linearity (conflated) |
+| `fitted` (additive) | 22 | **0.308** | **irreducible non-linearity** — what no sum-of-factors can express |
+| `archetype` (4 gates) | 16 | **0.300** | structure beyond a 4-way split — now incl. the *deception* gate it ignores |
+| `fitted + pairwise` | 217 | **0.141** | genuinely **higher-than-pairwise** (3-way+) entanglement |
 | `cached` | — | 0 | (the reference) |
 
 ¹ `linear` is the analytical baseline only; it's not selectable in the UI ladder (it
@@ -78,23 +78,27 @@ was too crude to be worth picking) — the picker shows `fitted`, `archetype`, a
 
 Three things fall out of this ladder:
 
-1. **About a third of the hand-set model's error was just bad coefficients.**
-   `linear → fitted` drops the RMS from 0.528 to 0.330 with no change in form. So
+1. **About 40% of the hand-set model's error was just bad coefficients.**
+   `linear → fitted` drops the RMS from 0.533 to 0.308 with no change in form. So
    when you look at the cached-vs-linear scatter, much of the spread is *not*
    evidence of non-linearity — it's the hand-picked numbers being suboptimal. The
    fitted model is the honest foil.
 
 2. **The space is substantially non-linear, and most of that is pairwise.** The
-   best possible additive model still sits 0.330 from cached; adding two-way terms
-   more than halves that (to 0.149). Survival, agency and the rest really do depend
+   best possible additive model still sits 0.308 from cached; adding two-way terms
+   more than halves that (to 0.141). Survival, agency and the rest really do depend
    on *combinations* of factors, not a sum of independent pulls.
 
-3. **The space is fundamentally *gated*, not additive — the most useful single
-   finding.** Four logical buckets (0.209) beat the best 20-parameter additive
-   model (0.330) outright, and get most of the way to the 177-parameter pairwise
-   fit (0.148) — with sixteen numbers and no tuning. That is strong evidence that
-   the AI-safety value surface is organised by **logical gates**, not by additive
-   contributions: *which régime you are in* dominates *how much each factor adds*.
+3. **The space is *gated*, not additive — and the gating must include deception.**
+   Four logical buckets (0.300) still edge out the best 22-parameter additive model
+   (0.308), confirming the surface is organised by *which régime you're in*. But that
+   margin used to be decisive (0.209 vs 0.330) and collapsed when the **deception**
+   factor landed — because the `archetype` model classifies on orthogonality/alignment/
+   control but **not** deception, so deception's large swing (it guts a CONTROL world,
+   falsifies an ALIGNED one) now shows up as *within-archetype* residual. The honest
+   reading: the gating is real but there are now **eight** régimes (the four × faithful/
+   deceptive), and a 4-bucket model leaves the deception gate on the table. Extending
+   `archetype` to split on deception would restore its lead — a clean next step.
 
 ### The four gates
 
@@ -116,9 +120,9 @@ confirming the narrative's own logic.
 
 - The `fitted` evaluator is the right **null model**: divergence from *it* (not from
   hand-`linear`) is real non-linearity worth investigating.
-- The `archetype` residual (0.208) localises *within-régime* variation — once you
-  know the gate, what's left is the secondary modulation (offense/defense balance,
-  power concentration, takeoff) the means average over. Those are the cells most
+- The `archetype` residual (0.300) localises *within-régime* variation — once you
+  know the gate, what's left is the secondary modulation (deception, offense/defense
+  balance, power concentration, takeoff) the means average over. Those are the cells most
   worth re-reasoning carefully.
 - The next evaluator worth building is a **gated-additive hybrid**: classify by the
   four gates, then fit a small additive model *within* each gate. It should land

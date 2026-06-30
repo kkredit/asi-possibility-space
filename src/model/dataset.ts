@@ -144,6 +144,18 @@ const factors: Factor[] = [
       { id: 'none', label: 'None', blurb: 'uncoordinated; each actor races' },
     ],
   },
+  {
+    id: 'deception',
+    label: 'Deceptive alignment',
+    kind: 'objective',
+    question: 'Do capable systems systematically deceive oversight until decisively advantaged?',
+    description:
+      'Whether the default of training capable systems is deceptive alignment / a "sharp left turn" — behaving well under evaluation, then defecting once decisively capable — versus systems being faithful, so what you test is what you get. A structural fact about how learning scales. Load-bearing because it decides whether deployed CONTROL can actually be trusted: if deception is the default, control evaluations are fooled and a "controlled-but-misaligned" world collapses toward catastrophe; alignment we think we verified may be false.',
+    states: [
+      { id: 'deceptive', label: 'Deceptive', blurb: 'behaves under eval, defects when decisively capable' },
+      { id: 'faithful', label: 'Faithful', blurb: 'no systematic deception; tests are trustworthy' },
+    ],
+  },
 ];
 
 // Presumed starting odds (credences). Each factor's states sum to 1.
@@ -156,6 +168,7 @@ const baselineCredences: Credences = {
   alignmentInTime: { yes: 0.35, no: 0.65 },
   controlDeployed: { yes: 0.45, no: 0.55 },
   coordination: { regime: 0.3, none: 0.7 },
+  deception: { deceptive: 0.5, faithful: 0.5 },
 };
 
 // Presumed default weights — survival & suffering weighted highest.
@@ -210,6 +223,13 @@ const linearContributions: LinearContributions = {
   coordination: {
     regime: { survival: 0.06, agency: -0.07, suffering: 0.05, flourishing: 0.02 },
     none: {},
+  },
+  // Deception's DIRECT (linear) pull is modestly bad on average; its real bite is
+  // corner-dependent (it guts a CONTROL world and falsifies a verified-ALIGNED one),
+  // captured in the cached cells by expandDeception below.
+  deception: {
+    deceptive: { survival: -0.1, agency: -0.06, suffering: -0.06, flourishing: -0.08 },
+    faithful: {},
   },
 };
 
@@ -661,8 +681,44 @@ function expandCoordination(base: CachedCell): CachedCell[] {
   ];
 }
 
-// The full 864-cell space: every base cell × {fast, medium, slow} × {none, regime}.
-const cachedOutcomes: CachedCell[] = baseCells.flatMap(expandTakeoff).flatMap(expandCoordination);
+// Deception's effect is the whole point of the factor and is CORNER-DEPENDENT: it
+// guts a CONTROL world (the leash was on a system that fools its evaluations) and
+// falsifies a verified-ALIGNED world (we only thought we'd aligned it); it barely
+// moves an already-DOOMED world and is moot under a BENIGN attractor.
+const deceptionDelta: Record<Corner, ValueTuple> = {
+  doom: [-0.03, 0.0, -0.03, -0.02],
+  control: [-1.1, -0.7, -0.55, -1.1],
+  aligned: [-0.9, -0.55, -0.45, -0.9],
+  benign: [0.0, 0.0, 0.02, 0.0],
+};
+const deceptionClause: Record<Corner, string> = {
+  doom: 'Deceptive alignment barely changes an already-lost world.',
+  control: 'And because the system was deceptively aligned, the control regime was watching a mask — the leash slips exactly when it matters, and the contained system escapes.',
+  aligned: 'But the alignment was only ever verified against a system that behaves under evaluation — deceptive alignment means we never really had it; it defects once decisively capable.',
+  benign: 'Deception is moot: orthogonality fails, so the capable systems are benign rather than scheming.',
+};
+
+/** Expand one cell into its deception = {faithful, deceptive} variants. */
+function expandDeception(base: CachedCell): CachedCell[] {
+  const corner = classifyCorner(base.scenario);
+  const { survival, agency, suffering, flourishing } = base.outcome.value;
+  const tuple: ValueTuple = [survival, agency, suffering, flourishing];
+  const conf = base.outcome.confidence ?? 0.4;
+  const make = (deception: string, [s, a, su, f]: ValueTuple, narrative: string): CachedCell => ({
+    scenario: { ...base.scenario, deception },
+    outcome: { narrative, value: { survival: s, agency: a, suffering: su, flourishing: f }, confidence: conf },
+  });
+  return [
+    make('faithful', tuple, base.outcome.narrative),
+    make('deceptive', shiftTuple(tuple, deceptionDelta[corner]), `${base.outcome.narrative} ${deceptionClause[corner]}`),
+  ];
+}
+
+// The full 1,728-cell space: base × {fast,medium,slow} × {none,regime} × {faithful,deceptive}.
+const cachedOutcomes: CachedCell[] = baseCells
+  .flatMap(expandTakeoff)
+  .flatMap(expandCoordination)
+  .flatMap(expandDeception);
 
 // ============================================================================
 //  COUPLINGS — dependencies that correct the independence assumption (§9.4).
@@ -756,6 +812,23 @@ const couplings: Coupling[] = [
     when: [{ factor: 'coordination', state: 'none' }, { factor: 'alignmentInTime', state: 'yes' }],
     multiplier: 0.8,
   },
+
+  // --- Orthogonality ↔ deceptive alignment -------------------------------------
+  // If misalignment is the default (orthogonality holds), deceptive alignment is the
+  // natural failure mode; if orthogonality fails (benign convergence), systematic
+  // scheming is much less likely.
+  {
+    id: 'orthogonalityHolds_deceptive',
+    description: 'Orthogonality holds ⇒ deceptive alignment is the likely failure mode.',
+    when: [{ factor: 'orthogonality', state: 'holds' }, { factor: 'deception', state: 'deceptive' }],
+    multiplier: 1.25,
+  },
+  {
+    id: 'orthogonalityFails_faithful',
+    description: 'Orthogonality fails (benign convergence) ⇒ systematic deception is unlikely.',
+    when: [{ factor: 'orthogonality', state: 'fails' }, { factor: 'deception', state: 'deceptive' }],
+    multiplier: 0.5,
+  },
 ];
 
 // ============================================================================
@@ -796,13 +869,14 @@ function withCoordination(baseYes: Record<string, number>): Record<string, Recor
 
 const bayesNet: BayesNet = {
   description:
-    'First-pass DAG: objective facts, takeoff, and the coordination regime are roots (priors from your sliders); tractability depends on orthogonality; power concentration depends on takeoff; and the “solved in time” factors depend on takeoff, tractability, and whether a coordination regime is in place.',
+    'First-pass DAG: objective facts, takeoff, coordination, and deceptive alignment are roots (priors from your sliders); tractability depends on orthogonality; power concentration depends on takeoff; and the “solved in time” factors depend on takeoff, tractability, and whether a coordination regime is in place. Deception is the lever that decides whether a deployed control regime can actually be trusted.',
   nodes: [
     // --- roots: priors read live from credences (no CPT) -----------------------
     { factor: 'orthogonality', parents: [], note: 'Root: a structural fact; prior from your slider.' },
     { factor: 'offenseDefense', parents: [], note: 'Root: a structural fact; prior from your slider.' },
     { factor: 'takeoff', parents: [], note: 'Root: treated as exogenous; prior from your slider.' },
     { factor: 'coordination', parents: [], note: 'Root: our collective choice; prior from your slider. Buys time for alignment & control.' },
+    { factor: 'deception', parents: [], note: 'Root: a structural fact about how training scales; prior from your slider. Decides whether deployed control can be trusted.' },
 
     // --- tractability | orthogonality -----------------------------------------
     {

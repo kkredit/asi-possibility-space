@@ -12,7 +12,7 @@ modulates one).
 
 ---
 
-## 1. The current set (8 factors → 864 scenarios)
+## 1. The current set (9 factors → 1,728 scenarios)
 
 | # | Factor | Kind | States | Role |
 |---|--------|------|:---:|------|
@@ -24,14 +24,15 @@ modulates one).
 | 6 | Alignment solved in time | influenceable | 2 | gate: did we field aligned ASI |
 | 7 | Control deployed | influenceable | 2 | gate: is a misaligned system leashed |
 | 8 | Coordination regime | influenceable | 2 | upstream cause: buys time for 6 & 7 (added — §2/§4) |
+| 9 | Deceptive alignment | objective | 2 | gates whether CONTROL (7) can be trusted (added — §2/§4) |
 
-**The (improving) imbalance:** 4 objective, 1 contingent, now **3 influenceable**
-after adding coordination (#8). The tool's whole "where to act" thesis runs on
-influenceable factors, and they were the scarcest kind. The three factors that set
-the four logical gates (1, 6, 7 — see [`MODEL.md`](MODEL.md) §3) are well-chosen.
-*All else equal, a new influenceable or contingent factor is worth more than a new
-objective one*, because it adds somewhere to act or something to track rather than
-one more thing to forecast.
+**Kind mix:** 5 objective, 1 contingent, 3 influenceable. Adding deception (#9)
+made the control gate honest — it's what lets a control-pessimist's stated p(doom)
+be reproduced by the model (see [`MODEL.md`](MODEL.md) and the preset calibration).
+The factors setting the four logical gates (1, 6, 7) are well-chosen; deception now
+modulates gate 7. *All else equal, a new influenceable or contingent factor is worth
+more than a new objective one* — but deception earned its objective slot by changing
+the *meaning* of an existing gate rather than adding an independent pull.
 
 ---
 
@@ -44,7 +45,7 @@ and arguable.
 | Candidate | Kind | States | Verdict | One-line reason |
 |-----------|------|:---:|:---:|-----------------|
 | **Coordination regime achieved** | influenceable | 2 | ✅ **Added** | Now factor #8 — fills the influenceable gap; `computeGovernance` targets it; causes 6 & 7 via couplings + Bayes net |
-| **Deceptive alignment / sharp left turn** | objective | 2 | **High** | Decides whether "control" can work at all — currently assumed, not modelled |
+| **Deceptive alignment / sharp left turn** | objective | 2 | ✅ **Added** | Factor #9 — gates whether deployed control can be trusted; corner-dependent value (guts CONTROL, falsifies ALIGNED). Closed the control-pessimist p(doom) gap |
 | **Competitive race pressure** | contingent | 2–3 | **Med-High** | Fills the contingent gap; drives whether 6 & 7 land in time |
 | **Warning shot occurs** | contingent | 2 | **Medium** | A real driver of response, but acts *through* 6/7 — maybe a coupling, not a factor |
 | **Timeline to ASI** | objective | 3 | **Low-Med** | Largely collinear with takeoff speed |
@@ -54,15 +55,15 @@ and arguable.
 
 ### The three worth seriously considering
 
-**Deceptive alignment / sharp left turn** *(objective, 2: `behaves` / `defects-at-capability`)*.
-The model currently treats "control deployed = yes" as straightforwardly reducing
-risk. But the central reason control might *fail* is a system that behaves under
-evaluation and defects once decisively capable. Today that possibility is baked
-silently into the orthogonality/control cells. Making it explicit would let "control
-works" be conditional on "no sharp left turn," which is exactly the kind of **gate
-interaction** [`MODEL.md`](MODEL.md) shows the space is made of. Cost: ×2 → 864
-scenarios. The one objective factor I'd still add, because it changes the *meaning*
-of an existing gate rather than adding an independent pull.
+**Deceptive alignment / sharp left turn** *(objective, 2: `deceptive` / `faithful`)* — ✅ **shipped as factor #9.**
+The model used to treat "control deployed = yes" as straightforwardly reducing risk.
+But the central reason control might *fail* is a system that behaves under evaluation
+and defects once decisively capable. It's now explicit, with a **corner-dependent**
+value delta (`expandDeception`): the `deceptive` state guts a CONTROL world (the leash
+watched a mask) and falsifies a verified-ALIGNED one, while barely moving DOOM/BENIGN.
+This was the missing parameter behind the stated-vs-model p(doom) gap — a
+control-pessimist with high deception credence (e.g. Kokotajlo) now sees their doom
+mass rise toward their stated number. Cost: ×2 → 1,728 scenarios.
 
 **Coordination regime achieved** *(influenceable, 2: `regime` / `none`)* — ✅ **shipped as factor #8.**
 `computeGovernance` now targets it directly; its small direct value delta is mixed
@@ -108,9 +109,9 @@ in `dataset.ts`):
 
 | Action | Scenarios | Hand-authored cells to keep coverage |
 |--------|----------:|-------------------------------------:|
-| today (8 factors) | 864 | 864 |
-| + one binary factor | 1,728 | 1,728 |
-| + one 3-state factor | 2,592 | 2,592 |
+| today (9 factors) | 1,728 | 1,728 |
+| + one binary factor | 3,456 | 3,456 |
+| + one 3-state factor | 5,184 | 5,184 |
 
 The engine handles any size; the **authored content** is the bottleneck. Three
 disciplines keep this sane:
@@ -128,14 +129,15 @@ disciplines keep this sane:
 
 ## 4. Recommendation
 
-1. **Coordination regime** (influenceable, binary) — ✅ **done** (factor #8). Best
-   structural fit; gave the governance action a target and rebalanced the kinds.
-2. **Deceptive alignment** (objective, binary) — *next, if any.* Makes the control gate
-   honest. Binary → 1,728 scenarios; manageable via the anchor-plus-delta pattern.
+1. **Coordination regime** (influenceable, binary) — ✅ **done** (factor #8). Gave the
+   governance action a target and rebalanced the kinds.
+2. **Deceptive alignment** (objective, binary) — ✅ **done** (factor #9). Made the
+   control gate honest and closed the control-pessimist p(doom) gap.
 
 I would still **defer** competitive race pressure to a later step and model
-warning-shots / timeline as **couplings**, not factors.
+warning-shots / timeline as **couplings**, not factors. Space is now 1,728; further
+factors should clear a high bar (a new gate or gate-modulator, not another pull).
 
-Before adding more, the cheaper win is to **re-reason the high-residual cells**
-the `archetype` model flags ([`MODEL.md`](MODEL.md) §3) — improving the existing 864
+The cheaper win from here is to **re-reason the high-residual cells**
+the `archetype` model flags ([`MODEL.md`](MODEL.md) §3) — improving the existing 1,728
 sharpens every model on the ladder at zero space cost.
