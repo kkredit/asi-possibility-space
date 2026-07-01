@@ -42,34 +42,19 @@ const KIND_HINT: Record<FactorKind, string> = {
 const monoPct = { fontFamily: fonts.mono, fontSize: '0.72rem' };
 
 function FactorControl({ factor }: { factor: Factor }) {
-  const netMode = useBeliefs((s) => s.probabilityModel === 'bayesNet');
-  const credences = useBeliefs((s) => s.credences[factor.id]);
-  const bayesMarginals = useBeliefs((s) => s.bayesMarginals[factor.id]);
-  const touched = useBeliefs((s) => netMode && !!s.targets[factor.id]);
+  const dist = useBeliefs((s) => s.credences[factor.id]);
   const pin = useBeliefs((s) => s.pins[factor.id]);
   const setCredence = useBeliefs((s) => s.setCredence);
-  const setMarginalTarget = useBeliefs((s) => s.setMarginalTarget);
   const setPin = useBeliefs((s) => s.setPin);
-
-  // In Bayes-net mode a slider shows the reconciled marginal and edits it as soft
-  // evidence (re-raking the joint); in independence mode it edits the credence directly.
-  const dist = (netMode ? bayesMarginals : credences) ?? credences;
-  const onSlide = netMode ? setMarginalTarget : setCredence;
+  const onSlide = setCredence;
 
   return (
     <Box sx={{ mb: 1.75 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
         <Tooltip title={factor.description} arrow placement="top-start">
-          <Stack direction="row" spacing={0.75} alignItems="center">
-            <Typography sx={{ fontFamily: fonts.display, fontWeight: 500, fontSize: '0.84rem', color: c.bone }}>
-              {factor.label}
-            </Typography>
-            {netMode ? (
-              <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.6rem', color: touched ? c.teal : c.faint, letterSpacing: '0.04em' }}>
-                {touched ? 'HELD' : 'FLOAT'}
-              </Typography>
-            ) : null}
-          </Stack>
+          <Typography sx={{ fontFamily: fonts.display, fontWeight: 500, fontSize: '0.84rem', color: c.bone }}>
+            {factor.label}
+          </Typography>
         </Tooltip>
         <FormControl size="small" sx={{ minWidth: 88 }}>
           <Select
@@ -107,7 +92,7 @@ function FactorControl({ factor }: { factor: Factor }) {
             sx={{ flex: 1 }}
             disabled={!!pin}
           />
-          <Typography sx={{ ...monoPct, width: 34, textAlign: 'right', color: netMode && touched ? c.teal : c.bone }}>
+          <Typography sx={{ ...monoPct, width: 34, textAlign: 'right', color: c.bone }}>
             {Math.round((dist[st.id] ?? 0) * 100)}
           </Typography>
         </Stack>
@@ -220,10 +205,10 @@ export function Controls() {
           <InfoTip>
             {netMode ? (
               <>
-                Each slider is the chance of a state <b>at ASI onset</b>. Drag one and it’s held (
-                <Box component="span" sx={{ color: c.teal, fontFamily: fonts.mono }}>HELD</Box>) as soft evidence;
-                the <Box component="span" sx={{ fontFamily: fonts.mono }}>FLOAT</Box> factors re-rake to stay
-                consistent with the net. Reset releases everything.
+                Each slider is the chance of a state <b>at ASI onset</b>. In Bayes-net mode these
+                marginals are unchanged, but the joint respects the network's causal correlations
+                (e.g. alignment & control tend to fail together) — so the EV and doom-corner mass
+                shift versus assuming independence. View the network to see the structure.
               </>
             ) : (
               <>
@@ -235,7 +220,7 @@ export function Controls() {
           </InfoTip>
         </Stack>
         <Typography variant="caption" sx={{ color: c.mute, display: 'block', lineHeight: 1.4 }}>
-          {netMode ? 'chance of each state at ASI onset · drag to hold, others re-rake' : 'chance of each state at ASI onset'}
+          {netMode ? 'chance of each state at ASI onset · joint uses the net’s correlations' : 'chance of each state at ASI onset'}
         </Typography>
       </Box>
 

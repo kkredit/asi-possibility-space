@@ -71,8 +71,6 @@ export function App() {
   const pins = useBeliefs((s) => s.pins);
   const probabilityModel = useBeliefs((s) => s.probabilityModel);
   const bayesProbability = useBeliefs((s) => s.bayesProbability);
-  const targets = useBeliefs((s) => s.targets);
-  const bayesMarginals = useBeliefs((s) => s.bayesMarginals);
   const [tab, setTab] = useState(0);
 
   const evaluator = getEvaluator(evaluatorId);
@@ -106,21 +104,19 @@ export function App() {
   );
   const actions = useMemo(() => {
     if (!netMode || !dataset.bayesNet) return rankActions(dataset, credences, weights, evaluator, pins);
-    // Option A: an action asserts a higher target marginal on its factor, then the
-    // joint re-rakes, so the action's effect propagates through the net.
+    // Net mode: apply the action to the credence marginals, then re-rake the net's
+    // correlation structure to the shifted marginals so the effect propagates.
     const baselineEv = analysis.ev;
     const ranked = dataset.actions
       .map((action) => {
-        const shifted = applyAction(bayesMarginals, action);
-        const newTargets = { ...targets };
-        for (const d of action.deltas) newTargets[d.factor] = shifted[d.factor];
-        const r = reconcileJoint(dataset.bayesNet!, dataset.factors, dataset.baselineCredences, newTargets);
+        const shifted = applyAction(credences, action);
+        const r = reconcileJoint(dataset.bayesNet!, dataset.factors, shifted, shifted);
         const res = analyze(dataset, credences, weights, evaluator, pins, r.probability);
         return { action, ev: res.ev, evGain: res.ev - baselineEv, evVector: res.evVector };
       })
       .sort((a, b) => b.evGain - a.evGain);
     return { baselineEv, ranked };
-  }, [netMode, credences, weights, evaluator, pins, targets, bayesMarginals, analysis]);
+  }, [netMode, credences, weights, evaluator, pins, analysis]);
   // The scatter plots a comparison model (x) against the hand-reasoned surface (y).
   // Comparing cached-vs-cached is a useless diagonal, so when cached is selected we
   // fall back to the fitted additive model — the honest null model.
