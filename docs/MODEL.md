@@ -48,9 +48,10 @@ divergence from the hand-reasoned surface is the research signal.
   can represent any two-way interaction.
 
 **Gating family** — `V(s) = f(logical classification of s)`:
-- **`archetype` ("Logical gates")** — classify `s` into one of four archetypes by
-  hard logical gates, predict that archetype's mean value. Four buckets, sixteen
-  data-derived numbers, zero hand-tuning.
+- **`archetype` ("Logical gates")** — classify `s` into one of eight régimes by
+  hard logical gates (the four archetypes × deceptive/faithful), predict that
+  régime's mean value. Eight buckets, thirty-two data-derived numbers, zero
+  hand-tuning.
 
 **Reference:**
 - **`cached`** — the hand-reasoned surface itself, authored one scenario at a time.
@@ -68,7 +69,7 @@ from cached over all 1,728 scenarios, in value-vector space (each dimension is i
 |---|---:|---:|---|
 | `linear` (hand-set)¹ | 22 | **0.533** | bad coefficients **+** non-linearity (conflated) |
 | `fitted` (additive) | 22 | **0.308** | **irreducible non-linearity** — what no sum-of-factors can express |
-| `archetype` (4 gates) | 16 | **0.300** | structure beyond a 4-way split — now incl. the *deception* gate it ignores |
+| `archetype` (8 régimes) | 32 | **0.194** | structure beyond an 8-way logical split |
 | `fitted + pairwise` | 217 | **0.141** | genuinely **higher-than-pairwise** (3-way+) entanglement |
 | `cached` | — | 0 | (the reference) |
 
@@ -89,26 +90,29 @@ Three things fall out of this ladder:
    more than halves that (to 0.141). Survival, agency and the rest really do depend
    on *combinations* of factors, not a sum of independent pulls.
 
-3. **The space is *gated*, not additive — and the gating must include deception.**
-   Four logical buckets (0.300) still edge out the best 22-parameter additive model
-   (0.308), confirming the surface is organised by *which régime you're in*. But that
-   margin used to be decisive (0.209 vs 0.330) and collapsed when the **deception**
-   factor landed — because the `archetype` model classifies on orthogonality/alignment/
-   control but **not** deception, so deception's large swing (it guts a CONTROL world,
-   falsifies an ALIGNED one) now shows up as *within-archetype* residual. The honest
-   reading: the gating is real but there are now **eight** régimes (the four × faithful/
-   deceptive), and a 4-bucket model leaves the deception gate on the table. Extending
-   `archetype` to split on deception would restore its lead — a clean next step.
+3. **The space is fundamentally *gated*, not additive — across eight régimes.**
+   The `archetype` model (0.194, just 32 data-derived numbers) decisively beats the
+   best 22-parameter additive model (0.308) and gets most of the way to the
+   217-parameter pairwise fit (0.141). It works by classifying each scenario into one
+   of **eight logical régimes** — the four archetypes (benign / aligned / control /
+   doom) each split by whether **deception** holds — and predicting that régime's mean.
+   *Which régime you're in* dominates *how much each factor adds*. Deception earns its
+   place here: when it was first added but the archetype still used only four buckets,
+   its lead collapsed to a hair (0.300 vs 0.308), because deception's large swing (it
+   guts a CONTROL world, falsifies an ALIGNED one) landed as within-bucket residual;
+   splitting the buckets on deception (4 → 8) recovered it (0.300 → 0.194).
 
-### The four gates
+### The gates
 
-The `archetype` evaluator reads three factors and ignores the rest:
+The `archetype` evaluator reads four factors and ignores the rest — three set the
+archetype, and deception splits each archetype in two:
 
 ```
 BENIGN   orthogonality fails                        → capable systems are benign anyway
 ALIGNED  holds ∧ alignment-in-time = yes            → we fielded aligned ASI
 CONTROL  holds ∧ ¬aligned ∧ control deployed        → misaligned but leashed
 DOOM     holds ∧ ¬aligned ∧ ¬control                → uncontained misaligned ASI
+         × { deceptive | faithful }                 → does the leash / verification hold?
 ```
 
 This mirrors the structure the hand-reasoning already used (the
@@ -120,14 +124,14 @@ confirming the narrative's own logic.
 
 - The `fitted` evaluator is the right **null model**: divergence from *it* (not from
   hand-`linear`) is real non-linearity worth investigating.
-- The `archetype` residual (0.300) localises *within-régime* variation — once you
-  know the gate, what's left is the secondary modulation (deception, offense/defense
-  balance, power concentration, takeoff) the means average over. Those are the cells most
-  worth re-reasoning carefully.
+- The `archetype` residual (0.194) localises *within-régime* variation — once you
+  know the gate (including deception), what's left is the secondary modulation
+  (offense/defense balance, power concentration, takeoff, coordination) the means
+  average over. Those are the cells most worth re-reasoning carefully.
 - The next evaluator worth building is a **gated-additive hybrid**: classify by the
-  four gates, then fit a small additive model *within* each gate. It should land
-  near the pairwise fit with a fraction of the parameters, and would be both
-  accurate and interpretable.
+  eight régimes, then fit a small additive model *within* each. It should close the
+  remaining gap to the pairwise fit with a fraction of the parameters, and would be
+  both accurate and interpretable.
 
 ---
 

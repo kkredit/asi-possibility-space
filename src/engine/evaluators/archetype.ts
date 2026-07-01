@@ -16,23 +16,24 @@ import { VALUE_DIMENSION_IDS, zeroVector } from '@engine/value';
  *                                          on the leash holding.
  *   DOOM     holds ∧ ¬aligned ∧ ¬control→ an uncontained misaligned ASI takes over.
  *
- * This evaluator classifies each scenario into its archetype and predicts the
- * **mean cached value of that archetype** — a piecewise-constant model with just
- * four cells (16 numbers, all derived from the data, none hand-tuned). Its residual
- * against cached answers a sharp question: how much of the surface is explained by
- * four logical buckets alone? Compare it to the fitted models on the ladder — if a
- * 4-group gate rivals the 141-parameter pairwise fit, the surface is fundamentally
- * *logical* (gated), not *additive*. See docs/MODEL.md.
+ * Deception is a fifth gate: it decides whether a leash (CONTROL) or a verified
+ * alignment (ALIGNED) can be trusted at all, so each archetype is split by
+ * deceptive/faithful — **eight régimes**. This evaluator classifies each scenario
+ * into its régime and predicts the **mean cached value of that régime** — a
+ * piecewise-constant model, zero hand-tuning. Its residual against cached measures
+ * how much of the surface is explained by these logical gates alone; compare it to
+ * the fitted models on the ladder. See docs/MODEL.md.
  *
  * Unlike the additive evaluators this one is domain-specific: it reads particular
- * factor/state ids. If those factors aren't in the dataset it degrades to linear.
+ * factor/state ids. Deception is optional (it splits the régimes only when present);
+ * if the core gate factors are absent it degrades to linear.
  */
 
 const ARCHETYPE_FACTORS = ['orthogonality', 'alignmentInTime', 'controlDeployed'] as const;
 
-type Archetype = 'benign' | 'aligned' | 'control' | 'doom';
+type Corner = 'benign' | 'aligned' | 'control' | 'doom';
 
-function classify(scenario: Scenario): Archetype | undefined {
+function corner(scenario: Scenario): Corner | undefined {
   const orth = scenario['orthogonality'];
   const align = scenario['alignmentInTime'];
   const ctrl = scenario['controlDeployed'];
@@ -43,36 +44,43 @@ function classify(scenario: Scenario): Archetype | undefined {
   return 'doom';
 }
 
+/** The régime key: corner, split by deception when the factor is present (8 vs 4). */
+function regime(scenario: Scenario): string | undefined {
+  const c = corner(scenario);
+  if (!c) return undefined;
+  return scenario['deception'] !== undefined ? `${c}|${scenario['deception']}` : c;
+}
+
 function hasArchetypeFactors(dataset: Dataset): boolean {
   const ids = new Set(dataset.factors.map((f) => f.id));
   return ARCHETYPE_FACTORS.every((f) => ids.has(f));
 }
 
-/** Mean cached value vector per archetype, computed from the reasoned cells. */
-function buildMeans(dataset: Dataset): Record<Archetype, ValueVector> {
+/** Mean cached value vector per régime, computed from the reasoned cells. */
+function buildMeans(dataset: Dataset): Record<string, ValueVector> {
   const sum: Record<string, ValueVector> = {};
   const count: Record<string, number> = {};
   for (const cell of dataset.cachedOutcomes) {
     if (!isReasoned(cell.scenario, dataset)) continue;
-    const a = classify(cell.scenario);
-    if (!a) continue;
-    if (!sum[a]) {
-      sum[a] = zeroVector();
-      count[a] = 0;
+    const key = regime(cell.scenario);
+    if (!key) continue;
+    if (!sum[key]) {
+      sum[key] = zeroVector();
+      count[key] = 0;
     }
-    count[a]++;
-    for (const d of VALUE_DIMENSION_IDS) sum[a][d] += cell.outcome.value[d];
+    count[key]++;
+    for (const d of VALUE_DIMENSION_IDS) sum[key][d] += cell.outcome.value[d];
   }
-  const means = {} as Record<Archetype, ValueVector>;
-  for (const a of Object.keys(sum) as Archetype[]) {
-    means[a] = zeroVector();
-    for (const d of VALUE_DIMENSION_IDS) means[a][d] = sum[a][d] / count[a];
+  const means: Record<string, ValueVector> = {};
+  for (const key of Object.keys(sum)) {
+    means[key] = zeroVector();
+    for (const d of VALUE_DIMENSION_IDS) means[key][d] = sum[key][d] / count[key];
   }
   return means;
 }
 
-const cache = new WeakMap<Dataset, Record<Archetype, ValueVector>>();
-function meansFor(dataset: Dataset): Record<Archetype, ValueVector> {
+const cache = new WeakMap<Dataset, Record<string, ValueVector>>();
+function meansFor(dataset: Dataset): Record<string, ValueVector> {
   let m = cache.get(dataset);
   if (!m) cache.set(dataset, (m = buildMeans(dataset)));
   return m;
@@ -82,12 +90,12 @@ export const archetypeEvaluator: Evaluator = {
   id: 'archetype',
   label: 'Logical gates',
   description:
-    'Piecewise model: classify each scenario into one of four logical archetypes (benign / aligned / control / doom) and predict that archetype’s mean value. Four buckets, zero hand-tuning — tests whether the surface is gated rather than additive.',
+    'Piecewise model: classify each scenario into a logical régime (benign / aligned / control / doom, each split by whether deception holds) and predict that régime’s mean value. Zero hand-tuning — tests whether the surface is gated rather than additive.',
   evaluate(scenario: Scenario, dataset: Dataset) {
     if (!hasArchetypeFactors(dataset)) return linearEvaluator.evaluate(scenario, dataset);
-    const a = classify(scenario);
+    const key = regime(scenario);
     const means = meansFor(dataset);
-    if (!a || !means[a]) return linearEvaluator.evaluate(scenario, dataset);
-    return { narrative: '', value: { ...means[a] } };
+    if (!key || !means[key]) return linearEvaluator.evaluate(scenario, dataset);
+    return { narrative: '', value: { ...means[key] } };
   },
 };

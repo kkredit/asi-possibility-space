@@ -128,9 +128,9 @@ describe('logical-gate (archetype) evaluator', () => {
     expect(doom.survival).toBeLessThan(aligned.survival);
   });
 
-  it('four logical buckets beat the fitted additive model', () => {
-    // The headline finding: a 4-cell gate (16 data-derived numbers) explains more of
-    // the surface than the best 18-parameter sum-of-factors — the space is gated.
+  it('eight logical régimes beat the fitted additive model', () => {
+    // The headline finding: an 8-cell gate (32 data-derived numbers) explains more of
+    // the surface than the best 22-parameter sum-of-factors — the space is gated.
     const gate = rmsToCached(archetypeEvaluator);
     const fittedMain = rmsToCached(fittedLinearEvaluator);
     expect(gate).toBeLessThan(fittedMain);

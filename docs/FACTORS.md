@@ -29,8 +29,8 @@ modulates one).
 **Kind mix:** 5 objective, 1 contingent, 3 influenceable. Adding deception (#9)
 made the control gate honest — it's what lets a control-pessimist's stated p(doom)
 be reproduced by the model (see [`MODEL.md`](MODEL.md) and the preset calibration).
-The factors setting the four logical gates (1, 6, 7) are well-chosen; deception now
-modulates gate 7. *All else equal, a new influenceable or contingent factor is worth
+The three factors setting the logical archetype (1, 6, 7) are well-chosen; deception
+now splits each archetype in two (eight régimes in the `archetype` evaluator). *All else equal, a new influenceable or contingent factor is worth
 more than a new objective one* — but deception earned its objective slot by changing
 the *meaning* of an existing gate rather than adding an independent pull.
 
