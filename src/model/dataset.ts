@@ -11,6 +11,7 @@ import type {
   ValueDimension,
   ValueVector,
 } from './types';
+import { factorBackgrounds } from './factorBackground';
 
 /**
  * ============================================================================
@@ -44,7 +45,7 @@ const valueDimensions: ValueDimension[] = [
   { id: 'flourishing', label: 'Flourishing', lowLabel: 'value squandered', highLabel: 'value realized' },
 ];
 
-const factors: Factor[] = [
+const factorDefs: Factor[] = [
   {
     id: 'orthogonality',
     label: 'Orthogonality Thesis',
@@ -157,6 +158,10 @@ const factors: Factor[] = [
     ],
   },
 ];
+
+// Attach the scholarly "learn more" background to each factor (kept in a separate
+// module so the debate/reading content lives apart from the modelling numbers).
+const factors: Factor[] = factorDefs.map((f) => ({ ...f, background: factorBackgrounds[f.id] }));
 
 // Presumed starting odds (credences). Each factor's states sum to 1.
 const baselineCredences: Credences = {

@@ -32,6 +32,9 @@ import { InfoTip } from '@viz/InfoTip';
 import { Panel } from '@shell/Panel';
 import { ConditionsTab } from '@shell/tabs/ConditionsTab';
 
+// The full scenario-space size, derived so it never goes stale as factors change.
+const SCENARIO_COUNT = dataset.factors.reduce((n, f) => n * f.states.length, 1);
+
 function Masthead() {
   return (
     <Box
@@ -47,18 +50,22 @@ function Masthead() {
         rowGap: 0.5,
       }}
     >
-      <Logo size={26} />
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: { xs: 0.75, sm: 1.5 }, rowGap: 0 }}>
-        <Typography sx={{ fontFamily: fonts.display, fontWeight: 700, fontSize: '1.1rem', letterSpacing: '-0.01em', color: c.bone }}>
-          ASI&nbsp;Possibility&nbsp;Space
-        </Typography>
-        <Typography sx={{ fontFamily: fonts.display, fontSize: '0.84rem', color: c.mute, fontWeight: 400 }}>
-          an instrument for reasoning about AI&nbsp;futures
-        </Typography>
+      {/* Logo + wordmark are one unit: the mark is centered on the title/tagline
+          stack so it stays locked to the title instead of drifting when the row wraps. */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
+        <Logo size={30} />
+        <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <Typography sx={{ fontFamily: fonts.display, fontWeight: 700, fontSize: '1.1rem', letterSpacing: '-0.01em', color: c.bone, lineHeight: 1.15 }}>
+            ASI&nbsp;Possibility&nbsp;Space
+          </Typography>
+          <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.mute, fontWeight: 400, lineHeight: 1.2 }}>
+            an instrument for reasoning about AI&nbsp;futures
+          </Typography>
+        </Box>
       </Box>
       <Box sx={{ flex: 1 }} />
       <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.68rem', color: c.faint, whiteSpace: 'nowrap' }}>
-        432 scenarios · presumed first-pass model
+        {SCENARIO_COUNT.toLocaleString()} scenarios · presumed first-pass model
       </Typography>
     </Box>
   );

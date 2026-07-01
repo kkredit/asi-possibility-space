@@ -197,12 +197,17 @@ factor, commit history, is a complete worked example of every step.)
    a *parent* of existing children, expand their CPTs (keys are parent states joined
    by `|` in `parents` order). Every factor needs a node or `validateBayesNet` fails.
 7. **`actions`** — point any relevant action at it (objective factors stay off-limits).
-8. **Presets** (`presets.ts`) — optional: unstated factors fall back to baseline (store
+8. **`factorBackground.ts`** — add the factor's scholarly deep-dive (the "learn more"
+   modal): a couple of `paragraphs` on the debate, the named `positions`, and ≥3
+   `references` with at least one **accessible** entry point (`post`/`video`/`podcast`/
+   `course`). A test (`factorBackground.test.ts`) enforces shape, https links, and the
+   accessible on-ramp; verify new URLs actually resolve.
+9. **Presets** (`presets.ts`) — optional: unstated factors fall back to baseline (store
    merge), but research-grounded credences are better. Keep `factorNotes`/citations in sync.
-9. **Tests** — update hardcoded counts (`engine.test` scenario/cell totals + the
-   cross-product title + pinned count; `fit.test` `featureCount`/`sampleCount`) and add
-   the new factor key to any literal scenario object (else its cached lookup falls back).
-10. **Docs** — bump counts in this file, `docs/FACTORS.md` (move from candidate to
+10. **Tests** — update hardcoded counts (`engine.test` scenario/cell totals + the
+    cross-product title + pinned count; `fit.test` `featureCount`/`sampleCount`) and add
+    the new factor key to any literal scenario object (else its cached lookup falls back).
+11. **Docs** — bump counts in this file, `docs/FACTORS.md` (move from candidate to
     added), `docs/MODEL.md` (ladder param counts + scenario count), README/DESIGN.
 
 Then `pnpm typecheck && pnpm test && pnpm build` must all pass.

@@ -7,6 +7,7 @@ import {
   DialogTitle,
   Divider,
   FormControl,
+  Link,
   MenuItem,
   Select,
   Slider,
@@ -22,6 +23,7 @@ import { useBeliefs } from '@shell/store';
 import { Presets } from '@shell/controls/Presets';
 import { InfoTip } from '@viz/InfoTip';
 import { BayesNetDiagram } from '@viz/BayesNetDiagram';
+import { FactorBackground } from '@viz/FactorBackground';
 import { c, fonts, kindColor } from '@shell/theme';
 
 const KIND_ORDER: FactorKind[] = ['objective', 'contingent', 'influenceable'];
@@ -47,15 +49,50 @@ function FactorControl({ factor }: { factor: Factor }) {
   const setCredence = useBeliefs((s) => s.setCredence);
   const setPin = useBeliefs((s) => s.setPin);
   const onSlide = setCredence;
+  const [learnOpen, setLearnOpen] = useState(false);
 
   return (
     <Box sx={{ mb: 1.75 }}>
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-        <Tooltip title={factor.description} arrow placement="top-start">
-          <Typography sx={{ fontFamily: fonts.display, fontWeight: 500, fontSize: '0.84rem', color: c.bone }}>
+        <Tooltip
+          arrow
+          placement="top-start"
+          leaveDelay={120}
+          title={
+            <>
+              {factor.description}
+              {factor.background ? (
+                <Box sx={{ mt: 0.75 }}>
+                  <Link
+                    component="button"
+                    type="button"
+                    onClick={() => setLearnOpen(true)}
+                    sx={{ fontSize: '0.72rem', color: c.teal, textDecorationColor: c.teal }}
+                  >
+                    Read more — the debate &amp; key reading →
+                  </Link>
+                </Box>
+              ) : null}
+            </>
+          }
+        >
+          <Typography sx={{ fontFamily: fonts.display, fontWeight: 500, fontSize: '0.84rem', color: c.bone, cursor: 'help', minWidth: 0 }}>
             {factor.label}
           </Typography>
         </Tooltip>
+        {factor.background ? (
+          <Dialog open={learnOpen} onClose={() => setLearnOpen(false)} maxWidth="sm" fullWidth>
+            <DialogTitle sx={{ fontFamily: fonts.display, fontSize: '1rem', pb: 0.5 }}>
+              {factor.label}
+              <Typography sx={{ fontSize: '0.66rem', color: kindColor[factor.kind], fontWeight: 400, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                {factor.kind}
+              </Typography>
+            </DialogTitle>
+            <DialogContent>
+              <FactorBackground factor={factor} />
+            </DialogContent>
+          </Dialog>
+        ) : null}
         <FormControl size="small" sx={{ minWidth: 88 }}>
           <Select
             value={pin ?? '__free'}

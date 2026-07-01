@@ -26,6 +26,12 @@ modulates one).
 | 8 | Coordination regime | influenceable | 2 | upstream cause: buys time for 6 & 7 (added — §2/§4) |
 | 9 | Deceptive alignment | objective | 2 | gates whether CONTROL (7) can be trusted (added — §2/§4) |
 
+Each factor also carries a scholarly **background** — the debate, the named
+positions, and curated reading (accessible entry points first, then primary
+sources) — in [`src/model/factorBackground.ts`](../src/model/factorBackground.ts),
+surfaced via the "learn more" (📖) modal next to each slider. When you add or revise
+a factor, keep its background in sync (the checklist in `AGENTS.md` points at it).
+
 **Kind mix:** 5 objective, 1 contingent, 3 influenceable. Adding deception (#9)
 made the control gate honest — it's what lets a control-pessimist's stated p(doom)
 be reproduced by the model (see [`MODEL.md`](MODEL.md) and the preset calibration).

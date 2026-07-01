@@ -52,6 +52,50 @@ export interface Factor {
   description: string;
   /** Mutually exclusive states. Hard cap of 3 (keeps the scenario space cacheable). */
   states: FactorState[];
+  /** Deeper scholarly background + linked reading, surfaced in the "learn more" modal. */
+  background?: FactorBackground;
+}
+
+/** What kind of resource a reference is, so the UI can badge accessibility. */
+export type FactorReferenceKind =
+  | 'paper' // academic paper / technical report
+  | 'book' // book (link is usually a stable overview page)
+  | 'post' // blog post / essay / forum write-up
+  | 'video' // talk or explainer video
+  | 'podcast' // podcast episode / interview
+  | 'course'; // curated course / reading list
+
+/** A prominent work relating to a factor — the "launchpad" links. */
+export interface FactorReference {
+  label: string;
+  url: string;
+  kind: FactorReferenceKind;
+  /** One line on what it argues / why it's worth reading. */
+  note?: string;
+}
+
+/** A named stance in the factor's debate — the spectrum of expert views. */
+export interface FactorPosition {
+  /** Short name for the camp/view (e.g. "Orthogonalist"). */
+  name: string;
+  /** Who holds it / what it claims, one line. */
+  stance: string;
+  /** Which of this factor's states this position corresponds to, if any. */
+  state?: StateId;
+}
+
+/**
+ * The deeper treatment of a factor for the "learn more" modal: a few paragraphs of
+ * scholarly context, the named positions in the debate, and linked works ranging
+ * from accessible (podcasts, blog posts, videos) to primary (papers, books).
+ */
+export interface FactorBackground {
+  /** The debate in depth — one string per paragraph. */
+  paragraphs: string[];
+  /** The spectrum of expert views. */
+  positions?: FactorPosition[];
+  /** Prominent works — accessible entry points first, then primary sources. */
+  references: FactorReference[];
 }
 
 /** The value dimensions an outcome is scored on. */
