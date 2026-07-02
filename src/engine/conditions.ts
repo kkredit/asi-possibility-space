@@ -1,4 +1,5 @@
 import type {
+  Action,
   Credences,
   Dataset,
   Evaluator,
@@ -8,6 +9,7 @@ import type {
   StateId,
 } from '@model/types';
 import { analyze } from '@engine/analyze';
+import { applyAction } from '@engine/actions';
 import { scenarioKey, type Pins } from '@engine/scenarios';
 
 /**
@@ -372,5 +374,249 @@ export function contrastGrid(
     cols: f2.states.map((s) => ({ stateId: s.id, label: s.label })),
     cells,
     maxAbs,
+  };
+}
+
+// ===========================================================================
+// ACTION CONDITIONS — "under what conditions should I PURSUE this action?"
+// ---------------------------------------------------------------------------
+// The inverse of the sensitivity tornado. Where `conditionalContrast` evaluates a
+// hypothetical FACTOR-STATE flip, this evaluates one of the dataset's ACTIONS (a
+// credence-shift intervention) and asks where it is the *best lever to pursue*.
+//
+// Conditions = the OBJECTIVE factors (the exogenous facts no action can move), so
+// every action has room to act on the remaining factors, apples-to-apples. In each
+// objective-world we compute the action's conditional-mean EV gain and compare it to
+// the best alternative action (floored at doing nothing, gain 0): the *margin*. A
+// positive margin means "this is the action to pursue here."
+//
+// Because actions move marginal credences, this uses the independence×couplings model
+// (no joint override) — same rationale as `beliefThreshold`.
+// ===========================================================================
+
+/** Conditional-mean scalar EV over the free factors given `pins` (independence×couplings). */
+function condMeanEV(
+  dataset: Dataset,
+  credences: Credences,
+  weights: Parameters<typeof analyze>[2],
+  evaluator: Evaluator,
+  pins: Pins,
+): number {
+  const a = analyze(dataset, credences, weights, evaluator, pins);
+  return a.totalProbability > 0 ? a.ev / a.totalProbability : 0;
+}
+
+interface ActionWorld {
+  pins: Pins;
+  prob: number;
+  /** gain(action) − best alternative action (floored at 0 = do nothing). */
+  margin: number;
+  /** raw EV gain of the action itself. */
+  gain: number;
+}
+
+/** The objective factors we condition on (minus any already pinned in `given`). */
+function conditionFactorIds(dataset: Dataset, given: Pins): FactorId[] {
+  return dataset.factors.filter((f) => f.kind === 'objective' && given[f.id] === undefined).map((f) => f.id);
+}
+
+/**
+ * Partition the (given-conditioned) space by objective-world and, in each, compute the
+ * action's margin over the best alternative. The shared primitive behind every
+ * action-conditions read-out.
+ */
+function actionWorlds(
+  dataset: Dataset,
+  credences: Credences,
+  weights: Parameters<typeof analyze>[2],
+  evaluator: Evaluator,
+  action: Action,
+  given: Pins,
+): { worlds: ActionWorld[]; condIds: FactorId[] } {
+  const condIds = conditionFactorIds(dataset, given);
+  const scenarios = analyze(dataset, credences, weights, evaluator, given).scenarios;
+  const probByKey: Record<string, number> = {};
+  const pinsByKey: Record<string, Pins> = {};
+  for (const s of scenarios) {
+    const key = condIds.map((id) => s.scenario[id]).join('|');
+    probByKey[key] = (probByKey[key] ?? 0) + s.probability;
+    if (!pinsByKey[key]) {
+      const p: Pins = { ...given };
+      for (const id of condIds) p[id] = s.scenario[id];
+      pinsByKey[key] = p;
+    }
+  }
+  const shifted = dataset.actions.map((a) => ({ id: a.id, credences: applyAction(credences, a) }));
+  const worlds: ActionWorld[] = [];
+  for (const key of Object.keys(probByKey)) {
+    const pins = pinsByKey[key];
+    const baseEV = condMeanEV(dataset, credences, weights, evaluator, pins);
+    let gainA = 0;
+    let bestOther = 0; // do-nothing floor
+    for (const s of shifted) {
+      const g = condMeanEV(dataset, s.credences, weights, evaluator, pins) - baseEV;
+      if (s.id === action.id) gainA = g;
+      else bestOther = Math.max(bestOther, g);
+    }
+    worlds.push({ pins, prob: probByKey[key], margin: gainA - bestOther, gain: gainA });
+  }
+  return { worlds, condIds };
+}
+
+export interface ActionConditions {
+  /** Probability-weighted mean margin over the best alternative (the headline). */
+  meanMargin: number;
+  /** Share of condition-worlds where this action is the single best lever. */
+  bestLeverShare: number;
+  /** Share of condition-worlds where the action improves EV at all. */
+  positiveGainShare: number;
+  /** Per objective factor, the margin conditioned on each state — the crux tornado. */
+  cruxes: Crux[];
+  favorableWhen: ConditionLine[];
+  unfavorableWhen: ConditionLine[];
+}
+
+/** "Under what conditions is this action the one to pursue?" */
+export function actionConditions(
+  dataset: Dataset,
+  credences: Credences,
+  weights: Parameters<typeof analyze>[2],
+  evaluator: Evaluator,
+  action: Action,
+  given: Pins = {},
+): ActionConditions {
+  const { worlds, condIds } = actionWorlds(dataset, credences, weights, evaluator, action, given);
+  const totP = worlds.reduce((a, w) => a + w.prob, 0) || 1;
+  const meanMargin = worlds.reduce((a, w) => a + w.prob * w.margin, 0) / totP;
+  const bestLeverShare = worlds.reduce((a, w) => a + (w.margin > 1e-9 ? w.prob : 0), 0) / totP;
+  const positiveGainShare = worlds.reduce((a, w) => a + (w.gain > 1e-9 ? w.prob : 0), 0) / totP;
+
+  const cruxes: Crux[] = [];
+  const favorableWhen: ConditionLine[] = [];
+  const unfavorableWhen: ConditionLine[] = [];
+  for (const fid of condIds) {
+    const factor = dataset.factors.find((f) => f.id === fid)!;
+    const states: CruxStateDelta[] = factor.states.map((st) => {
+      const sel = worlds.filter((w) => w.pins[fid] === st.id);
+      const m = sel.reduce((a, w) => a + w.prob, 0);
+      const delta = m > 0 ? sel.reduce((a, w) => a + w.prob * w.margin, 0) / m : 0;
+      return { stateId: st.id, label: st.label, delta };
+    });
+    let low = states[0];
+    let high = states[0];
+    for (const s of states) {
+      if (s.delta < low.delta) low = s;
+      if (s.delta > high.delta) high = s;
+      const line: ConditionLine = { factorId: fid, label: factor.label, stateId: s.stateId, stateLabel: s.label, delta: s.delta };
+      if (s.delta > 0) favorableWhen.push(line);
+      else if (s.delta < 0) unfavorableWhen.push(line);
+    }
+    cruxes.push({
+      factorId: fid,
+      label: factor.label,
+      kind: factor.kind,
+      states,
+      low: low.delta,
+      high: high.delta,
+      lowStateLabel: low.label,
+      highStateLabel: high.label,
+      flips: low.delta < 0 && high.delta > 0,
+      span: high.delta - low.delta,
+    });
+  }
+  cruxes.sort((a, b) => Math.max(Math.abs(b.low), Math.abs(b.high)) - Math.max(Math.abs(a.low), Math.abs(a.high)));
+  favorableWhen.sort((a, b) => b.delta - a.delta);
+  unfavorableWhen.sort((a, b) => a.delta - b.delta);
+
+  return { meanMargin, bestLeverShare, positiveGainShare, cruxes, favorableWhen, unfavorableWhen };
+}
+
+/** Just the mean margin — for fast credence sweeps. */
+function actionMeanMargin(
+  dataset: Dataset,
+  credences: Credences,
+  weights: Parameters<typeof analyze>[2],
+  evaluator: Evaluator,
+  action: Action,
+  given: Pins,
+): number {
+  const { worlds } = actionWorlds(dataset, credences, weights, evaluator, action, given);
+  const totP = worlds.reduce((a, w) => a + w.prob, 0) || 1;
+  return worlds.reduce((a, w) => a + w.prob * w.margin, 0) / totP;
+}
+
+/** Two-way map of an action's margin over the states of two objective condition factors. */
+export function actionContrastGrid(
+  dataset: Dataset,
+  credences: Credences,
+  weights: Parameters<typeof analyze>[2],
+  evaluator: Evaluator,
+  action: Action,
+  f1Id: FactorId,
+  f2Id: FactorId,
+  given: Pins = {},
+): ContrastGrid | null {
+  const f1 = dataset.factors.find((f) => f.id === f1Id);
+  const f2 = dataset.factors.find((f) => f.id === f2Id);
+  if (!f1 || !f2 || f1.id === f2.id) return null;
+  const { worlds, condIds } = actionWorlds(dataset, credences, weights, evaluator, action, given);
+  if (!condIds.includes(f1Id) || !condIds.includes(f2Id)) return null;
+  const cells: number[][] = [];
+  let maxAbs = 0;
+  for (const s1 of f1.states) {
+    const row: number[] = [];
+    for (const s2 of f2.states) {
+      const sel = worlds.filter((w) => w.pins[f1.id] === s1.id && w.pins[f2.id] === s2.id);
+      const m = sel.reduce((a, w) => a + w.prob, 0);
+      const delta = m > 0 ? sel.reduce((a, w) => a + w.prob * w.margin, 0) / m : 0;
+      maxAbs = Math.max(maxAbs, Math.abs(delta));
+      row.push(delta);
+    }
+    cells.push(row);
+  }
+  return {
+    f1: f1.id,
+    f2: f2.id,
+    rows: f1.states.map((s) => ({ stateId: s.id, label: s.label })),
+    cols: f2.states.map((s) => ({ stateId: s.id, label: s.label })),
+    cells,
+    maxAbs,
+  };
+}
+
+/** "How sure would you need to be?" for an action — sweep an objective factor's credence. */
+export function actionBeliefThreshold(
+  dataset: Dataset,
+  credences: Credences,
+  weights: Parameters<typeof analyze>[2],
+  evaluator: Evaluator,
+  action: Action,
+  sweepFactor: FactorId,
+  sweepState: StateId,
+  given: Pins = {},
+): BeliefThreshold {
+  const steps = 20;
+  const points: ThresholdPoint[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const p = i / steps;
+    const cred: Credences = { ...credences, [sweepFactor]: withMarginal(credences[sweepFactor], sweepState, p) };
+    points.push({ p, netDelta: actionMeanMargin(dataset, cred, weights, evaluator, action, given) });
+  }
+  const crossings: ThresholdCrossing[] = [];
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1];
+    const b = points[i];
+    if ((a.netDelta < 0 && b.netDelta >= 0) || (a.netDelta > 0 && b.netDelta <= 0)) {
+      const t = a.netDelta / (a.netDelta - b.netDelta);
+      crossings.push({ p: a.p + t * (b.p - a.p), favorableAbove: b.netDelta >= a.netDelta });
+    }
+  }
+  return {
+    sweepFactor,
+    sweepState,
+    currentP: credences[sweepFactor][sweepState] ?? 0,
+    netDeltaAtCurrent: actionMeanMargin(dataset, credences, weights, evaluator, action, given),
+    points,
+    crossings,
   };
 }

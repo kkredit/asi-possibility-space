@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { dataset } from '@model/dataset';
-import { beliefThreshold, cachedEvaluator, conditionalContrast, contrastGrid } from '@engine/index';
+import { actionBeliefThreshold, actionConditions, actionContrastGrid, beliefThreshold, cachedEvaluator, conditionalContrast, contrastGrid } from '@engine/index';
 
 const cr = dataset.baselineCredences;
 const w = dataset.defaultWeights;
@@ -122,5 +122,63 @@ describe('contrast grid', () => {
   it('returns null for a degenerate (same-factor) grid', () => {
     const g = contrastGrid(dataset, cr, w, cachedEvaluator, { factor: 'powerConcentration', toward: 'diffuse', baseline: 'concentrated' }, 'offenseDefense', 'offenseDefense');
     expect(g).toBeNull();
+  });
+});
+
+describe('action conditions', () => {
+  const fund = dataset.actions.find((a) => a.id === 'fundAlignment')!;
+  const dacc = dataset.actions.find((a) => a.id === 'dacc')!;
+  const runA = (action = fund, given = {}) => actionConditions(dataset, cr, w, cachedEvaluator, action, given);
+
+  it('best-lever & positive-gain shares are probabilities in [0,1]', () => {
+    const a = runA();
+    for (const v of [a.bestLeverShare, a.positiveGainShare]) {
+      expect(v).toBeGreaterThanOrEqual(0);
+      expect(v).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('the shares across actions partition the worlds (~sum to 1)', () => {
+    const total = dataset.actions.reduce((s, act) => s + runA(act).bestLeverShare, 0);
+    expect(total).toBeGreaterThan(0.98);
+    expect(total).toBeLessThan(1.02);
+  });
+
+  it('fund-alignment is the dominant lever; d/acc is strictly dominated', () => {
+    expect(runA(fund).bestLeverShare).toBeGreaterThan(0.5);
+    expect(runA(dacc).bestLeverShare).toBe(0);
+  });
+
+  it('cruxes cover only the objective (condition) factors', () => {
+    const a = runA();
+    const objIds = new Set(dataset.factors.filter((f) => f.kind === 'objective').map((f) => f.id));
+    expect(a.cruxes.length).toBe(objIds.size);
+    for (const cx of a.cruxes) expect(objIds.has(cx.factorId)).toBe(true);
+  });
+
+  it('orthogonality is fund-alignment’s top crux and it flips', () => {
+    const a = runA();
+    expect(a.cruxes[0].factorId).toBe('orthogonality');
+    expect(a.cruxes[0].flips).toBe(true);
+  });
+
+  it('action grid is over objective factors and sized to their states', () => {
+    const g = actionContrastGrid(dataset, cr, w, cachedEvaluator, fund, 'orthogonality', 'takeoff')!;
+    expect(g.rows.length).toBe(2); // holds / fails
+    expect(g.cols.length).toBe(3); // fast / medium / slow
+    expect(g.cells.length).toBe(2);
+  });
+
+  it('action grid returns null for a non-objective (non-condition) axis', () => {
+    // controlDeployed is influenceable — not a condition factor, so no grid axis.
+    expect(actionContrastGrid(dataset, cr, w, cachedEvaluator, fund, 'orthogonality', 'controlDeployed')).toBeNull();
+  });
+
+  it('belief threshold sweep produces monotone-p points and a current reading', () => {
+    const t = actionBeliefThreshold(dataset, cr, w, cachedEvaluator, fund, 'deception', 'deceptive');
+    expect(t.points.length).toBe(21);
+    expect(t.points[0].p).toBe(0);
+    expect(t.points[20].p).toBe(1);
+    expect(Number.isFinite(t.netDeltaAtCurrent)).toBe(true);
   });
 });

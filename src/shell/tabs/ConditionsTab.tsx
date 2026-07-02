@@ -1,8 +1,18 @@
 import { useMemo, useState } from 'react';
-import { Box, FormControl, MenuItem, Select, Stack, Typography } from '@mui/material';
+import { Box, FormControl, MenuItem, Select, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { dataset } from '@model/dataset';
 import type { Credences, Evaluator, FactorId, Scenario, StateId, ValueVector } from '@model/types';
-import { beliefThreshold, conditionalContrast, contrastGrid, type Decision } from '@engine/index';
+import {
+  actionBeliefThreshold,
+  actionConditions,
+  actionContrastGrid,
+  beliefThreshold,
+  conditionalContrast,
+  contrastGrid,
+  type Crux,
+  type ConditionLine,
+  type Decision,
+} from '@engine/index';
 import type { Pins } from '@engine/scenarios';
 import { Panel } from '@shell/Panel';
 import { c, fonts, valueColor } from '@shell/theme';
@@ -20,13 +30,20 @@ interface Props {
   jointProbability?: (s: Scenario) => number;
 }
 
+type Mode = 'factor' | 'action';
+
 /**
- * "Under what conditions is choice X favorable?" — pick any factor as a hypothetical
- * lever (toward vs baseline) and see the net verdict, the share of futures that favor
- * it, the crux tornado of which other factor flips it, and a two-way map.
+ * Two questions, one tab:
+ *  - factor mode: "under what conditions is FACTOR = state favorable?" (a hypothetical
+ *    outcome or lever — value of information / interventional contrast).
+ *  - action mode: "under what conditions is this ACTION the best lever to pursue?"
+ *    (the inverse of the sensitivity tornado, conditioned on the objective factors).
+ * Both feed the same crux tornado / favorable-when lists / heatmap / threshold viz.
  */
 export function ConditionsTab({ credences, weights, evaluator, pins, jointProbability }: Props) {
-  // Default to the open-source example: power concentration → diffuse vs concentrated.
+  const [mode, setMode] = useState<Mode>('factor');
+
+  // ── factor-mode selection ──────────────────────────────────────────────────
   const [decision, setDecision] = useState<Decision>({
     factor: 'powerConcentration',
     toward: 'diffuse',
@@ -35,8 +52,6 @@ export function ConditionsTab({ credences, weights, evaluator, pins, jointProbab
   const decisionFactor = dataset.factors.find((f) => f.id === decision.factor)!;
   const towardLabel = decisionFactor.states.find((s) => s.id === decision.toward)?.label ?? decision.toward;
   const baselineLabel = decisionFactor.states.find((s) => s.id === decision.baseline)?.label ?? decision.baseline;
-  // Objective factors can't be steered — the same contrast reads as value of
-  // information ("if it turns out A vs B…"), not an intervention ("steer toward A").
   const isObjective = decisionFactor.kind === 'objective';
 
   const pickFactor = (fid: string) => {
@@ -48,30 +63,51 @@ export function ConditionsTab({ credences, weights, evaluator, pins, jointProbab
   const setBaseline = (sid: string) =>
     setDecision((d) => ({ ...d, baseline: sid, toward: d.toward === sid ? decisionFactor.states.find((s) => s.id !== sid)!.id : d.toward }));
 
+  // ── action-mode selection ──────────────────────────────────────────────────
+  const [actionId, setActionId] = useState<string>(dataset.actions[0].id);
+  const action = dataset.actions.find((a) => a.id === actionId)!;
+
+  // ── contrasts (only the active mode computes; the other short-circuits) ──────
   const contrast = useMemo(
-    () => conditionalContrast(dataset, credences, weights, evaluator, decision, pins, jointProbability),
-    [credences, weights, evaluator, decision, pins, jointProbability],
+    () => (mode === 'factor' ? conditionalContrast(dataset, credences, weights, evaluator, decision, pins, jointProbability) : null),
+    [mode, credences, weights, evaluator, decision, pins, jointProbability],
+  );
+  const ac = useMemo(
+    () => (mode === 'action' ? actionConditions(dataset, credences, weights, evaluator, action, pins) : null),
+    [mode, credences, weights, evaluator, action, pins],
   );
 
-  // Two-way map: default to the top two cruxes (most verdict-moving factors).
-  const [hmF1, hmF2] = useMemo(() => {
-    const ids = contrast.cruxes.map((x) => x.factorId);
-    return [ids[0], ids[1]] as [string | undefined, string | undefined];
-  }, [contrast]);
-  const grid = useMemo(
-    () => (hmF1 && hmF2 ? contrastGrid(dataset, credences, weights, evaluator, decision, hmF1, hmF2, pins, jointProbability) : null),
-    [credences, weights, evaluator, decision, pins, hmF1, hmF2, jointProbability],
-  );
+  // ── unified read-out (both modes expose cruxes + favorable/unfavorable lists) ─
+  const cruxes: Crux[] = mode === 'action' ? ac!.cruxes : contrast!.cruxes;
+  const favorableWhen: ConditionLine[] = mode === 'action' ? ac!.favorableWhen : contrast!.favorableWhen;
+  const unfavorableWhen: ConditionLine[] = mode === 'action' ? ac!.unfavorableWhen : contrast!.unfavorableWhen;
+  const headlineDelta = mode === 'action' ? ac!.meanMargin : contrast!.netDelta;
+  const headlineShare = mode === 'action' ? ac!.bestLeverShare : contrast!.favorableShare;
   const labelOf = (fid: string) => dataset.factors.find((f) => f.id === fid)?.label ?? fid;
 
-  // Belief threshold: which factor-state's credence to sweep. Defaults to the top
-  // crux factor (never the decision factor, which is integrated out of the contrast).
+  // ── two-way map: top two cruxes ──────────────────────────────────────────────
+  const [hmF1, hmF2] = useMemo(() => {
+    const ids = cruxes.map((x) => x.factorId);
+    return [ids[0], ids[1]] as [string | undefined, string | undefined];
+  }, [cruxes]);
+  const grid = useMemo(() => {
+    if (!hmF1 || !hmF2) return null;
+    return mode === 'action'
+      ? actionContrastGrid(dataset, credences, weights, evaluator, action, hmF1, hmF2, pins)
+      : contrastGrid(dataset, credences, weights, evaluator, decision, hmF1, hmF2, pins, jointProbability);
+  }, [mode, credences, weights, evaluator, decision, action, pins, hmF1, hmF2, jointProbability]);
+
+  // ── belief threshold sweep ───────────────────────────────────────────────────
+  // Sweepable factors differ by mode: action mode conditions only on objective factors.
+  const sweepable = useMemo(
+    () => (mode === 'action' ? dataset.factors.filter((f) => f.kind === 'objective') : dataset.factors.filter((f) => f.id !== decision.factor)),
+    [mode, decision.factor],
+  );
   const [sweep, setSweep] = useState<{ factor: FactorId; state: StateId } | null>(null);
   const sweepFactorId =
-    sweep && sweep.factor !== decision.factor && dataset.factors.some((f) => f.id === sweep.factor)
+    sweep && sweepable.some((f) => f.id === sweep.factor)
       ? sweep.factor
-      : contrast.cruxes.find((x) => x.factorId !== decision.factor)?.factorId ??
-        dataset.factors.find((f) => f.id !== decision.factor)!.id;
+      : cruxes.find((x) => sweepable.some((f) => f.id === x.factorId))?.factorId ?? sweepable[0].id;
   const sweepFactor = dataset.factors.find((f) => f.id === sweepFactorId)!;
   const sweepStateId =
     sweep && sweep.factor === sweepFactorId && sweepFactor.states.some((s) => s.id === sweep.state)
@@ -79,8 +115,11 @@ export function ConditionsTab({ credences, weights, evaluator, pins, jointProbab
       : sweepFactor.states[0].id;
   const sweepStateLabel = sweepFactor.states.find((s) => s.id === sweepStateId)?.label ?? sweepStateId;
   const threshold = useMemo(
-    () => beliefThreshold(dataset, credences, weights, evaluator, decision, sweepFactorId, sweepStateId, pins),
-    [credences, weights, evaluator, decision, sweepFactorId, sweepStateId, pins],
+    () =>
+      mode === 'action'
+        ? actionBeliefThreshold(dataset, credences, weights, evaluator, action, sweepFactorId, sweepStateId, pins)
+        : beliefThreshold(dataset, credences, weights, evaluator, decision, sweepFactorId, sweepStateId, pins),
+    [mode, credences, weights, evaluator, decision, action, sweepFactorId, sweepStateId, pins],
   );
 
   const stateSelectSx = { fontFamily: fonts.display, fontSize: '0.84rem' };
@@ -88,58 +127,100 @@ export function ConditionsTab({ credences, weights, evaluator, pins, jointProbab
   return (
     <>
       <Panel>
-        <Typography variant="overline" sx={{ color: c.mute }}>The choice</Typography>
-        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 0.5, mb: 1.5 }}>
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <Select value={decision.factor} onChange={(e) => pickFactor(e.target.value)} sx={stateSelectSx}>
-              {dataset.factors.map((f) => (
-                <MenuItem key={f.id} value={f.id} sx={stateSelectSx}>{f.label}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Typography sx={{ color: c.mute, fontFamily: fonts.body }}>→</Typography>
-          <FormControl size="small" sx={{ minWidth: 130 }}>
-            <Select value={decision.toward} onChange={(e) => setToward(e.target.value)} sx={{ ...stateSelectSx, color: c.teal }}>
-              {decisionFactor.states.map((s) => (
-                <MenuItem key={s.id} value={s.id} sx={stateSelectSx}>{s.label}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Typography sx={{ color: c.faint, fontFamily: fonts.body }}>vs</Typography>
-          <FormControl size="small" sx={{ minWidth: 130 }}>
-            <Select value={decision.baseline} onChange={(e) => setBaseline(e.target.value)} sx={stateSelectSx}>
-              {decisionFactor.states.map((s) => (
-                <MenuItem key={s.id} value={s.id} sx={stateSelectSx}>{s.label}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" useFlexGap sx={{ mb: 1 }}>
+          <Typography variant="overline" sx={{ color: c.mute }}>{mode === 'action' ? 'The action' : 'The choice'}</Typography>
+          <ToggleButtonGroup
+            size="small"
+            exclusive
+            value={mode}
+            onChange={(_, v) => v && setMode(v)}
+            sx={{ '& .MuiToggleButton-root': { fontFamily: fonts.display, fontSize: '0.72rem', textTransform: 'none', py: 0.25, px: 1, color: c.mute } }}
+          >
+            <ToggleButton value="factor">A factor's outcome</ToggleButton>
+            <ToggleButton value="action">An action to pursue</ToggleButton>
+          </ToggleButtonGroup>
         </Stack>
+
+        {mode === 'factor' ? (
+          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 0.5, mb: 1.5 }}>
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <Select value={decision.factor} onChange={(e) => pickFactor(e.target.value)} sx={stateSelectSx}>
+                {dataset.factors.map((f) => (
+                  <MenuItem key={f.id} value={f.id} sx={stateSelectSx}>{f.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <Typography sx={{ color: c.mute, fontFamily: fonts.body }}>→</Typography>
+            <FormControl size="small" sx={{ minWidth: 130 }}>
+              <Select value={decision.toward} onChange={(e) => setToward(e.target.value)} sx={{ ...stateSelectSx, color: c.teal }}>
+                {decisionFactor.states.map((s) => (
+                  <MenuItem key={s.id} value={s.id} sx={stateSelectSx}>{s.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <Typography sx={{ color: c.faint, fontFamily: fonts.body }}>vs</Typography>
+            <FormControl size="small" sx={{ minWidth: 130 }}>
+              <Select value={decision.baseline} onChange={(e) => setBaseline(e.target.value)} sx={stateSelectSx}>
+                {decisionFactor.states.map((s) => (
+                  <MenuItem key={s.id} value={s.id} sx={stateSelectSx}>{s.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+        ) : (
+          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 0.5, mb: 1.5 }}>
+            <FormControl size="small" sx={{ minWidth: 280 }}>
+              <Select value={actionId} onChange={(e) => setActionId(e.target.value)} sx={stateSelectSx}>
+                {dataset.actions.map((a) => (
+                  <MenuItem key={a.id} value={a.id} sx={stateSelectSx}>{a.label}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
+        )}
 
         {/* Verdict headline */}
         <Box sx={{ borderTop: `1px solid ${c.line}`, pt: 1.5 }}>
-          <Typography variant="body2" sx={{ color: c.mute, mb: 0.5, display: 'inline-flex', alignItems: 'center', flexWrap: 'wrap' }}>
-            At your current beliefs,{' '}
-            {isObjective ? 'if it turns out ' : 'steering '}
-            <Box component="span" sx={{ color: c.teal, mx: 0.5 }}>{decisionFactor.label} {isObjective ? '=' : '→'} {towardLabel}</Box>
-            {' '}(vs {baselineLabel}) {isObjective ? 'would be' : 'is'}
-            <InfoTip>
-              {isObjective
-                ? 'This factor is objective — you can’t steer it, so read this as value of information: how much the verdict moves if it turns out one way vs. the other. '
-                : ''}
-              Each future is compared to itself with only this factor changed (all else held fixed),
-              so net EV and the favorable share always agree in sign.
-              {Object.keys(pins).length > 0 ? ` Holding fixed the ${Object.keys(pins).length} condition(s) you pinned in Beliefs.` : ''}
-            </InfoTip>
-          </Typography>
+          {mode === 'action' ? (
+            <Typography variant="body2" sx={{ color: c.mute, mb: 0.5, display: 'inline-flex', alignItems: 'center', flexWrap: 'wrap' }}>
+              At your current beliefs, pursuing
+              <Box component="span" sx={{ color: c.teal, mx: 0.5 }}>{action.label}</Box>
+              is
+              <InfoTip>
+                For each setting of the <em>objective</em> factors (the exogenous facts no action can move),
+                this action's conditional-mean EV gain is compared to the best alternative action (floored at
+                doing nothing). "Best lever" = it beats every alternative there. Actions move marginal beliefs,
+                so this uses the independence×couplings model.
+                {Object.keys(pins).length > 0 ? ` Holding fixed the ${Object.keys(pins).length} condition(s) you pinned in Beliefs.` : ''}
+              </InfoTip>
+            </Typography>
+          ) : (
+            <Typography variant="body2" sx={{ color: c.mute, mb: 0.5, display: 'inline-flex', alignItems: 'center', flexWrap: 'wrap' }}>
+              At your current beliefs,{' '}
+              {isObjective ? 'if it turns out ' : 'steering '}
+              <Box component="span" sx={{ color: c.teal, mx: 0.5 }}>{decisionFactor.label} {isObjective ? '=' : '→'} {towardLabel}</Box>
+              {' '}(vs {baselineLabel}) {isObjective ? 'would be' : 'is'}
+              <InfoTip>
+                {isObjective
+                  ? 'This factor is objective — you can’t steer it, so read this as value of information: how much the verdict moves if it turns out one way vs. the other. '
+                  : ''}
+                Each future is compared to itself with only this factor changed (all else held fixed),
+                so net EV and the favorable share always agree in sign.
+                {Object.keys(pins).length > 0 ? ` Holding fixed the ${Object.keys(pins).length} condition(s) you pinned in Beliefs.` : ''}
+              </InfoTip>
+            </Typography>
+          )}
           <Stack direction="row" spacing={3} alignItems="baseline" flexWrap="wrap" useFlexGap>
-            <Typography sx={{ fontFamily: fonts.display, fontSize: '1.5rem', color: valueColor(Math.max(-1, Math.min(1, contrast.netDelta * 3))) }}>
-              {contrast.netDelta >= 0 ? '+' : ''}{contrast.netDelta.toFixed(3)}
-              <Box component="span" sx={{ fontSize: '0.8rem', color: c.mute, ml: 0.75 }}>net EV</Box>
+            <Typography sx={{ fontFamily: fonts.display, fontSize: '1.5rem', color: valueColor(Math.max(-1, Math.min(1, headlineDelta * 3))) }}>
+              {headlineDelta >= 0 ? '+' : ''}{headlineDelta.toFixed(3)}
+              <Box component="span" sx={{ fontSize: '0.8rem', color: c.mute, ml: 0.75 }}>{mode === 'action' ? 'mean margin vs. next-best' : 'net EV'}</Box>
             </Typography>
             <Typography sx={{ fontFamily: fonts.mono, fontSize: '1.05rem', color: c.bone }}>
-              {(contrast.favorableShare * 100).toFixed(0)}%
+              {(headlineShare * 100).toFixed(0)}%
               <Box component="span" sx={{ fontSize: '0.78rem', color: c.mute, ml: 0.75 }}>
-                of probability-weighted futures {isObjective ? 'come out better that way' : 'favor it'}
+                {mode === 'action'
+                  ? 'of objective worlds where it’s the best lever'
+                  : `of probability-weighted futures ${isObjective ? 'come out better that way' : 'favor it'}`}
               </Box>
             </Typography>
           </Stack>
@@ -148,16 +229,18 @@ export function ConditionsTab({ credences, weights, evaluator, pins, jointProbab
 
       <Panel>
         <ConditionTornado
-          rows={contrast.cruxes}
+          rows={cruxes}
           decisionLabel={
-            isObjective
-              ? `${decisionFactor.label.toLowerCase()} turning out ${towardLabel.toLowerCase()}`
-              : `${decisionFactor.label.toLowerCase()} → ${towardLabel.toLowerCase()}`
+            mode === 'action'
+              ? `pursuing ${action.label.toLowerCase()}`
+              : isObjective
+                ? `${decisionFactor.label.toLowerCase()} turning out ${towardLabel.toLowerCase()}`
+                : `${decisionFactor.label.toLowerCase()} → ${towardLabel.toLowerCase()}`
           }
         />
         <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mt: 2 }}>
-          <ConditionList title="FAVORABLE WHEN" color={c.teal} lines={contrast.favorableWhen} sign="+" />
-          <ConditionList title="UNFAVORABLE WHEN" color={c.red} lines={contrast.unfavorableWhen} sign="" />
+          <ConditionList title={mode === 'action' ? 'BEST LEVER WHEN' : 'FAVORABLE WHEN'} color={c.teal} lines={favorableWhen} sign="+" />
+          <ConditionList title={mode === 'action' ? 'NOT THE PRIORITY WHEN' : 'UNFAVORABLE WHEN'} color={c.red} lines={unfavorableWhen} sign="" />
         </Box>
       </Panel>
 
@@ -181,7 +264,8 @@ export function ConditionsTab({ credences, weights, evaluator, pins, jointProbab
           title="How sure would you need to be?"
           info={
             <>
-              Sweeps your credence in one factor-state from 0 to 100% and traces the choice's net EV,
+              Sweeps your credence in one factor-state from 0 to 100% and traces the{' '}
+              {mode === 'action' ? "action's mean margin over the next-best alternative" : "choice's net EV"},
               marking the break-even credence where the verdict flips. This varies a marginal belief, so
               it uses the independence model regardless of the active probability model.
             </>
@@ -198,11 +282,9 @@ export function ConditionsTab({ credences, weights, evaluator, pins, jointProbab
               }}
               sx={stateSelectSx}
             >
-              {dataset.factors
-                .filter((f) => f.id !== decision.factor)
-                .map((f) => (
-                  <MenuItem key={f.id} value={f.id} sx={stateSelectSx}>{f.label}</MenuItem>
-                ))}
+              {sweepable.map((f) => (
+                <MenuItem key={f.id} value={f.id} sx={stateSelectSx}>{f.label}</MenuItem>
+              ))}
             </Select>
           </FormControl>
           <Typography sx={{ color: c.faint, fontFamily: fonts.body }}>=</Typography>
