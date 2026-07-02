@@ -20,7 +20,7 @@ modulates one).
 | 2 | Alignment tractability | objective | 3 | difficulty in principle |
 | 3 | Offense/defense balance | objective | 3 | does one defector end everyone |
 | 4 | Takeoff speed | objective | 3 | calendar time to react; couples to 5–8 |
-| 5 | Power concentration | contingent | 2 | few actors vs proliferated |
+| 5 | Power concentration | influenceable | 2 | few actors vs proliferated |
 | 6 | Alignment solved in time | influenceable | 2 | gate: did we field aligned ASI |
 | 7 | Control deployed | influenceable | 2 | gate: is a misaligned system leashed |
 | 8 | Coordination regime | influenceable | 2 | upstream cause: buys time for 6 & 7 (added — §2/§4) |
@@ -32,7 +32,11 @@ sources) — in [`src/model/factorBackground.ts`](../src/model/factorBackground.
 surfaced via the "learn more" (📖) modal next to each slider. When you add or revise
 a factor, keep its background in sync (the checklist in `AGENTS.md` points at it).
 
-**Kind mix:** 5 objective, 1 contingent, 3 influenceable. Adding deception (#9)
+**Kind mix:** 5 objective, 4 influenceable, 0 contingent. (Power concentration moved
+from contingent → influenceable: it's influenceable *in principle* — antitrust,
+open-source policy, compute licensing all push on it — and how much leverage one
+really has is left to the slider/couplings rather than baked into the taxonomy. The
+`contingent` kind is retained in the model for future use.) Adding deception (#9)
 made the control gate honest — it's what lets a control-pessimist's stated p(doom)
 be reproduced by the model (see [`MODEL.md`](MODEL.md) and the preset calibration).
 The three factors setting the logical archetype (1, 6, 7) are well-chosen; deception
@@ -49,7 +53,7 @@ survival-heavy. Measured on **agency** alone it is a top-3 lever, and it swings 
 surface now also carries a **power-concentration × coordination** interaction: a
 governance regime checks concentrated power (agency recovers) but centralizes an
 already-diffuse world (agency dips) — governance changes what concentration *means*.
-The "measure by" selector on the *Where to act* tornado surfaces this per dimension.
+The "measure by" selector on the *Factors* tornado surfaces this per dimension.
 
 ---
 
@@ -91,8 +95,9 @@ doubled 432 → 864; the cached cells were extended with a régime-independent d
 (`expandCoordination`) rather than re-authored.
 
 **Competitive race pressure** *(contingent, 2–3: `cooperative` / `racing` / `all-out`)*.
-The only contingent factor today is power concentration; race intensity is a
-distinct situational fact (you can have a concentrated *and* cooperative frontier, or
+There are no contingent factors today (power concentration moved to influenceable), so
+this would be the first — race intensity is a distinct situational fact (you can have a
+concentrated *and* cooperative frontier, or
 a concentrated cutthroat one). It's a primary driver of whether alignment/control are
 fielded in time, and it pairs naturally with the coordination factor as its mirror.
 Risk: partial overlap with takeoff (fast takeoff intensifies racing) — manage with a

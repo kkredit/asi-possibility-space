@@ -141,7 +141,7 @@ The sensitivity tornado swings each factor across its states. For **objective** 
 | Alignment tractability (in principle) | objective | 0.101 | Easy | Near-impossible |
 | Offense/defense balance at ASI scale | objective | 0.082 | Defense-dominant | Offense-dominant |
 | Takeoff speed | objective | 0.079 | Slow | Fast |
-| Power concentration | contingent | 0.001 | Concentrated | Diffuse |
+| Power concentration | influenceable | 0.001 | Concentrated | Diffuse |
 
 The highest-VoI *objective* question is **Orthogonality Thesis** (swing 0.377) — worth more to *resolve* than most things are to *act on*.
 The highest-leverage *influenceable* factor is **Alignment solved & deployed in time** (swing 0.352).

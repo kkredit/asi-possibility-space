@@ -100,10 +100,10 @@ const factorDefs: Factor[] = [
   {
     id: 'powerConcentration',
     label: 'Power concentration',
-    kind: 'contingent',
+    kind: 'influenceable',
     question: 'Is frontier capability gated by a few actors or widely proliferated?',
     description:
-      'Whether, at ASI onset, frontier capability is controlled by a few labs/states or broadly diffused (e.g. open-source dominant). Its level at the threshold is driven mostly by exogenous forces — geopolitics, markets, open-source norms — so we have some but limited leverage over it (hence contingent, not influenceable).',
+      'Whether, at ASI onset, frontier capability is controlled by a few labs/states or broadly diffused (e.g. open-source dominant). It is influenceable in principle — antitrust, open-source policy, compute allocation and licensing all push on it — though how much leverage you think we really have is encoded in the slider and the couplings (e.g. fast takeoff concentrates regardless).',
     states: [
       { id: 'concentrated', label: 'Concentrated', blurb: 'a few labs/states gate the frontier' },
       { id: 'diffuse', label: 'Diffuse', blurb: 'proliferated / open-source dominant' },

@@ -43,8 +43,8 @@ motion until then. Second, the kind fixes how you reduce your uncertainty or act
 | Kind | What the slider is | Leverage we have | How you engage it | Example |
 |------|------|------|------|---------|
 | **Objective** | Confidence a timeless, structural fact holds (same in every possible world). | None — off the leverage axis; unmovable in any universe. | *Discover* which way it is, by **research**. High sensitivity ⇒ **value of information**. | Orthogonality Thesis; alignment tractability *in principle*; offense/defense balance at ASI scale. |
-| **Contingent** | Forecast of its state at ASI onset. | **Low** — trajectory driven mostly by exogenous forces (geopolitics, markets, who races whom). | Mainly *forecast and position*; actions nudge it weakly. High sensitivity ⇒ **situational awareness**. | Power concentration among frontier actors; race structure. |
-| **Influenceable** | Forecast of its state at ASI onset. | **High** — our choices substantially move it. | *Act*. High sensitivity ⇒ **this is where to act**. | Whether alignment is solved *in time*; whether control is deployed; governance/coordination. |
+| **Contingent** | Forecast of its state at ASI onset. | **Low** — trajectory driven mostly by exogenous forces (geopolitics, markets, who races whom). | Mainly *forecast and position*; actions nudge it weakly. High sensitivity ⇒ **situational awareness**. | *(none in the current set — retained as a kind; e.g. a future "race structure" factor.)* |
+| **Influenceable** | Forecast of its state at ASI onset. | **High** — our choices substantially move it. | *Act*. High sensitivity ⇒ **this is where to act**. | Whether alignment is solved *in time*; whether control is deployed; governance/coordination; power concentration among frontier actors. |
 
 The subtle point: **contingent and influenceable are the same *kind* of thing** — both
 forecasts of the world at the threshold — and differ only in **how much grip we have on
