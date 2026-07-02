@@ -39,6 +39,8 @@ The full tables are below; these are the results that most defy first intuition.
 
 5. **The tornado calls power concentration inert (swing 0.001) — that's the *metric* lying, not the factor.** The marginal, survival-weighted swing collapses for three reasons: it's *moot in doom worlds* (~40% of the mass — a misaligned takeover moots who held power beforehand), *sign-split* elsewhere (concentration buys survival-safety but costs agency), and the tornado is *mass-weighted*. Change the lens and it roars back: on the **agency** dimension alone it is the **#3** most decisive factor of all (swing 0.219, up from dead last), and *conditional* on a survivable world its concentrated−diffuse gap is many times the marginal (§7). Power concentration matters exactly where intuition says — under slow takeoff, under governance, in worlds we survive — the default view just averages it away.
 
+6. **Deception is catastrophic in every régime but one — where it's mildly *good*.** Averaged within each logical corner, switching faithful → deceptive changes value by **+0.006** in the **benign** corner (orthogonality fails) but −0.713 in ALIGNED and −0.772 in CONTROL worlds. Deception is the only factor that flips *sign* on the régime: when capable systems are benign by default, a system that "masks under evaluation" is scheming about nothing — the deception is moot, even marginally friction-reducing. The benign effect is tiny (one +0.02 suffering nudge, worth a sanity check) but the structure is the point — **deception's harm is entirely contingent on the orthogonality thesis holding.** If you were sure of a benign attractor, deceptive alignment would drop off the worry list.
+
 ---
 
 ## 1. What you care about changes what you should do

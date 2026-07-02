@@ -2,8 +2,9 @@
 import { defineConfig } from 'vitest/config';
 import { fileURLToPath, URL } from 'node:url';
 
-// Standalone vitest config so the findings miner (scripts/) can import the engine
-// via the same @-aliases the app uses. Run with:
+// Standalone vitest config so the report generators (scripts/) can import the engine
+// via the same @-aliases the app uses. Regenerates docs/FINDINGS.md AND
+// docs/RESEARCH-PRIORITIES.md. Run with:
 //   pnpm exec vitest run --config scripts/findings.config.ts
 export default defineConfig({
   resolve: {
@@ -17,7 +18,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['scripts/mine-findings.ts'],
+    include: ['scripts/mine-findings.ts', 'scripts/research-roi.ts'],
     testTimeout: 60_000,
   },
 });
