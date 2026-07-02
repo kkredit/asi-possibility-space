@@ -201,7 +201,7 @@ for (const a of ranked) {
 
 P('---');
 P();
-P('*Prototype. Caveat from the findings: with only four, largely-correlated actions, three of them have small or empty best-lever regions — the output reads "pursue A only when [narrow crux]." That is the honest answer, and also the case for designing more differentiated actions. Conditioning is on objective factors only; a fuller version would also let you condition on the influenceable/contingent factors an action doesn\'t itself move.*');
+P('*Prototype. Caveat from the findings: the actions are largely correlated, so several have small or empty best-lever regions — the output reads "pursue A only when [narrow crux]." That is the honest answer, and also the case for designing more differentiated actions (adding the open-source/antitrust lever, for instance, is what gives orthogonality a top-action flip). Conditioning is on objective factors only; a fuller version would also let you condition on the influenceable/contingent factors an action doesn\'t itself move.*');
 
 test('action conditions → docs/ACTION-CONDITIONS.md', () => {
   writeFileSync(OUT, lines.join('\n') + '\n', 'utf8');

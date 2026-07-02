@@ -121,23 +121,25 @@ for (const r of rows) {
   P(`| ${r.label} | ${pct(r.pTop)} | ${pct(r.pOrder)} | ${sev(r.evpi)} | ${r.flips[0] ?? '— (order unchanged)'} |`);
 }
 P();
-const anyTop = rows.some((r) => r.pTop > 0);
-const withOrder = rows.filter((r) => r.pOrder > 0);
+const topFlippers = rows.filter((r) => r.pTop > 0);
+const orderOnly = rows.filter((r) => r.pOrder > 0 && r.pTop <= 0);
+const inert = rows.filter((r) => r.pOrder <= 0);
 P('**Reading it:**');
 P();
-if (!anyTop) {
-  P(`- **No objective resolution changes the #1 action** — under this model the top lever is *${actionLabel(baseTopId)}* no matter how any single objective question resolves. So by the strict "does it change what we do" test, objective research has **near-zero action-ROI**: its value is almost entirely *predictive*. That is a statement about the **action set** (too few, too correlated — see FINDINGS.md #1), not a claim that the science doesn\'t matter.`);
+if (topFlippers.length) {
+  P(`- **${topFlippers.map((r) => r.label).join(', ')} can change the very top action** — e.g. ${topFlippers[0].flips[0]}. That is genuine decision-ROI: resolving it changes *what you'd do*, not just what you'd predict. (This became possible only once power concentration got its own lever — before that, no objective resolution moved the #1 action at all.)`);
 } else {
-  P(`- Some resolutions move the very top action — see the table.`);
+  P(`- **No objective resolution changes the #1 action** — the top lever is *${actionLabel(baseTopId)}* however any single objective question resolves; objective research is then almost pure *prediction*.`);
 }
 P();
-if (withOrder.length) {
-  P(`- The only objective questions with *any* action-ROI are **${withOrder.map((r) => r.label).join('** and **')}**, and only through the **runner-up**: e.g. ${withOrder[0].flips[0]}. Intuition: learning that systems deceive (or that offense dominates) demotes *control* — which leans on trustworthy evaluation — beneath *coordination*, which buys time upstream. If you can fund a second priority, those two questions are worth resolving; the rest are for forecasting.`);
-} else {
-  P('- No objective question changes even the ordering — all action-value is predictive here.');
+if (orderOnly.length) {
+  P(`- **${orderOnly.map((r) => r.label).join(', ')} change only the runner-up** (control ↔ coordination): learning that systems deceive, or that offense dominates, demotes *control* — which leans on trustworthy evaluation — beneath *coordination*, which buys time upstream. Worth resolving if you can fund a second priority.`);
+}
+if (inert.length) {
+  P(`- Nothing changes in the action ordering for **${inert.map((r) => r.label).join(', ')}** — however decisive scientifically, these are for forecasting, not for choosing.`);
 }
 P();
-P('- **EVPI is ~0 across the board** by construction: expected value of perfect information about a single factor is positive only if the *best action* differs across its answers. Since it never does, resolving these questions — however scientifically decisive — buys no extra EV *through our current levers*. Widen or differentiate the action set and this table comes alive.');
+P(`- **EVPI stays small even where the top action flips.** Expected value of perfect information is positive only if the best action differs across a question's answers${topFlippers.length ? ` — which now happens for ${topFlippers[0].label}` : ', which never happens here'}, but the winning action's edge in those worlds is slim, so the *decision value* rounds to ~0. Where the top never flips, EVPI is exactly 0 — pure prediction. Widen or differentiate the action set further and this column grows.`);
 P();
 
 // ═══════════════════════════════════════════════════════════════════════════

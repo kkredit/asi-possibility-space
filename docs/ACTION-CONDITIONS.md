@@ -18,9 +18,10 @@ decides whether to pursue the action.
 
 | Action | best lever in | positive gain in |
 |---|---:|---:|
-| Fund technical alignment | **77%** | 100% |
-| Standardize AI control | **13%** | 92% |
+| Fund technical alignment | **73%** | 100% |
+| Broaden frontier access (open-source / antitrust) | **12%** | 36% |
 | Compute-governance / coordination regime | **10%** | 100% |
+| Standardize AI control | **4%** | 92% |
 | Defensive acceleration (d/acc) | **0%** | 92% |
 
 The best-lever shares sum to ~100% (one action wins each world). "Positive gain" can exceed it — several actions help a world; only one is *best*.
@@ -29,43 +30,43 @@ The best-lever shares sum to ~100% (one action wins each world). "Positive gain"
 
 ## Fund technical alignment
 
-Best lever in **77%** of objective worlds · moves Alignment solved & deployed in time→Yes.
+Best lever in **73%** of objective worlds · moves Alignment solved & deployed in time→Yes.
 
-**Verdict:** the default priority. It yields the top slot mainly when **Orthogonality Thesis = Fails** (best-lever share drops to 17% there).
+**Verdict:** the default priority. It yields the top slot mainly when **Orthogonality Thesis = Fails** (best-lever share drops to 0% there).
 
 | Crux (objective question) | answer | best-lever share | mean margin | flips? |
 |---|---|---:|---:|:---:|
-| Orthogonality Thesis | Holds | 94% | +0.055 | **yes** |
-|  | Fails | 17% | −0.002 |  |
-| Offense/defense balance at ASI scale | Offense-dominant | 78% | +0.052 | no |
-|  | Balanced | 78% | +0.041 |  |
-|  | Defense-dominant | 74% | +0.024 |  |
-| Alignment tractability (in principle) | Easy | 62% | +0.030 | no |
-|  | Hard | 76% | +0.044 |  |
-|  | Near-impossible | 94% | +0.053 |  |
+| Orthogonality Thesis | Holds | 94% | +0.053 | **yes** |
+|  | Fails | 0% | −0.004 |  |
+| Offense/defense balance at ASI scale | Offense-dominant | 78% | +0.049 | no |
+|  | Balanced | 78% | +0.039 |  |
+|  | Defense-dominant | 55% | +0.024 |  |
+| Deceptive alignment | Deceptive | 85% | +0.052 | no |
+|  | Faithful | 61% | +0.029 |  |
 
-**Most favorable conditions:** Orthogonality Thesis = Holds (+0.055); Deceptive alignment = Deceptive (+0.053); Alignment tractability (in principle) = Near-impossible (+0.053).
-**Least favorable:** Orthogonality Thesis = Fails (−0.002).
+**Most favorable conditions:** Orthogonality Thesis = Holds (+0.053); Deceptive alignment = Deceptive (+0.052); Alignment tractability (in principle) = Near-impossible (+0.051).
+**Least favorable:** Orthogonality Thesis = Fails (−0.004).
 
 ---
 
-## Standardize AI control
+## Broaden frontier access (open-source / antitrust)
 
-Best lever in **13%** of objective worlds · moves Control solved & deployed→Yes.
+Best lever in **12%** of objective worlds · moves Power concentration→Diffuse.
 
-**Verdict:** a *conditional* priority — pursue it when **Orthogonality Thesis = Fails** (best-lever share 37%); otherwise a lower priority.
+**Verdict:** a *conditional* priority — pursue it when **Orthogonality Thesis = Fails** (best-lever share 54%); otherwise a lower priority.
 
 | Crux (objective question) | answer | best-lever share | mean margin | flips? |
 |---|---|---:|---:|:---:|
-| Orthogonality Thesis | Holds | 6% | −0.071 | no |
-|  | Fails | 37% | −0.002 |  |
-| Offense/defense balance at ASI scale | Offense-dominant | 18% | −0.072 | no |
-|  | Balanced | 0% | −0.053 |  |
-|  | Defense-dominant | 22% | −0.025 |  |
-| Deceptive alignment | Deceptive | 5% | −0.078 | no |
-|  | Faithful | 20% | −0.033 |  |
+| Orthogonality Thesis | Holds | 0% | −0.148 | **yes** |
+|  | Fails | 54% | −0.004 |  |
+| Alignment tractability (in principle) | Easy | 21% | −0.092 | no |
+|  | Hard | 12% | −0.118 |  |
+|  | Near-impossible | 3% | −0.137 |  |
+| Offense/defense balance at ASI scale | Offense-dominant | 18% | −0.126 | no |
+|  | Balanced | 0% | −0.115 |  |
+|  | Defense-dominant | 18% | −0.095 |  |
 
-**Least favorable:** Deceptive alignment = Deceptive (−0.078); Offense/defense balance at ASI scale = Offense-dominant (−0.072); Orthogonality Thesis = Holds (−0.071).
+**Least favorable:** Orthogonality Thesis = Holds (−0.148); Alignment tractability (in principle) = Near-impossible (−0.137); Deceptive alignment = Faithful (−0.129).
 
 ---
 
@@ -77,17 +78,36 @@ Best lever in **10%** of objective worlds · moves Coordination regime→Regime,
 
 | Crux (objective question) | answer | best-lever share | mean margin | flips? |
 |---|---|---:|---:|:---:|
-| Orthogonality Thesis | Holds | 0% | −0.076 | no |
-|  | Fails | 46% | +0.001 |  |
-| Alignment tractability (in principle) | Easy | 18% | −0.046 | no |
-|  | Hard | 10% | −0.061 |  |
-|  | Near-impossible | 2% | −0.071 |  |
-| Offense/defense balance at ASI scale | Offense-dominant | 4% | −0.056 | no |
-|  | Balanced | 22% | −0.061 |  |
-|  | Defense-dominant | 4% | −0.065 |  |
+| Orthogonality Thesis | Holds | 0% | −0.074 | no |
+|  | Fails | 46% | −0.001 |  |
+| Alignment tractability (in principle) | Easy | 18% | −0.045 | no |
+|  | Hard | 10% | −0.059 |  |
+|  | Near-impossible | 3% | −0.069 |  |
+| Offense/defense balance at ASI scale | Offense-dominant | 4% | −0.054 | no |
+|  | Balanced | 22% | −0.059 |  |
+|  | Defense-dominant | 4% | −0.066 |  |
 
-**Most favorable conditions:** Orthogonality Thesis = Fails (+0.001).
-**Least favorable:** Orthogonality Thesis = Holds (−0.076); Alignment tractability (in principle) = Near-impossible (−0.071); Offense/defense balance at ASI scale = Defense-dominant (−0.065).
+**Least favorable:** Orthogonality Thesis = Holds (−0.074); Alignment tractability (in principle) = Near-impossible (−0.069); Offense/defense balance at ASI scale = Defense-dominant (−0.066).
+
+---
+
+## Standardize AI control
+
+Best lever in **4%** of objective worlds · moves Control solved & deployed→Yes.
+
+**Verdict:** a *conditional* priority — pursue it when **Orthogonality Thesis = Fails** (best-lever share 0%); otherwise a lower priority.
+
+| Crux (objective question) | answer | best-lever share | mean margin | flips? |
+|---|---|---:|---:|:---:|
+| Orthogonality Thesis | Holds | 6% | −0.071 | no |
+|  | Fails | 0% | −0.004 |  |
+| Deceptive alignment | Deceptive | 0% | −0.079 | no |
+|  | Faithful | 9% | −0.033 |  |
+| Offense/defense balance at ASI scale | Offense-dominant | 0% | −0.072 | no |
+|  | Balanced | 0% | −0.053 |  |
+|  | Defense-dominant | 22% | −0.027 |  |
+
+**Least favorable:** Deceptive alignment = Deceptive (−0.079); Offense/defense balance at ASI scale = Offense-dominant (−0.072); Orthogonality Thesis = Holds (−0.071).
 
 ---
 
@@ -99,17 +119,17 @@ Best lever in **0%** of objective worlds · moves Control solved & deployed→Ye
 
 | Crux (objective question) | answer | best-lever share | mean margin | flips? |
 |---|---|---:|---:|:---:|
-| Orthogonality Thesis | Holds | 0% | −0.100 | no |
-|  | Fails | 0% | −0.007 |  |
-| Alignment tractability (in principle) | Easy | 0% | −0.062 | no |
+| Orthogonality Thesis | Holds | 0% | −0.101 | no |
+|  | Fails | 0% | −0.008 |  |
+| Alignment tractability (in principle) | Easy | 0% | −0.063 | no |
 |  | Hard | 0% | −0.081 |  |
 |  | Near-impossible | 0% | −0.095 |  |
-| Offense/defense balance at ASI scale | Offense-dominant | 0% | −0.087 | no |
-|  | Balanced | 0% | −0.078 |  |
-|  | Defense-dominant | 0% | −0.063 |  |
+| Offense/defense balance at ASI scale | Offense-dominant | 0% | −0.088 | no |
+|  | Balanced | 0% | −0.079 |  |
+|  | Defense-dominant | 0% | −0.065 |  |
 
-**Least favorable:** Orthogonality Thesis = Holds (−0.100); Alignment tractability (in principle) = Near-impossible (−0.095); Offense/defense balance at ASI scale = Offense-dominant (−0.087).
+**Least favorable:** Orthogonality Thesis = Holds (−0.101); Alignment tractability (in principle) = Near-impossible (−0.095); Offense/defense balance at ASI scale = Offense-dominant (−0.088).
 
 ---
 
-*Prototype. Caveat from the findings: with only four, largely-correlated actions, three of them have small or empty best-lever regions — the output reads "pursue A only when [narrow crux]." That is the honest answer, and also the case for designing more differentiated actions. Conditioning is on objective factors only; a fuller version would also let you condition on the influenceable/contingent factors an action doesn't itself move.*
+*Prototype. Caveat from the findings: the actions are largely correlated, so several have small or empty best-lever regions — the output reads "pursue A only when [narrow crux]." That is the honest answer, and also the case for designing more differentiated actions (adding the open-source/antitrust lever, for instance, is what gives orthogonality a top-action flip). Conditioning is on objective factors only; a fuller version would also let you condition on the influenceable/contingent factors an action doesn't itself move.*

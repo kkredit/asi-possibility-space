@@ -173,19 +173,23 @@ P(s) = ∏_f  P(s_f | parents(f))
 argument that swaps the joint over to it. The implemented graph:
 
 ```
-  roots (priors from your sliders):   orthogonality   offenseDefense   takeoff
-                                            │                              │
-                                            ▼                  ┌───────────┼───────────┐
-                                       tractability ───────────┤           ▼           ▼
-                                            │                  ▼   powerConcentration  controlDeployed
-                                            └──────────► alignmentInTime ◄── takeoff
+  roots (priors from your sliders): orthogonality  offenseDefense  takeoff   coordination
+                                          │                          │  │          │
+                                          ▼              ┌───────────┘  │          │
+                                     tractability ───┐   │              ▼          │
+                                          │          │   ├──► powerConcentration ◄──┤
+                                          │          ▼   ▼                          │
+                                          └────► alignmentInTime ◄── coordination   │
+                                                        controlDeployed ◄── takeoff ┘
 ```
 
 i.e. **takeoff** drives power concentration, alignment-in-time, and control-deployed;
-**orthogonality** drives tractability; tractability also gates alignment-in-time. The
-three objective-ish roots (orthogonality, offense/defense, takeoff) read their priors
-**live from the sliders**; the four child factors are set by CPTs conditioned on their
-parents. The CPTs mirror the couplings (e.g. `P(concentrated | fast) = 0.9`).
+**coordination** also shapes power concentration (a governance regime concentrates the
+governable frontier) and buys time for alignment/control; **orthogonality** drives
+tractability, which also gates alignment-in-time. The roots (orthogonality, offense/
+defense, takeoff, coordination, deception) read their priors **live from the sliders**;
+the child factors are set by CPTs conditioned on their parents. The CPTs mirror the
+couplings (e.g. `P(concentrated | fast) = 0.9`).
 
 **It validates as a faithful refinement, not a different universe.** The net's joint
 sums to 1; its root marginals reproduce the sliders exactly; its child marginals stay

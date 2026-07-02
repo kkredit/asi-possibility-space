@@ -69,9 +69,11 @@ describe('bayes net — joint', () => {
     const m = bayesNetMarginals(net, dataset.factors, cr);
     expect(m.powerConcentration.concentrated).toBeGreaterThan(0); // marginal well-defined
     // Conditional checks via direct CPT lookup intent:
-    const pcGivenFast = net.nodes.find((n) => n.factor === 'powerConcentration')!.cpt!['fast'].concentrated;
-    const pcGivenSlow = net.nodes.find((n) => n.factor === 'powerConcentration')!.cpt!['slow'].concentrated;
-    expect(pcGivenFast).toBeGreaterThan(pcGivenSlow);
+    // Parents are (takeoff, coordination); compare across takeoff at a fixed regime.
+    const pcCpt = net.nodes.find((n) => n.factor === 'powerConcentration')!.cpt!;
+    expect(pcCpt['fast|none'].concentrated).toBeGreaterThan(pcCpt['slow|none'].concentrated);
+    // A coordination regime concentrates further at fixed takeoff.
+    expect(pcCpt['medium|regime'].concentrated).toBeGreaterThan(pcCpt['medium|none'].concentrated);
   });
 
   it('root marginals equal the credences; every factor marginal sums to 1', () => {

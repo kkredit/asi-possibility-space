@@ -777,6 +777,14 @@ const couplings: Coupling[] = [
     when: [{ factor: 'takeoff', state: 'slow' }, { factor: 'powerConcentration', state: 'concentrated' }],
     multiplier: 0.6,
   },
+  // A coordination regime governs the frontier — licensing, compute allocation — which
+  // tends to concentrate the (now-governable) few; suppress the regime-but-diffuse corner.
+  {
+    id: 'coordination_concentrates',
+    description: 'A coordination regime concentrates the governable frontier ⇒ regime-but-diffuse is less likely.',
+    when: [{ factor: 'coordination', state: 'regime' }, { factor: 'powerConcentration', state: 'diffuse' }],
+    multiplier: 0.7,
+  },
 
   // --- Takeoff speed ↔ getting alignment / control in time ---------------------
   // "Solved & deployed in time" is a race against the calendar. Fast takeoff shrinks
@@ -897,9 +905,25 @@ function withCoordination(baseYes: Record<string, number>): Record<string, Recor
   return out;
 }
 
+// P(concentrated | takeoff), before coordination. Fast takeoff concentrates.
+const concentratedBase: Record<string, number> = { fast: 0.9, medium: 0.55, slow: 0.35 };
+// Coordination shapes concentration too: a governance regime tends to concentrate the
+// (now-governable) frontier — licensing, compute allocation — while an uncoordinated
+// world leaves it a touch more diffuse. Parent order is (takeoff, coordination).
+function concentrationCpt(base: Record<string, number>): Record<string, Record<string, number>> {
+  const out: Record<string, Record<string, number>> = {};
+  for (const t of Object.keys(base)) {
+    for (const coord of ['regime', 'none'] as const) {
+      const p = clampP(base[t] * (coord === 'regime' ? 1.15 : 0.92));
+      out[`${t}|${coord}`] = { concentrated: p, diffuse: 1 - p };
+    }
+  }
+  return out;
+}
+
 const bayesNet: BayesNet = {
   description:
-    'First-pass DAG: objective facts, takeoff, coordination, and deceptive alignment are roots (priors from your sliders); tractability depends on orthogonality; power concentration depends on takeoff; and the “solved in time” factors depend on takeoff, tractability, and whether a coordination regime is in place. Deception is the lever that decides whether a deployed control regime can actually be trusted.',
+    'First-pass DAG: objective facts, takeoff, coordination, and deceptive alignment are roots (priors from your sliders); tractability depends on orthogonality; power concentration depends on takeoff and coordination (a governance regime concentrates the governable frontier); and the “solved in time” factors depend on takeoff, tractability, and whether a coordination regime is in place. Deception is the lever that decides whether a deployed control regime can actually be trusted.',
   nodes: [
     // --- roots: priors read live from credences (no CPT) -----------------------
     { factor: 'orthogonality', parents: [], note: 'Root: a structural fact; prior from your slider.' },
@@ -919,16 +943,12 @@ const bayesNet: BayesNet = {
       },
     },
 
-    // --- powerConcentration | takeoff -----------------------------------------
+    // --- powerConcentration | (takeoff, coordination) -------------------------
     {
       factor: 'powerConcentration',
-      parents: ['takeoff'],
-      note: 'A fast takeoff hands a decisive first-mover advantage, so capability concentrates; a slow one lets others catch up.',
-      cpt: {
-        fast: { concentrated: 0.9, diffuse: 0.1 },
-        medium: { concentrated: 0.55, diffuse: 0.45 },
-        slow: { concentrated: 0.35, diffuse: 0.65 },
-      },
+      parents: ['takeoff', 'coordination'],
+      note: 'A fast takeoff hands a decisive first-mover advantage, so capability concentrates; a slow one lets others catch up. A coordination regime also concentrates the (now-governable) frontier — licensing, compute allocation — while an uncoordinated world stays a touch more diffuse.',
+      cpt: concentrationCpt(concentratedBase),
     },
 
     // --- alignmentInTime | (takeoff, tractability, coordination) --------------
@@ -973,6 +993,13 @@ const actions: Action[] = [
       { factor: 'coordination', towardState: 'regime', magnitude: 0.2 },
       { factor: 'powerConcentration', towardState: 'concentrated', magnitude: 0.08 },
     ],
+  },
+  {
+    id: 'openFrontier',
+    label: 'Broaden frontier access (open-source / antitrust)',
+    description:
+      'Open weights, antitrust, and broad compute access push capability toward a diffuse, many-hands frontier — trading the governability of a concentrated frontier for distributed agency and resistance to lock-in. The opposite lever, concentrating the governable frontier, rides along with a coordination regime (see compute-governance).',
+    deltas: [{ factor: 'powerConcentration', towardState: 'diffuse', magnitude: 0.15 }],
   },
   {
     id: 'dacc',
