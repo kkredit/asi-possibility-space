@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Box, Container, Paper, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Container, FormControl, MenuItem, Paper, Select, Tab, Tabs, Typography } from '@mui/material';
+import type { ValueDimensionId } from '@model/types';
 import { dataset } from '@model/dataset';
 import {
   analyze,
@@ -79,6 +80,7 @@ export function App() {
   const probabilityModel = useBeliefs((s) => s.probabilityModel);
   const bayesProbability = useBeliefs((s) => s.bayesProbability);
   const [tab, setTab] = useState(0);
+  const [sensDim, setSensDim] = useState<'weighted' | ValueDimensionId>('weighted');
 
   const evaluator = getEvaluator(evaluatorId);
   // In Bayes-net mode the reconciled joint drives every analysis (it can't be
@@ -105,9 +107,17 @@ export function App() {
     }
     return m;
   }, [weights]);
+  // The tornado can be measured on the weighted EV or on a single value dimension.
+  // A single-dimension measure exposes conditional leverage the weighted scalar hides
+  // (e.g. power concentration is near-inert on EV but a top lever on agency).
+  const sensWeights = useMemo(
+    () => (sensDim === 'weighted' ? weights : { ...zeroVector(), [sensDim]: 1 }),
+    [sensDim, weights],
+  );
+  const sensMeasureLabel = sensDim === 'weighted' ? 'expected value' : dataset.valueDimensions.find((d) => d.id === sensDim)!.label.toLowerCase();
   const sens = useMemo(
-    () => sensitivity(dataset, credences, weights, evaluator, pins, jointProbability),
-    [credences, weights, evaluator, pins, jointProbability],
+    () => sensitivity(dataset, credences, sensWeights, evaluator, pins, jointProbability),
+    [credences, sensWeights, evaluator, pins, jointProbability],
   );
   const actions = useMemo(() => {
     if (!netMode || !dataset.bayesNet) return rankActions(dataset, credences, weights, evaluator, pins);
@@ -215,7 +225,28 @@ export function App() {
                   <ActionRanking ranked={actions.ranked} baselineEv={actions.baselineEv} />
                 </Panel>
                 <Panel>
-                  <Tornado rows={sens} />
+                  <Tornado
+                    rows={sens}
+                    measureLabel={sensMeasureLabel}
+                    control={
+                      <FormControl size="small" variant="standard">
+                        <Select
+                          value={sensDim}
+                          onChange={(e) => setSensDim(e.target.value as 'weighted' | ValueDimensionId)}
+                          disableUnderline
+                          sx={{ fontFamily: fonts.mono, fontSize: '0.72rem', color: c.mute, '& .MuiSelect-icon': { color: c.faint } }}
+                          MenuProps={{ slotProps: { paper: { sx: { bgcolor: c.panel, border: `1px solid ${c.line}` } } } }}
+                        >
+                          <MenuItem value="weighted" sx={{ fontSize: '0.75rem' }}>measure: weighted EV</MenuItem>
+                          {dataset.valueDimensions.map((d) => (
+                            <MenuItem key={d.id} value={d.id} sx={{ fontSize: '0.75rem' }}>
+                              measure: {d.label.toLowerCase()}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    }
+                  />
                 </Panel>
               </>
             )}

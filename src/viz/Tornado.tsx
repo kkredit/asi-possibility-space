@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Box, Stack, Typography } from '@mui/material';
 import type { SensitivityRow } from '@engine/sensitivity';
 import { c, fonts, kindColor, kindLabel } from '@shell/theme';
@@ -5,10 +6,14 @@ import { wrapLabel } from '@viz/text';
 
 interface Props {
   rows: SensitivityRow[];
+  /** What the swing is measured on (e.g. "expected value", "agency"). */
+  measureLabel?: string;
+  /** Optional control (e.g. a dimension selector) rendered in the header. */
+  control?: ReactNode;
 }
 
-/** Tornado chart: EV swing per factor, colored by kind (the "where to act" read-out). */
-export function Tornado({ rows }: Props) {
+/** Tornado chart: swing per factor, colored by kind (the "where to act" read-out). */
+export function Tornado({ rows, measureLabel = 'EV', control }: Props) {
   const width = 880;
   const rowH = 40;
   const labelW = 250;
@@ -21,11 +26,12 @@ export function Tornado({ rows }: Props) {
 
   return (
     <Box>
-      <Typography variant="subtitle2" gutterBottom>
-        Where it matters
-      </Typography>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 0.25 }}>
+        <Typography variant="subtitle2">Where it matters</Typography>
+        {control}
+      </Stack>
       <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 1 }}>
-        how far EV swings as each factor moves across its states — colored by what you can do about it
+        how far {measureLabel} swings as each factor moves across its states — colored by what you can do about it
       </Typography>
       <svg width="100%" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Sensitivity tornado">
         <line x1={xOf(0)} x2={xOf(0)} y1={chartTop} y2={rows.length * rowH + chartTop} stroke={c.faint} strokeDasharray="2 4" />

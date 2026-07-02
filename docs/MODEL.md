@@ -68,8 +68,8 @@ from cached over all 1,728 scenarios, in value-vector space (each dimension is i
 | Model | Free params | RMS to cached | What its residual *is* |
 |---|---:|---:|---|
 | `linear` (hand-set)¹ | 22 | **0.533** | bad coefficients **+** non-linearity (conflated) |
-| `fitted` (additive) | 22 | **0.308** | **irreducible non-linearity** — what no sum-of-factors can express |
-| `archetype` (8 régimes) | 32 | **0.194** | structure beyond an 8-way logical split |
+| `fitted` (additive) | 22 | **0.310** | **irreducible non-linearity** — what no sum-of-factors can express |
+| `archetype` (8 régimes) | 32 | **0.182** | structure beyond an 8-way logical split |
 | `fitted + pairwise` | 217 | **0.141** | genuinely **higher-than-pairwise** (3-way+) entanglement |
 | `cached` | — | 0 | (the reference) |
 
@@ -91,8 +91,8 @@ Three things fall out of this ladder:
    on *combinations* of factors, not a sum of independent pulls.
 
 3. **The space is fundamentally *gated*, not additive — across eight régimes.**
-   The `archetype` model (0.194, just 32 data-derived numbers) decisively beats the
-   best 22-parameter additive model (0.308) and gets most of the way to the
+   The `archetype` model (0.182, just 32 data-derived numbers) decisively beats the
+   best 22-parameter additive model (0.310) and gets most of the way to the
    217-parameter pairwise fit (0.141). It works by classifying each scenario into one
    of **eight logical régimes** — the four archetypes (benign / aligned / control /
    doom) each split by whether **deception** holds — and predicting that régime's mean.
@@ -100,7 +100,12 @@ Three things fall out of this ladder:
    place here: when it was first added but the archetype still used only four buckets,
    its lead collapsed to a hair (0.300 vs 0.308), because deception's large swing (it
    guts a CONTROL world, falsifies an ALIGNED one) landed as within-bucket residual;
-   splitting the buckets on deception (4 → 8) recovered it (0.300 → 0.194).
+   splitting the buckets on deception (4 → 8) recovered it. Part of the *remaining*
+   residual is deliberate interaction: **power concentration × coordination** — a
+   governance regime makes concentrated power accountable (agency recovers) but mildly
+   centralizes an already-diffuse world (agency dips), so its agency effect flips sign
+   on the power state. That's exactly the kind of two-way term the additive models can't
+   see and the pairwise fit can.
 
 ### The gates
 
@@ -124,7 +129,7 @@ confirming the narrative's own logic.
 
 - The `fitted` evaluator is the right **null model**: divergence from *it* (not from
   hand-`linear`) is real non-linearity worth investigating.
-- The `archetype` residual (0.194) localises *within-régime* variation — once you
+- The `archetype` residual (0.182) localises *within-régime* variation — once you
   know the gate (including deception), what's left is the secondary modulation
   (offense/defense balance, power concentration, takeoff, coordination) the means
   average over. Those are the cells most worth re-reasoning carefully.

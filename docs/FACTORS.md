@@ -40,6 +40,17 @@ now splits each archetype in two (eight régimes in the `archetype` evaluator). 
 more than a new objective one* — but deception earned its objective slot by changing
 the *meaning* of an existing gate rather than adding an independent pull.
 
+**Power concentration (5) looks inert but isn't.** Its marginal tornado swing is ≈ 0,
+which is a *metric* artifact, not a fact about the factor: its effect is moot in the
+doom corner (a misaligned takeover moots who held power), sign-split elsewhere
+(concentration buys survival-safety but costs agency), and the default weights are
+survival-heavy. Measured on **agency** alone it is a top-3 lever, and it swings hard
+*conditional* on a survivable world (see [`FINDINGS.md`](FINDINGS.md) §7). The value
+surface now also carries a **power-concentration × coordination** interaction: a
+governance regime checks concentrated power (agency recovers) but centralizes an
+already-diffuse world (agency dips) — governance changes what concentration *means*.
+The "measure by" selector on the *Where to act* tornado surfaces this per dimension.
+
 ---
 
 ## 2. Candidate factors, ranked by expected usefulness

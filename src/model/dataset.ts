@@ -661,28 +661,53 @@ function expandTakeoff(base: CachedCell): CachedCell[] {
   ];
 }
 
-// Coordination's small, mixed direct delta (see linearContributions.coordination).
-// Its big effect is on the ODDS of alignment/control (couplings + Bayes net), not on
-// the value of an already-specified world — so the direct delta here is deliberately
-// modest and régime-independent.
-const coordinationDelta: ValueTuple = [0.06, -0.07, 0.05, 0.02];
+// Coordination's direct value delta. Its BIG effect is on the ODDS of alignment/control
+// (couplings + Bayes net), not on the value of an already-specified world, so the direct
+// benefit — collective restraint buying a little survival / suffering-safety — is modest
+// and régime-independent.
+//
+// The AGENCY term, though, is a genuine INTERACTION with power concentration: it's the
+// concentration × coordination effect a marginal tornado hides. Who-holds-power is only
+// live outside the doom corner (a misaligned takeover moots who held power beforehand):
+//   • concentrated + regime → the concentrated power is CHECKED / accountable → agency RECOVERS
+//   • concentrated + none   → unchecked concentration (the anchor) — no recovery
+//   • diffuse      + regime → a regime centralizes an otherwise distributed world → agency DIPS
+// So a governance regime is agency-POSITIVE exactly where power is concentrated (it converts
+// lock-in into accountable stewardship) and mildly agency-negative where power is already
+// diffuse. This is what makes power concentration *matter conditionally* on governance.
+const coordinationBenefit: ValueTuple = [0.06, 0, 0.05, 0.02]; // survival / suffering / flourishing only
+
+function coordinationAgencyShift(corner: Corner, power: string): number {
+  if (corner === 'doom') return 0; // who held power is moot once a misaligned ASI takes over
+  return power === 'concentrated' ? 0.16 : -0.06;
+}
 
 /** Expand one cell into its coordination = {none, regime} variants. */
 function expandCoordination(base: CachedCell): CachedCell[] {
+  const corner = classifyCorner(base.scenario);
+  const power = base.scenario.powerConcentration;
   const { survival, agency, suffering, flourishing } = base.outcome.value;
   const tuple: ValueTuple = [survival, agency, suffering, flourishing];
   const conf = base.outcome.confidence ?? 0.4;
+  const regimeDelta: ValueTuple = [
+    coordinationBenefit[0],
+    coordinationAgencyShift(corner, power),
+    coordinationBenefit[2],
+    coordinationBenefit[3],
+  ];
+  const regimeClause =
+    corner === 'doom'
+      ? 'A standing coordination regime came too late to change a misaligned takeover.'
+      : power === 'concentrated'
+        ? 'A standing coordination regime makes the concentrated power accountable — collective restraint that checks the lock-in.'
+        : 'A standing coordination regime adds collective restraint, at a measure of centralization over an otherwise distributed world.';
   const make = (coordination: string, [s, a, su, f]: ValueTuple, narrative: string): CachedCell => ({
     scenario: { ...base.scenario, coordination },
     outcome: { narrative, value: { survival: s, agency: a, suffering: su, flourishing: f }, confidence: conf },
   });
   return [
     make('none', tuple, base.outcome.narrative),
-    make(
-      'regime',
-      shiftTuple(tuple, coordinationDelta),
-      `${base.outcome.narrative} A standing coordination regime adds a measure of collective restraint, at a measure of centralization.`,
-    ),
+    make('regime', shiftTuple(tuple, regimeDelta), `${base.outcome.narrative} ${regimeClause}`),
   ];
 }
 
