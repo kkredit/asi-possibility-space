@@ -463,20 +463,38 @@ function actionWorlds(
   return { worlds, condIds };
 }
 
+/**
+ * Which quantity the action-conditions read-out aggregates:
+ *  - 'margin' — the action's gain minus the best alternative (is it THE priority?)
+ *  - 'gain'   — the action's absolute EV gain vs. doing nothing (is it beneficial, and
+ *               how much?). A low best-lever share with a high positive-gain share means
+ *               "helpful, just not the single best" — never "harmful".
+ */
+export type ActionMetric = 'margin' | 'gain';
+const metricValue = (w: ActionWorld, metric: ActionMetric) => (metric === 'gain' ? w.gain : w.margin);
+
 export interface ActionConditions {
-  /** Probability-weighted mean margin over the best alternative (the headline). */
-  meanMargin: number;
-  /** Share of condition-worlds where this action is the single best lever. */
+  /** Which quantity the cruxes/lists/headline reflect. */
+  metric: ActionMetric;
+  /** Probability-weighted mean of the selected metric (the headline number). */
+  mean: number;
+  /** Share of condition-worlds where the selected metric is positive. */
+  favorableShare: number;
+  /** Always: share where the action is the single best lever (margin > 0). */
   bestLeverShare: number;
-  /** Share of condition-worlds where the action improves EV at all. */
+  /** Always: share where the action improves EV on its own (gain > 0). */
   positiveGainShare: number;
-  /** Per objective factor, the margin conditioned on each state — the crux tornado. */
+  /** Always: mean absolute gain vs. doing nothing. */
+  meanGain: number;
+  /** Always: mean margin over the best alternative. */
+  meanMargin: number;
+  /** Per objective factor, the selected metric conditioned on each state — the crux tornado. */
   cruxes: Crux[];
   favorableWhen: ConditionLine[];
   unfavorableWhen: ConditionLine[];
 }
 
-/** "Under what conditions is this action the one to pursue?" */
+/** "Under what conditions is this action worth pursuing?" (metric picks the lens). */
 export function actionConditions(
   dataset: Dataset,
   credences: Credences,
@@ -484,12 +502,16 @@ export function actionConditions(
   evaluator: Evaluator,
   action: Action,
   given: Pins = {},
+  metric: ActionMetric = 'margin',
 ): ActionConditions {
   const { worlds, condIds } = actionWorlds(dataset, credences, weights, evaluator, action, given);
   const totP = worlds.reduce((a, w) => a + w.prob, 0) || 1;
   const meanMargin = worlds.reduce((a, w) => a + w.prob * w.margin, 0) / totP;
+  const meanGain = worlds.reduce((a, w) => a + w.prob * w.gain, 0) / totP;
   const bestLeverShare = worlds.reduce((a, w) => a + (w.margin > 1e-9 ? w.prob : 0), 0) / totP;
   const positiveGainShare = worlds.reduce((a, w) => a + (w.gain > 1e-9 ? w.prob : 0), 0) / totP;
+  const mean = metric === 'gain' ? meanGain : meanMargin;
+  const favorableShare = metric === 'gain' ? positiveGainShare : bestLeverShare;
 
   const cruxes: Crux[] = [];
   const favorableWhen: ConditionLine[] = [];
@@ -499,7 +521,7 @@ export function actionConditions(
     const states: CruxStateDelta[] = factor.states.map((st) => {
       const sel = worlds.filter((w) => w.pins[fid] === st.id);
       const m = sel.reduce((a, w) => a + w.prob, 0);
-      const delta = m > 0 ? sel.reduce((a, w) => a + w.prob * w.margin, 0) / m : 0;
+      const delta = m > 0 ? sel.reduce((a, w) => a + w.prob * metricValue(w, metric), 0) / m : 0;
       return { stateId: st.id, label: st.label, delta };
     });
     let low = states[0];
@@ -528,24 +550,25 @@ export function actionConditions(
   favorableWhen.sort((a, b) => b.delta - a.delta);
   unfavorableWhen.sort((a, b) => a.delta - b.delta);
 
-  return { meanMargin, bestLeverShare, positiveGainShare, cruxes, favorableWhen, unfavorableWhen };
+  return { metric, mean, favorableShare, bestLeverShare, positiveGainShare, meanGain, meanMargin, cruxes, favorableWhen, unfavorableWhen };
 }
 
-/** Just the mean margin — for fast credence sweeps. */
-function actionMeanMargin(
+/** Just the prob-weighted mean of the selected metric — for fast credence sweeps. */
+function actionMean(
   dataset: Dataset,
   credences: Credences,
   weights: Parameters<typeof analyze>[2],
   evaluator: Evaluator,
   action: Action,
   given: Pins,
+  metric: ActionMetric,
 ): number {
   const { worlds } = actionWorlds(dataset, credences, weights, evaluator, action, given);
   const totP = worlds.reduce((a, w) => a + w.prob, 0) || 1;
-  return worlds.reduce((a, w) => a + w.prob * w.margin, 0) / totP;
+  return worlds.reduce((a, w) => a + w.prob * metricValue(w, metric), 0) / totP;
 }
 
-/** Two-way map of an action's margin over the states of two objective condition factors. */
+/** Two-way map of an action's selected metric over two objective condition factors. */
 export function actionContrastGrid(
   dataset: Dataset,
   credences: Credences,
@@ -555,6 +578,7 @@ export function actionContrastGrid(
   f1Id: FactorId,
   f2Id: FactorId,
   given: Pins = {},
+  metric: ActionMetric = 'margin',
 ): ContrastGrid | null {
   const f1 = dataset.factors.find((f) => f.id === f1Id);
   const f2 = dataset.factors.find((f) => f.id === f2Id);
@@ -568,7 +592,7 @@ export function actionContrastGrid(
     for (const s2 of f2.states) {
       const sel = worlds.filter((w) => w.pins[f1.id] === s1.id && w.pins[f2.id] === s2.id);
       const m = sel.reduce((a, w) => a + w.prob, 0);
-      const delta = m > 0 ? sel.reduce((a, w) => a + w.prob * w.margin, 0) / m : 0;
+      const delta = m > 0 ? sel.reduce((a, w) => a + w.prob * metricValue(w, metric), 0) / m : 0;
       maxAbs = Math.max(maxAbs, Math.abs(delta));
       row.push(delta);
     }
@@ -594,13 +618,14 @@ export function actionBeliefThreshold(
   sweepFactor: FactorId,
   sweepState: StateId,
   given: Pins = {},
+  metric: ActionMetric = 'margin',
 ): BeliefThreshold {
   const steps = 20;
   const points: ThresholdPoint[] = [];
   for (let i = 0; i <= steps; i++) {
     const p = i / steps;
     const cred: Credences = { ...credences, [sweepFactor]: withMarginal(credences[sweepFactor], sweepState, p) };
-    points.push({ p, netDelta: actionMeanMargin(dataset, cred, weights, evaluator, action, given) });
+    points.push({ p, netDelta: actionMean(dataset, cred, weights, evaluator, action, given, metric) });
   }
   const crossings: ThresholdCrossing[] = [];
   for (let i = 1; i < points.length; i++) {
@@ -615,7 +640,7 @@ export function actionBeliefThreshold(
     sweepFactor,
     sweepState,
     currentP: credences[sweepFactor][sweepState] ?? 0,
-    netDeltaAtCurrent: actionMeanMargin(dataset, credences, weights, evaluator, action, given),
+    netDeltaAtCurrent: actionMean(dataset, credences, weights, evaluator, action, given, metric),
     points,
     crossings,
   };

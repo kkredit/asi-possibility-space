@@ -174,6 +174,19 @@ describe('action conditions', () => {
     expect(actionContrastGrid(dataset, cr, w, cachedEvaluator, fund, 'orthogonality', 'controlDeployed')).toBeNull();
   });
 
+  it('absolute-gain metric shows a low-best-lever action is still beneficial, not harmful', () => {
+    const gov = dataset.actions.find((a) => a.id === 'computeGovernance')!;
+    const marginView = actionConditions(dataset, cr, w, cachedEvaluator, gov, {}, 'margin');
+    const gainView = actionConditions(dataset, cr, w, cachedEvaluator, gov, {}, 'gain');
+    // Rarely the single best lever...
+    expect(marginView.bestLeverShare).toBeLessThan(0.5);
+    // ...yet it improves EV on its own almost everywhere, with positive mean gain.
+    expect(gainView.favorableShare).toBeGreaterThan(0.9);
+    expect(gainView.mean).toBeGreaterThan(0);
+    expect(gainView.mean).toBeCloseTo(gainView.meanGain, 10);
+    expect(marginView.mean).toBeCloseTo(marginView.meanMargin, 10);
+  });
+
   it('belief threshold sweep produces monotone-p points and a current reading', () => {
     const t = actionBeliefThreshold(dataset, cr, w, cachedEvaluator, fund, 'deception', 'deceptive');
     expect(t.points.length).toBe(21);
