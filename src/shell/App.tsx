@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Box, Container, FormControl, MenuItem, Paper, Select, Tab, Tabs, Typography } from '@mui/material';
-import type { ValueDimensionId } from '@model/types';
+import { Box, Container, Paper, Tab, Tabs, Typography } from '@mui/material';
 import { dataset } from '@model/dataset';
 import {
   analyze,
@@ -14,7 +13,6 @@ import {
   rankActions,
   reconcileJoint,
   scalarize,
-  sensitivity,
   zeroVector,
 } from '@engine/index';
 import { Controls } from '@shell/controls/Controls';
@@ -23,15 +21,14 @@ import { Logo } from '@shell/Logo';
 import { useBeliefs } from '@shell/store';
 import { c, fonts } from '@shell/theme';
 import { EVDistribution } from '@viz/EVDistribution';
-import { Tornado } from '@viz/Tornado';
-import { ActionRanking } from '@viz/ActionRanking';
 import { ScenarioTable } from '@viz/ScenarioTable';
 import { ParallelCoordinates } from '@viz/ParallelCoordinates';
 import { EvaluatorDiff, type DiffPoint } from '@viz/EvaluatorDiff';
 import { ModelLadder, type LadderRow } from '@viz/ModelLadder';
 import { InfoTip } from '@viz/InfoTip';
 import { Panel } from '@shell/Panel';
-import { ConditionsTab } from '@shell/tabs/ConditionsTab';
+import { ActionsTab } from '@shell/tabs/ActionsTab';
+import { FactorsTab } from '@shell/tabs/FactorsTab';
 
 // The full scenario-space size, derived so it never goes stale as factors change.
 const SCENARIO_COUNT = dataset.factors.reduce((n, f) => n * f.states.length, 1);
@@ -80,7 +77,6 @@ export function App() {
   const probabilityModel = useBeliefs((s) => s.probabilityModel);
   const bayesProbability = useBeliefs((s) => s.bayesProbability);
   const [tab, setTab] = useState(0);
-  const [sensDim, setSensDim] = useState<'weighted' | ValueDimensionId>('weighted');
 
   const evaluator = getEvaluator(evaluatorId);
   // In Bayes-net mode the reconciled joint drives every analysis (it can't be
@@ -107,18 +103,6 @@ export function App() {
     }
     return m;
   }, [weights]);
-  // The tornado can be measured on the weighted EV or on a single value dimension.
-  // A single-dimension measure exposes conditional leverage the weighted scalar hides
-  // (e.g. power concentration is near-inert on EV but a top lever on agency).
-  const sensWeights = useMemo(
-    () => (sensDim === 'weighted' ? weights : { ...zeroVector(), [sensDim]: 1 }),
-    [sensDim, weights],
-  );
-  const sensMeasureLabel = sensDim === 'weighted' ? 'expected value' : dataset.valueDimensions.find((d) => d.id === sensDim)!.label.toLowerCase();
-  const sens = useMemo(
-    () => sensitivity(dataset, credences, sensWeights, evaluator, pins, jointProbability),
-    [credences, sensWeights, evaluator, pins, jointProbability],
-  );
   const actions = useMemo(() => {
     if (!netMode || !dataset.bayesNet) return rankActions(dataset, credences, weights, evaluator, pins);
     // Net mode: apply the action to the credence marginals, then re-rake the net's
@@ -201,8 +185,8 @@ export function App() {
             <Box sx={{ borderBottom: `1px solid ${c.line}`, mb: 2 }}>
               <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto" allowScrollButtonsMobile>
                 <Tab label="Landscape" />
-                <Tab label="Where to act" />
-                <Tab label="Conditions" />
+                <Tab label="Actions" />
+                <Tab label="Factors" />
                 <Tab label="Scenarios" />
                 <Tab label="Evaluators" />
               </Tabs>
@@ -220,39 +204,17 @@ export function App() {
             )}
 
             {tab === 1 && (
-              <>
-                <Panel>
-                  <ActionRanking ranked={actions.ranked} baselineEv={actions.baselineEv} />
-                </Panel>
-                <Panel>
-                  <Tornado
-                    rows={sens}
-                    measureLabel={sensMeasureLabel}
-                    control={
-                      <FormControl size="small" variant="standard">
-                        <Select
-                          value={sensDim}
-                          onChange={(e) => setSensDim(e.target.value as 'weighted' | ValueDimensionId)}
-                          disableUnderline
-                          sx={{ fontFamily: fonts.mono, fontSize: '0.72rem', color: c.mute, '& .MuiSelect-icon': { color: c.faint } }}
-                          MenuProps={{ slotProps: { paper: { sx: { bgcolor: c.panel, border: `1px solid ${c.line}` } } } }}
-                        >
-                          <MenuItem value="weighted" sx={{ fontSize: '0.75rem' }}>measure: weighted EV</MenuItem>
-                          {dataset.valueDimensions.map((d) => (
-                            <MenuItem key={d.id} value={d.id} sx={{ fontSize: '0.75rem' }}>
-                              measure: {d.label.toLowerCase()}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    }
-                  />
-                </Panel>
-              </>
+              <ActionsTab
+                credences={credences}
+                weights={weights}
+                evaluator={evaluator}
+                pins={pins}
+                ranking={actions}
+              />
             )}
 
             {tab === 2 && (
-              <ConditionsTab
+              <FactorsTab
                 credences={credences}
                 weights={weights}
                 evaluator={evaluator}
