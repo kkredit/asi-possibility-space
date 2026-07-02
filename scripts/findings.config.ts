@@ -18,7 +18,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['scripts/mine-findings.ts', 'scripts/research-roi.ts'],
+    include: ['scripts/mine-findings.ts', 'scripts/research-roi.ts', 'scripts/action-conditions.ts'],
     testTimeout: 60_000,
   },
 });
