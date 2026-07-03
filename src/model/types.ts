@@ -341,6 +341,9 @@ export interface Preset {
   weights?: ValueVector;
   /** Their stated p(doom)/p(catastrophe) as a display string, if on record. */
   pdoom?: string;
+  /** How the modeled numbers were derived and why the model-implied doom/EV may
+   *  differ from the stated view — the sources-and-reasoning reconciliation note. */
+  reconciliation?: string;
   /** Per-factor rationale, accuracy, and supporting reference indices. */
   factors: Partial<Record<FactorId, PresetFactorView>>;
   /** The entity's numbered reference list; `factors[id].refs` index into it (1-based). */

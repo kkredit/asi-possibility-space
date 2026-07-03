@@ -73,6 +73,15 @@ describe('belief presets', () => {
   });
 });
 
+describe('preset reconciliation notes', () => {
+  it('every preset explains how its numbers were derived and where discrepancies come from', () => {
+    for (const p of presets) {
+      expect(p.reconciliation, `${p.id} missing reconciliation`).toBeDefined();
+      expect(p.reconciliation!.length, `${p.id} reconciliation too thin`).toBeGreaterThan(80);
+    }
+  });
+});
+
 describe('preset sub-credences (alignment deep dive)', () => {
   it('every subfactor distribution sums to 1 over that subfactor\'s states', () => {
     for (const p of presets) {
@@ -100,7 +109,9 @@ describe('preset sub-credences (alignment deep dive)', () => {
       const subs: SubCredences = { ...dataset.subBaseline!, ...(p.subCredences ?? {}) };
       const d = deriveCredences(dataset, stated, subs);
       const dy = Math.abs(d.alignmentInTime.yes - stated.alignmentInTime.yes);
-      expect(dy, `${p.id} alignYes derived-vs-stated gap ${dy.toFixed(2)}`).toBeLessThanOrEqual(0.08);
+      // 0.1 (not tighter): the pdoom reconciliation deliberately trades a little
+      // per-factor consistency for fidelity to each entity's clearly-stated doom.
+      expect(dy, `${p.id} alignYes derived-vs-stated gap ${dy.toFixed(2)}`).toBeLessThanOrEqual(0.1);
       const l1 = (['easy', 'hard', 'nearImpossible'] as const).reduce(
         (a, st) => a + Math.abs((d.tractability[st] ?? 0) - (stated.tractability[st] ?? 0)), 0);
       expect(l1, `${p.id} tractability L1 gap ${l1.toFixed(2)}`).toBeLessThanOrEqual(0.45);

@@ -219,10 +219,27 @@ export function Presets() {
               <Typography sx={{ fontSize: '0.72rem', color: c.mute, fontWeight: 400 }}>{active.role}</Typography>
             </DialogTitle>
             <DialogContent>
+              {active.reconciliation ? (
+                <Box sx={{ mb: 1.75 }}>
+                  <Typography sx={{ ...sectionLabel, fontSize: '0.64rem', mb: 0.5 }}>
+                    How the numbers reconcile
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.74rem', color: c.mute, mb: 0.6 }}>
+                    Stated: <Box component="span" sx={{ fontFamily: fonts.mono, color: c.bone }}>{active.pdoom ?? 'no number on record'}</Box>
+                    {' · '}model-implied extinction mass:{' '}
+                    <Box component="span" sx={{ fontFamily: fonts.mono, color: valueColor(-presetDoom[active.id]) }}>
+                      {Math.round(presetDoom[active.id] * 100)}%
+                    </Box>
+                  </Typography>
+                  <Typography sx={{ fontSize: '0.76rem', color: c.bone, lineHeight: 1.55 }}>
+                    {active.reconciliation}
+                  </Typography>
+                </Box>
+              ) : null}
               <Typography sx={{ ...sectionLabel, fontSize: '0.64rem', mb: 0.75 }}>
                 How each factor was set · per-factor accuracy
               </Typography>
-              {dataset.factors.map((f) => {
+              {[...dataset.factors, ...(dataset.subfactors ?? [])].map((f) => {
                 const view = active.factors[f.id as KnownFactorId];
                 if (!view) return null;
                 return (

@@ -59,10 +59,12 @@ import type { KnownCredences, KnownFactorId, KnownSubCredences, KnownSubfactorId
  * compile error, and adding one in ids.ts forces every preset to take a position on
  * it. Factor notes are keyed likewise (subfactors included).
  */
-type KnownPreset = Omit<Preset, 'credences' | 'subCredences' | 'factors'> & {
+type KnownPreset = Omit<Preset, 'credences' | 'subCredences' | 'factors' | 'reconciliation'> & {
   credences: KnownCredences;
   subCredences: KnownSubCredences;
   factors: Partial<Record<KnownFactorId | KnownSubfactorId, PresetFactorView>>;
+  /** Required for every preset: the derivation-and-discrepancy note. */
+  reconciliation: string;
 };
 
 export const presets: KnownPreset[] = [
@@ -75,6 +77,8 @@ export const presets: KnownPreset[] = [
     summary:
       'Control of superintelligence is not merely hard but fundamentally impossible — a "perpetual safety machine" — so building AGI is near-certain catastrophe; the only winning move is not to build it.',
     pdoom: '~99.999999%',
+    reconciliation:
+      'Factor credences are stated to three decimals because his positions are published impossibility proofs — on the odds scale, 0.99 and 0.995 are different claims. The model-implied doom lands at hundreds-to-one against survival; the remaining distance to his professed 99.999999% is deliberate satisficing: that figure is read as directional rhetoric, and a shared 1,728-scenario model cannot (and should not pretend to) resolve millionths.',
     credences: {
       orthogonality: { holds: 0.998, fails: 0.002 },
       tractability: { easy: 0.001, hard: 0.004, nearImpossible: 0.995 },
@@ -138,6 +142,8 @@ export const presets: KnownPreset[] = [
     summary:
       'Building superhuman AI under anything like current conditions kills everyone by default; alignment is unsolved and will not be solved in time — the only adequate response is to halt frontier development.',
     pdoom: '>95% (resists a single number)',
+    reconciliation:
+      'His per-factor stances are unusually explicit (corrigibility anti-natural, oversight unworkable, value fragile), so nearly everything is pinned by direct quotes at three-decimal extremity. Model-implied doom sits in the ninety-nines; the residual versus \'resists a single number\' comes from the shared model\'s small benign-attractor floor and the Bayes-net raking, which redistributes a sliver of mass into correlated lucky corners even for him.',
     credences: {
       orthogonality: { holds: 0.995, fails: 0.005 },
       tractability: { easy: 0.001, hard: 0.019, nearImpossible: 0.98 },
@@ -198,26 +204,28 @@ export const presets: KnownPreset[] = [
     summary:
       'A US–China race drives labs to build superintelligence within a few years, before alignment is solved — making misaligned takeover and extreme power concentration the default absent a deliberate, costly slowdown.',
     pdoom: '~70%',
+    reconciliation:
+      'His clearly-stated ~70% pins the overall level; the deception-heavy tilt (deceptive ≈ 0.73) reflects AI-2027\'s central mechanism. His objective subfactor readings are deliberately softer than his doom number — AI-2027\'s slowdown ending shows he thinks the problem is tractable given time, so his doom flows from the race, not impossibility. Model-implied doom matches his stated figure.',
     credences: {
-      orthogonality: { holds: 0.82, fails: 0.18 },
+      orthogonality: { fails: 0.155, holds: 0.845 },
       tractability: { easy: 0.07, hard: 0.7, nearImpossible: 0.23 },
-      offenseDefense: { offense: 0.65, balanced: 0.25, defense: 0.1 },
-      takeoff: { fast: 0.55, medium: 0.35, slow: 0.1 },
+      offenseDefense: { defense: 0.1, balanced: 0.25, offense: 0.65 },
+      takeoff: { slow: 0.1, medium: 0.35, fast: 0.55 },
       powerConcentration: { concentrated: 0.85, diffuse: 0.15 },
       alignmentInTime: { yes: 0.3, no: 0.7 },
       controlDeployed: { yes: 0.4, no: 0.6 },
       coordination: { regime: 0.25, none: 0.75 },
-      deception: { deceptive: 0.7, faithful: 0.3 },
+      deception: { faithful: 0.272, deceptive: 0.728 },
     },
     subCredences: {
-      interpLegibility: { legible: 0.054, partially: 0.876, opaque: 0.07 },
-      valueSpec: { learnable: 0.509, brittle: 0.491 },
-      corrigibility: { broadBasin: 0.035, narrow: 0.922, antiNatural: 0.043 },
-      oversightScaling: { scales: 0.378, fails: 0.622 },
-      interpResearch: { mature: 0.002, partial: 0.182, nascent: 0.816 },
-      oversightResearch: { mature: 0.002, partial: 0.342, nascent: 0.656 },
-      theoryResearch: { mature: 0.002, partial: 0.012, nascent: 0.986 },
-      evalsResearch: { mature: 0.003, partial: 0.511, nascent: 0.486 },
+      interpLegibility: { legible: 0.041, partially: 0.868, opaque: 0.091 },
+      valueSpec: { learnable: 0.427, brittle: 0.573 },
+      corrigibility: { broadBasin: 0.024, narrow: 0.915, antiNatural: 0.061 },
+      oversightScaling: { scales: 0.311, fails: 0.689 },
+      interpResearch: { mature: 0.001, partial: 0.15, nascent: 0.849 },
+      oversightResearch: { mature: 0.001, partial: 0.265, nascent: 0.734 },
+      theoryResearch: { mature: 0.001, partial: 0.007, nascent: 0.992 },
+      evalsResearch: { mature: 0.002, partial: 0.421, nascent: 0.577 },
     },
     weights: { survival: 1.0, agency: 0.8, suffering: 0.45, flourishing: 0.55 },
     references: [
@@ -260,26 +268,28 @@ export const presets: KnownPreset[] = [
     summary:
       'Shares AI 2027\'s fast-takeoff, power-concentration, weak-coordination framing — misaligned takeover is roughly as likely as not — but is more optimistic than Kokotajlo that empirical iteration plus a conceptual insight gives alignment a real chance.',
     pdoom: '~25% extinction (~50% misaligned takeover)',
+    reconciliation:
+      'He states ~25% extinction inside ~50% misaligned takeover. The model\'s doom mass counts takeover-death worlds, so it targets the region between those figures and lands slightly above — the residual is the shared value surface scoring misaligned takeover as extinction-level, where he draws a finer line between \'takeover\' and \'extinct\'.',
     credences: {
-      orthogonality: { holds: 0.9, fails: 0.1 },
+      orthogonality: { fails: 0.128, holds: 0.872 },
       tractability: { easy: 0.1, hard: 0.65, nearImpossible: 0.25 },
-      offenseDefense: { offense: 0.6, balanced: 0.25, defense: 0.15 },
-      takeoff: { fast: 0.6, medium: 0.3, slow: 0.1 },
+      offenseDefense: { defense: 0.15, balanced: 0.25, offense: 0.6 },
+      takeoff: { slow: 0.1, medium: 0.3, fast: 0.6 },
       powerConcentration: { concentrated: 0.8, diffuse: 0.2 },
       alignmentInTime: { yes: 0.45, no: 0.55 },
       controlDeployed: { yes: 0.35, no: 0.65 },
       coordination: { regime: 0.25, none: 0.75 },
-      deception: { deceptive: 0.55, faithful: 0.45 },
+      deception: { faithful: 0.519, deceptive: 0.481 },
     },
     subCredences: {
-      interpLegibility: { legible: 0.266, partially: 0.626, opaque: 0.108 },
-      valueSpec: { learnable: 0.462, brittle: 0.538 },
-      corrigibility: { broadBasin: 0.31, narrow: 0.591, antiNatural: 0.099 },
-      oversightScaling: { scales: 0.444, fails: 0.556 },
-      interpResearch: { mature: 0.006, partial: 0.254, nascent: 0.74 },
-      oversightResearch: { mature: 0.009, partial: 0.368, nascent: 0.623 },
-      theoryResearch: { mature: 0.002, partial: 0.072, nascent: 0.926 },
-      evalsResearch: { mature: 0.018, partial: 0.514, nascent: 0.468 },
+      interpLegibility: { legible: 0.413, partially: 0.536, opaque: 0.051 },
+      valueSpec: { learnable: 0.609, brittle: 0.391 },
+      corrigibility: { broadBasin: 0.478, narrow: 0.48, antiNatural: 0.042 },
+      oversightScaling: { scales: 0.569, fails: 0.431 },
+      interpResearch: { mature: 0.009, partial: 0.298, nascent: 0.693 },
+      oversightResearch: { mature: 0.013, partial: 0.424, nascent: 0.563 },
+      theoryResearch: { mature: 0.003, partial: 0.093, nascent: 0.904 },
+      evalsResearch: { mature: 0.025, partial: 0.569, nascent: 0.406 },
     },
     weights: { survival: 1.0, agency: 0.8, suffering: 0.5, flourishing: 0.6 },
     references: [
@@ -319,26 +329,28 @@ export const presets: KnownPreset[] = [
     summary:
       'Catastrophic risk is real and high enough to act on under deep uncertainty; agentic frontier AI is the core danger (self-preservation, deception emerge), and the safer path is non-agentic "Scientist AI".',
     pdoom: '~20% (built from ~50% sub-components; varies day to day)',
+    reconciliation:
+      'The clearest example of a shared-model discrepancy: his stated ~20% is well below what his specific positions (hard tractability, deception concern, distrust of like-kind oversight) imply under this model\'s value surface, which scores an uncontained misaligned takeover as extinction-level. His own framing — built from ~50% sub-components, \'varies day to day\' — suggests his headline number discounts scenario mass this model counts as doom. We kept his well-sourced positions rather than twist them to force his headline number.',
     credences: {
-      orthogonality: { holds: 0.85, fails: 0.15 },
+      orthogonality: { fails: 0.162, holds: 0.838 },
       tractability: { easy: 0.05, hard: 0.6, nearImpossible: 0.35 },
-      offenseDefense: { offense: 0.55, balanced: 0.3, defense: 0.15 },
-      takeoff: { fast: 0.4, medium: 0.45, slow: 0.15 },
+      offenseDefense: { defense: 0.15, balanced: 0.3, offense: 0.55 },
+      takeoff: { slow: 0.15, medium: 0.45, fast: 0.4 },
       powerConcentration: { concentrated: 0.75, diffuse: 0.25 },
       alignmentInTime: { yes: 0.45, no: 0.55 },
       controlDeployed: { yes: 0.4, no: 0.6 },
       coordination: { regime: 0.45, none: 0.55 },
-      deception: { deceptive: 0.55, faithful: 0.45 },
+      deception: { faithful: 0.53, deceptive: 0.47 },
     },
     subCredences: {
-      interpLegibility: { legible: 0.214, partially: 0.473, opaque: 0.313 },
-      valueSpec: { learnable: 0.434, brittle: 0.566 },
-      corrigibility: { broadBasin: 0.233, narrow: 0.471, antiNatural: 0.296 },
-      oversightScaling: { scales: 0.513, fails: 0.487 },
-      interpResearch: { mature: 0.008, partial: 0.357, nascent: 0.635 },
-      oversightResearch: { mature: 0.005, partial: 0.445, nascent: 0.55 },
-      theoryResearch: { mature: 0.032, partial: 0.388, nascent: 0.58 },
-      evalsResearch: { mature: 0.007, partial: 0.546, nascent: 0.447 },
+      interpLegibility: { legible: 0.309, partially: 0.474, opaque: 0.217 },
+      valueSpec: { learnable: 0.525, brittle: 0.475 },
+      corrigibility: { broadBasin: 0.345, narrow: 0.463, antiNatural: 0.192 },
+      oversightScaling: { scales: 0.625, fails: 0.375 },
+      interpResearch: { mature: 0.012, partial: 0.421, nascent: 0.567 },
+      oversightResearch: { mature: 0.008, partial: 0.53, nascent: 0.462 },
+      theoryResearch: { mature: 0.049, partial: 0.446, nascent: 0.505 },
+      evalsResearch: { mature: 0.011, partial: 0.618, nascent: 0.371 },
     },
     weights: { survival: 1.0, agency: 0.7, suffering: 0.5, flourishing: 0.6 },
     references: [
@@ -380,26 +392,28 @@ export const presets: KnownPreset[] = [
     summary:
       'Serious but not overwhelming risk (~22% takeover); alignment is a hard-but-tractable technical problem; famously argues takeoff is continuous/slow, with failure most likely emerging gradually across many systems.',
     pdoom: '~22% takeover · ~46% future "irreversibly messed up"',
+    reconciliation:
+      'He distinguishes ~22% takeover from ~46% \'irreversibly messed up\'. The model\'s extinction mass lands between the two because its value surface has no separate \'alive but bad\' doom bucket — several of his messed-up-but-alive worlds are scored near the extinction line. His broad-basin and oversight positions (high accuracy) are kept exactly; the modest faithful-lean tilt reconciles the rest.',
     credences: {
-      orthogonality: { holds: 0.8, fails: 0.2 },
+      orthogonality: { fails: 0.248, holds: 0.752 },
       tractability: { easy: 0.35, hard: 0.55, nearImpossible: 0.1 },
-      offenseDefense: { offense: 0.45, balanced: 0.4, defense: 0.15 },
-      takeoff: { fast: 0.1, medium: 0.3, slow: 0.6 },
+      offenseDefense: { defense: 0.15, balanced: 0.4, offense: 0.45 },
+      takeoff: { slow: 0.6, medium: 0.3, fast: 0.1 },
       powerConcentration: { concentrated: 0.35, diffuse: 0.65 },
       alignmentInTime: { yes: 0.55, no: 0.45 },
       controlDeployed: { yes: 0.6, no: 0.4 },
       coordination: { regime: 0.3, none: 0.7 },
-      deception: { deceptive: 0.45, faithful: 0.55 },
+      deception: { faithful: 0.638, deceptive: 0.362 },
     },
     subCredences: {
-      interpLegibility: { legible: 0.199, partially: 0.748, opaque: 0.053 },
-      valueSpec: { learnable: 0.648, brittle: 0.352 },
-      corrigibility: { broadBasin: 0.692, narrow: 0.253, antiNatural: 0.055 },
-      oversightScaling: { scales: 0.678, fails: 0.322 },
-      interpResearch: { mature: 0.004, partial: 0.39, nascent: 0.606 },
-      oversightResearch: { mature: 0.014, partial: 0.445, nascent: 0.541 },
-      theoryResearch: { mature: 0.016, partial: 0.3, nascent: 0.684 },
-      evalsResearch: { mature: 0.011, partial: 0.587, nascent: 0.402 },
+      interpLegibility: { legible: 0.268, partially: 0.698, opaque: 0.034 },
+      valueSpec: { learnable: 0.698, brittle: 0.302 },
+      corrigibility: { broadBasin: 0.715, narrow: 0.238, antiNatural: 0.047 },
+      oversightScaling: { scales: 0.707, fails: 0.293 },
+      interpResearch: { mature: 0.006, partial: 0.443, nascent: 0.551 },
+      oversightResearch: { mature: 0.02, partial: 0.497, nascent: 0.483 },
+      theoryResearch: { mature: 0.021, partial: 0.333, nascent: 0.646 },
+      evalsResearch: { mature: 0.015, partial: 0.632, nascent: 0.353 },
     },
     weights: { survival: 0.9, agency: 0.65, suffering: 0.3, flourishing: 0.7 },
     references: [
@@ -441,26 +455,28 @@ export const presets: KnownPreset[] = [
     summary:
       'Worried but not a doomer: ~20% catastrophe, fast takeoff, cautiously optimistic that alignment is winnable via automated alignment researchers.',
     pdoom: '~20% extinction · ~30% permanent curtailment',
+    reconciliation:
+      'His ~20% extinction (plus ~30% permanent curtailment) pins the level, and the model lands on it. Curtailment worlds map to this model\'s low-agency surviving scenarios, not its extinction mass — read the agency dimension, not p(doom), for that half of his view.',
     credences: {
-      orthogonality: { holds: 0.65, fails: 0.35 },
+      orthogonality: { fails: 0.382, holds: 0.618 },
       tractability: { easy: 0.2, hard: 0.6, nearImpossible: 0.2 },
-      offenseDefense: { offense: 0.4, balanced: 0.4, defense: 0.2 },
-      takeoff: { fast: 0.5, medium: 0.35, slow: 0.15 },
+      offenseDefense: { defense: 0.2, balanced: 0.4, offense: 0.4 },
+      takeoff: { slow: 0.15, medium: 0.35, fast: 0.5 },
       powerConcentration: { concentrated: 0.4, diffuse: 0.6 },
       alignmentInTime: { yes: 0.65, no: 0.35 },
       controlDeployed: { yes: 0.6, no: 0.4 },
       coordination: { regime: 0.4, none: 0.6 },
-      deception: { deceptive: 0.35, faithful: 0.65 },
+      deception: { faithful: 0.746, deceptive: 0.254 },
     },
     subCredences: {
-      interpLegibility: { legible: 0.196, partially: 0.697, opaque: 0.107 },
-      valueSpec: { learnable: 0.688, brittle: 0.312 },
-      corrigibility: { broadBasin: 0.408, narrow: 0.496, antiNatural: 0.096 },
-      oversightScaling: { scales: 0.583, fails: 0.417 },
-      interpResearch: { mature: 0.088, partial: 0.656, nascent: 0.256 },
-      oversightResearch: { mature: 0.042, partial: 0.645, nascent: 0.313 },
-      theoryResearch: { mature: 0.013, partial: 0.293, nascent: 0.694 },
-      evalsResearch: { mature: 0.088, partial: 0.656, nascent: 0.256 },
+      interpLegibility: { legible: 0.268, partially: 0.662, opaque: 0.07 },
+      valueSpec: { learnable: 0.769, brittle: 0.231 },
+      corrigibility: { broadBasin: 0.55, narrow: 0.403, antiNatural: 0.047 },
+      oversightScaling: { scales: 0.698, fails: 0.302 },
+      interpResearch: { mature: 0.152, partial: 0.686, nascent: 0.162 },
+      oversightResearch: { mature: 0.081, partial: 0.718, nascent: 0.201 },
+      theoryResearch: { mature: 0.031, partial: 0.409, nascent: 0.56 },
+      evalsResearch: { mature: 0.152, partial: 0.686, nascent: 0.162 },
     },
     weights: { survival: 0.4, suffering: 0.25, agency: 0.15, flourishing: 0.2 },
     references: [
@@ -501,6 +517,8 @@ export const presets: KnownPreset[] = [
     summary:
       'AGI plausibly within 5–10 years; the catastrophe risk is "non-negligible" but addressable with much more safety work and international coordination — a self-described cautious optimist.',
     pdoom: 'declines a number — "non-zero and probably non-negligible"',
+    reconciliation:
+      'The lab declines a number, so nothing pins the headline: the implied doom follows entirely from its documented stances — hard-but-tractable alignment, amplified-oversight-as-hypothesis, defence-in-depth skepticism about interpretability — run through the shared surface.',
     credences: {
       orthogonality: { holds: 0.55, fails: 0.45 },
       tractability: { easy: 0.1, hard: 0.6, nearImpossible: 0.3 },
@@ -562,6 +580,8 @@ export const presets: KnownPreset[] = [
     summary:
       'Existential fear is "preposterous": intelligence does not imply a drive to dominate, objectives are designed not emergent, open-source keeps good AI ahead of bad — alignment is ordinary iterative engineering.',
     pdoom: '<1% ("effectively zero")',
+    reconciliation:
+      'His stated \'effectively zero\' and his engineering-problem framing agree with the model\'s implied ~1%: his objective-driven-architecture optimism (legible by construction, learnable guardrail objectives, broad basin) leaves almost no mass in the doom corners.',
     credences: {
       orthogonality: { holds: 0.1, fails: 0.9 },
       tractability: { easy: 0.8, hard: 0.18, nearImpossible: 0.02 },
@@ -622,26 +642,28 @@ export const presets: KnownPreset[] = [
     summary:
       'We are building digital minds that will soon exceed us and we do not know how to control something smarter than us; ~10–20% chance it ends in human extinction — the real hope is AI engineered to genuinely care about us, not kept submissive.',
     pdoom: '~10–20% takeover / extinction (self-described "gut")',
+    reconciliation:
+      'The widest genuine gap in the set, kept visible on purpose. His gut \'10–20%\' is far below what his specific, well-sourced positions imply here (opaque cognition, oversight of smarter systems failing, convergent control-seeking) — roughly half the mass his stances generate lands in worlds this model scores as extinction. Part is the shared surface (his \'AI takes over\' may include alive-but-subjugated worlds; ours scores takeover as extinction-level), and part is internal tension he himself flags by calling the number a gut estimate. Only his low-accuracy cells were tilted toward the stated figure.',
     credences: {
-      orthogonality: { holds: 0.8, fails: 0.2 },
+      orthogonality: { fails: 0.223, holds: 0.777 },
       tractability: { easy: 0.05, hard: 0.65, nearImpossible: 0.3 },
-      offenseDefense: { offense: 0.65, balanced: 0.25, defense: 0.1 },
-      takeoff: { fast: 0.45, medium: 0.45, slow: 0.1 },
+      offenseDefense: { defense: 0.1, balanced: 0.25, offense: 0.65 },
+      takeoff: { slow: 0.1, medium: 0.45, fast: 0.45 },
       powerConcentration: { concentrated: 0.75, diffuse: 0.25 },
       alignmentInTime: { yes: 0.3, no: 0.7 },
-      controlDeployed: { yes: 0.25, no: 0.75 },
+      controlDeployed: { yes: 0.286, no: 0.714 },
       coordination: { regime: 0.3, none: 0.7 },
-      deception: { deceptive: 0.5, faithful: 0.5 },
+      deception: { faithful: 0.602, deceptive: 0.398 },
     },
     subCredences: {
-      interpLegibility: { legible: 0.189, partially: 0.508, opaque: 0.303 },
-      valueSpec: { learnable: 0.405, brittle: 0.595 },
-      corrigibility: { broadBasin: 0.181, narrow: 0.593, antiNatural: 0.226 },
-      oversightScaling: { scales: 0.335, fails: 0.665 },
-      interpResearch: { mature: 0.002, partial: 0.067, nascent: 0.931 },
-      oversightResearch: { mature: 0.002, partial: 0.049, nascent: 0.949 },
-      theoryResearch: { mature: 0.002, partial: 0.027, nascent: 0.971 },
-      evalsResearch: { mature: 0.002, partial: 0.093, nascent: 0.905 },
+      interpLegibility: { legible: 0.299, partially: 0.509, opaque: 0.192 },
+      valueSpec: { learnable: 0.507, brittle: 0.493 },
+      corrigibility: { broadBasin: 0.28, narrow: 0.58, antiNatural: 0.14 },
+      oversightScaling: { scales: 0.421, fails: 0.579 },
+      interpResearch: { mature: 0.005, partial: 0.106, nascent: 0.889 },
+      oversightResearch: { mature: 0.006, partial: 0.085, nascent: 0.909 },
+      theoryResearch: { mature: 0.007, partial: 0.05, nascent: 0.943 },
+      evalsResearch: { mature: 0.006, partial: 0.156, nascent: 0.838 },
     },
     weights: { survival: 0.95, agency: 0.55, suffering: 0.35, flourishing: 0.45 },
     references: [
@@ -683,6 +705,8 @@ export const presets: KnownPreset[] = [
     summary:
       'Superintelligence is coming, will be vastly powerful and hard to control, and is extinction-level if unaligned — but alignment is a solvable problem to pursue "in tandem" with capability; cautiously optimistic.',
     pdoom: 'no number on record',
+    reconciliation:
+      'No stated number exists; the implied doom follows from his on-record positions — superalignment-charter urgency, weak-to-strong optimism, \'unpredictable\' reasoning systems — which land him mid-field. His stated hard-leaning tractability is somewhat softer through the deep dive, whose research forecasts carry his four-year-solve optimism.',
     credences: {
       orthogonality: { holds: 0.65, fails: 0.35 },
       tractability: { easy: 0.1, hard: 0.75, nearImpossible: 0.15 },
@@ -742,6 +766,8 @@ export const presets: KnownPreset[] = [
     summary:
       'AI is "math, code, computers" controlled by people — it cannot want to kill us; the only real danger is slowing it down or letting incumbents capture regulators. Accelerate, and keep it open.',
     pdoom: 'rejects the framing (effectively ~0)',
+    reconciliation:
+      'His rejection of the framing pins everything optimistic: near-certain legibility (\'it is math — code\'), learnable values, controllable-by-construction systems. Implied doom ~1% matches \'effectively ~0\'. Most sub-positions are inferred (accuracy ≤ 0.3) since he does not engage the technical questions.',
     credences: {
       orthogonality: { holds: 0.1, fails: 0.9 },
       tractability: { easy: 0.85, hard: 0.13, nearImpossible: 0.02 },
@@ -800,22 +826,24 @@ export const presets: KnownPreset[] = [
     summary:
       'Powerful AI by 2026–27 and enormously high-variance: ~25% it goes really badly, ~75% really well; alignment is unsolved but probably tractable with urgent work, and the upside is worth fighting for.',
     pdoom: '~25% bad · ~75% very good',
+    reconciliation:
+      'Their stated ~25% bad pins the level and the model lands on it. The reconciling tilt runs through orthogonality and deception (their \'range of scenarios from easy to extremely difficult\' supports real benign-attractor mass) while their high-accuracy positions — interpretability optimism, sleeper-agents-informed corrigibility caution — are kept exactly.',
     credences: {
-      orthogonality: { holds: 0.65, fails: 0.35 },
+      orthogonality: { fails: 0.404, holds: 0.596 },
       tractability: { easy: 0.2, hard: 0.65, nearImpossible: 0.15 },
-      offenseDefense: { offense: 0.3, balanced: 0.3, defense: 0.4 },
-      takeoff: { fast: 0.5, medium: 0.35, slow: 0.15 },
+      offenseDefense: { defense: 0.4, balanced: 0.3, offense: 0.3 },
+      takeoff: { slow: 0.15, medium: 0.35, fast: 0.5 },
       powerConcentration: { concentrated: 0.55, diffuse: 0.45 },
       alignmentInTime: { yes: 0.65, no: 0.35 },
       controlDeployed: { yes: 0.6, no: 0.4 },
       coordination: { regime: 0.4, none: 0.6 },
-      deception: { deceptive: 0.35, faithful: 0.65 },
+      deception: { faithful: 0.71, deceptive: 0.29 },
     },
     subCredences: {
-      interpLegibility: { legible: 0.412, partially: 0.489, opaque: 0.099 },
-      valueSpec: { learnable: 0.616, brittle: 0.384 },
-      corrigibility: { broadBasin: 0.22, narrow: 0.644, antiNatural: 0.136 },
-      oversightScaling: { scales: 0.616, fails: 0.384 },
+      interpLegibility: { legible: 0.405, partially: 0.493, opaque: 0.102 },
+      valueSpec: { learnable: 0.599, brittle: 0.401 },
+      corrigibility: { broadBasin: 0.202, narrow: 0.648, antiNatural: 0.15 },
+      oversightScaling: { scales: 0.599, fails: 0.401 },
       interpResearch: { mature: 0.223, partial: 0.619, nascent: 0.158 },
       oversightResearch: { mature: 0.048, partial: 0.655, nascent: 0.297 },
       theoryResearch: { mature: 0.003, partial: 0.108, nascent: 0.889 },
@@ -860,6 +888,8 @@ export const presets: KnownPreset[] = [
     summary:
       'Acknowledges existential risk ("lights-out for all of us") while building AGI fast and deploying iteratively; prefers a gradual takeoff and calls making superintelligence safe "an open research question".',
     pdoom: 'no number — worst case is "lights-out for all of us"',
+    reconciliation:
+      'No stated number (\'lights-out\' is a worst case, not a probability), so the implied doom follows from their documented bets: scalable oversight as the central mechanism, iterative-deployment corrigibility optimism, empiricism over theory.',
     credences: {
       orthogonality: { holds: 0.6, fails: 0.4 },
       tractability: { easy: 0.2, hard: 0.65, nearImpossible: 0.15 },
@@ -920,26 +950,28 @@ export const presets: KnownPreset[] = [
     summary:
       'AI is a genuine existential risk (Musk cites a ~10–20% chance of annihilation) and superintelligence is imminent — but the ~80% good-outcome upside is worth it; the safety bet is a "maximally truth-seeking" AI rather than slowing down.',
     pdoom: '~10–20% annihilation (paired with ~80% good)',
+    reconciliation:
+      'Musk\'s ~10–20% annihilation (with ~80% good) pins the level; the model lands somewhat above it. The reconciling tilt was deliberately capped — pushing their orthogonality credence past 50-50 toward benign-convergence would have hit the stated number but misrepresented a lab whose stated safety mechanism (maximal truth-seeking) presumes real misalignment risk. The residual is that tension, plus sparse sourcing (most cells inferred).',
     credences: {
-      orthogonality: { holds: 0.6, fails: 0.4 },
+      orthogonality: { holds: 0.55, fails: 0.45 },
       tractability: { easy: 0.15, hard: 0.65, nearImpossible: 0.2 },
-      offenseDefense: { offense: 0.45, balanced: 0.3, defense: 0.25 },
-      takeoff: { fast: 0.7, medium: 0.25, slow: 0.05 },
+      offenseDefense: { defense: 0.25, balanced: 0.3, offense: 0.45 },
+      takeoff: { slow: 0.05, medium: 0.25, fast: 0.7 },
       powerConcentration: { concentrated: 0.65, diffuse: 0.35 },
       alignmentInTime: { yes: 0.55, no: 0.45 },
-      controlDeployed: { yes: 0.45, no: 0.55 },
+      controlDeployed: { yes: 0.55, no: 0.45 },
       coordination: { regime: 0.2, none: 0.8 },
-      deception: { deceptive: 0.45, faithful: 0.55 },
+      deception: { faithful: 0.699, deceptive: 0.301 },
     },
     subCredences: {
-      interpLegibility: { legible: 0.078, partially: 0.786, opaque: 0.136 },
-      valueSpec: { learnable: 0.427, brittle: 0.573 },
-      corrigibility: { broadBasin: 0.366, narrow: 0.606, antiNatural: 0.028 },
-      oversightScaling: { scales: 0.583, fails: 0.417 },
-      interpResearch: { mature: 0.076, partial: 0.326, nascent: 0.598 },
-      oversightResearch: { mature: 0.078, partial: 0.351, nascent: 0.571 },
-      theoryResearch: { mature: 0.059, partial: 0.252, nascent: 0.689 },
-      evalsResearch: { mature: 0.113, partial: 0.431, nascent: 0.456 },
+      interpLegibility: { legible: 0.16, partially: 0.776, opaque: 0.064 },
+      valueSpec: { learnable: 0.541, brittle: 0.459 },
+      corrigibility: { broadBasin: 0.54, narrow: 0.45, antiNatural: 0.01 },
+      oversightScaling: { scales: 0.753, fails: 0.247 },
+      interpResearch: { mature: 0.094, partial: 0.35, nascent: 0.556 },
+      oversightResearch: { mature: 0.098, partial: 0.377, nascent: 0.525 },
+      theoryResearch: { mature: 0.076, partial: 0.277, nascent: 0.647 },
+      evalsResearch: { mature: 0.131, partial: 0.446, nascent: 0.423 },
     },
     weights: { survival: 0.9, agency: 0.7, suffering: 0.4, flourishing: 0.85 },
     references: [
@@ -980,6 +1012,8 @@ export const presets: KnownPreset[] = [
     summary:
       'AI is overwhelmingly beneficial and the dominant danger is concentration in a few closed labs, so open release makes the world safer; existential "doomsday" scenarios are downplayed — though by 2025 Meta reserves the right to withhold "critical-risk" models.',
     pdoom: 'no number — downplays existential "doomsday" risk',
+    reconciliation:
+      'No stated number — the lab downplays existential framing. The implied single-digit doom follows from its posture: learnable values via fine-tuning and guardrails, community-hardened oversight, and LeCun-adjacent optimism about the underlying problem.',
     credences: {
       orthogonality: { holds: 0.25, fails: 0.75 },
       tractability: { easy: 0.55, hard: 0.4, nearImpossible: 0.05 },
