@@ -96,37 +96,42 @@ export function EvHeadline({ ev, evVector, pDoom, pDisempowered }: Props) {
             </Typography>
           </Stack>
 
-          {/* Second headline row: the two catastrophe bands — extinct, and alive-but-bad. */}
-          <Stack direction="row" alignItems="baseline" spacing={1.25} sx={{ mt: 2.25 }} flexWrap="wrap" useFlexGap>
-            <Typography variant="overline" sx={{ color: c.mute, display: 'inline-flex', alignItems: 'center' }}>
-              Modeled p(doom)
-              <InfoTip>
-                The probability mass this model puts on <b>extinction-level</b> outcomes
-                (survival&nbsp;&lt;&nbsp;−0.5), under your current beliefs. It answers a different
-                question than the expected value: EV is a weighted average <em>across all four value
-                dimensions</em> (a mild-but-broad loss and a catastrophe can share an EV), while
-                p(doom) is purely the <em>extinction tail</em>. Both are worth watching — they often
-                disagree. This is the same quantity compared against public figures' stated p(doom)
-                in the belief presets.
-              </InfoTip>
-            </Typography>
-            <Typography sx={{ fontFamily: fonts.mono, fontWeight: 700, fontSize: '1.7rem', lineHeight: 0.9, color: valueColor(-Math.min(1, pDoom * 2)) }}>
-              {Math.round(pDoom * 100)}%
-            </Typography>
-            <Typography variant="overline" sx={{ color: c.mute, display: 'inline-flex', alignItems: 'center', ml: 1.5 }}>
-              p(disempowered)
-              <InfoTip>
-                The probability mass on <b>alive-but-disempowered</b> futures: humanity persists
-                (survival&nbsp;≥&nbsp;−0.5) but the future is no longer ours
-                (agency&nbsp;&lt;&nbsp;−0.6) — a subjugated takeover, hard lock-in, permanent
-                curtailment. Carlsmith's <em>unrecoverable disempowerment</em>, minus the extinct
-                worlds p(doom) already counts. Many stated views put much of their "doom" here
-                rather than in extinction — the takeover-severity factor is what separates the two.
-              </InfoTip>
-            </Typography>
-            <Typography sx={{ fontFamily: fonts.mono, fontWeight: 700, fontSize: '1.7rem', lineHeight: 0.9, color: valueColor(-Math.min(1, pDisempowered * 2)) }}>
-              {Math.round(pDisempowered * 100)}%
-            </Typography>
+          {/* Second headline row: the two catastrophe bands — extinct, and alive-but-bad.
+              Each label+number pair is an unbreakable unit; wrapping only happens between pairs. */}
+          <Stack direction="row" alignItems="baseline" columnGap={2.5} rowGap={1} sx={{ mt: 2.25 }} flexWrap="wrap">
+            <Stack direction="row" alignItems="baseline" spacing={1.25} sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <Typography variant="overline" sx={{ color: c.mute, display: 'inline-flex', alignItems: 'center' }}>
+                p(doom)
+                <InfoTip>
+                  The probability mass this model puts on <b>extinction-level</b> outcomes
+                  (survival&nbsp;&lt;&nbsp;−0.5), under your current beliefs. It answers a different
+                  question than the expected value: EV is a weighted average <em>across all four value
+                  dimensions</em> (a mild-but-broad loss and a catastrophe can share an EV), while
+                  p(doom) is purely the <em>extinction tail</em>. Both are worth watching — they often
+                  disagree. This is the same quantity compared against public figures' stated p(doom)
+                  in the belief presets.
+                </InfoTip>
+              </Typography>
+              <Typography sx={{ fontFamily: fonts.mono, fontWeight: 700, fontSize: '1.7rem', lineHeight: 0.9, color: valueColor(-Math.min(1, pDoom * 2)) }}>
+                {Math.round(pDoom * 100)}%
+              </Typography>
+            </Stack>
+            <Stack direction="row" alignItems="baseline" spacing={1.25} sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <Typography variant="overline" sx={{ color: c.mute, display: 'inline-flex', alignItems: 'center' }}>
+                p(disempowered)
+                <InfoTip>
+                  The probability mass on <b>alive-but-disempowered</b> futures: humanity persists
+                  (survival&nbsp;≥&nbsp;−0.5) but the future is no longer ours
+                  (agency&nbsp;&lt;&nbsp;−0.6) — a subjugated takeover, hard lock-in, permanent
+                  curtailment. Carlsmith's <em>unrecoverable disempowerment</em>, minus the extinct
+                  worlds p(doom) already counts. Many stated views put much of their "doom" here
+                  rather than in extinction — the takeover-severity factor is what separates the two.
+                </InfoTip>
+              </Typography>
+              <Typography sx={{ fontFamily: fonts.mono, fontWeight: 700, fontSize: '1.7rem', lineHeight: 0.9, color: valueColor(-Math.min(1, pDisempowered * 2)) }}>
+                {Math.round(pDisempowered * 100)}%
+              </Typography>
+            </Stack>
           </Stack>
         </Box>
 
