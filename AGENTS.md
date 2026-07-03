@@ -302,7 +302,7 @@ cell was authored vs. fell back. The fitted models train only on reasoned cells.
   introduce client-side routing or absolute asset URLs — the app uses tab
   navigation, not a router.
 - **URL state lives in the hash**: `#preset=<id>` (a known preset), `#tab=<slug>`
-  (active tab), `#page=intro|resources` (the top-level pages — still no client-side
+  (active tab), `#page=intro|resources|disclaimers` (the top-level pages — still no client-side
   router; pages follow the same hash pattern), and `#beliefs=<base64url>` — a full
   CUSTOM belief set (credences,
   sub-credences, weights, both modes) compactly encoded in

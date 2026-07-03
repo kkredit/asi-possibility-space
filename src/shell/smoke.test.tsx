@@ -4,6 +4,7 @@ import { ThemeProvider } from '@mui/material';
 import { App } from '@shell/App';
 import { IntroPage } from '@shell/pages/IntroPage';
 import { ResourcesPage } from '@shell/pages/ResourcesPage';
+import { DisclaimersPage } from '@shell/pages/DisclaimersPage';
 import { theme } from '@shell/theme';
 
 // Exercises the full component tree once (engine -> viz wiring) to catch runtime
@@ -38,5 +39,13 @@ describe('App smoke render', () => {
     expect(resources).toContain('Corrigibility basin');
     expect(resources).toContain('Takeover severity');
     expect(resources).toContain('Mechanistic interpretability');
+
+    const disclaimers = renderToString(
+      <ThemeProvider theme={theme}>
+        <DisclaimersPage />
+      </ThemeProvider>,
+    );
+    expect(disclaimers).toContain('unofficial reconstructions');
+    expect(disclaimers).toContain('Superintelligence');
   });
 });

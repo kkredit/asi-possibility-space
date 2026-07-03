@@ -33,6 +33,7 @@ import { Panel } from '@shell/Panel';
 import { ActionsTab } from '@shell/tabs/ActionsTab';
 import { IntroPage } from '@shell/pages/IntroPage';
 import { ResourcesPage } from '@shell/pages/ResourcesPage';
+import { DisclaimersPage } from '@shell/pages/DisclaimersPage';
 import { FactorsTab } from '@shell/tabs/FactorsTab';
 
 // The full scenario-space size, derived so it never goes stale as factors change.
@@ -58,13 +59,13 @@ function readUrlTab(): number {
 // Top-level pages, hash-navigable (`#page=intro` / `#page=resources`) — the app
 // deliberately has no client-side router (see AGENTS.md), so pages follow the same
 // hash-param pattern as tabs and presets.
-const PAGES = ['explorer', 'intro', 'resources'] as const;
+const PAGES = ['explorer', 'intro', 'resources', 'disclaimers'] as const;
 type Page = (typeof PAGES)[number];
 
 function readUrlPage(): Page {
   if (typeof window === 'undefined') return 'explorer';
   const p = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('page');
-  return p === 'intro' || p === 'resources' ? p : 'explorer';
+  return p === 'intro' || p === 'resources' || p === 'disclaimers' ? p : 'explorer';
 }
 
 function Masthead({ page, onNavigate }: { page: Page; onNavigate: (p: Page) => void }) {
@@ -116,6 +117,7 @@ function Masthead({ page, onNavigate }: { page: Page; onNavigate: (p: Page) => v
         {navLink('explorer', 'Explorer')}
         {navLink('intro', 'Intro')}
         {navLink('resources', 'Resources')}
+        {navLink('disclaimers', 'Disclaimers')}
       </Box>
       <Box sx={{ flex: 1 }} />
       <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.68rem', color: c.faint, whiteSpace: 'nowrap', display: { xs: 'none', sm: 'block' } }}>
@@ -251,7 +253,7 @@ export function App() {
       <Box sx={{ minHeight: '100vh' }}>
         <Masthead page={page} onNavigate={selectPage} />
         <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3 } }}>
-          {page === 'intro' ? <IntroPage /> : <ResourcesPage />}
+          {page === 'intro' ? <IntroPage /> : page === 'resources' ? <ResourcesPage /> : <DisclaimersPage />}
         </Container>
       </Box>
     );
