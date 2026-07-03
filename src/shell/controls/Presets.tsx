@@ -55,8 +55,24 @@ function displayName(p: Preset): string {
   return p.affiliation ? `${p.name} (${p.affiliation})` : p.name;
 }
 
-const people = presets.filter((p) => p.category === 'person');
-const labs = presets.filter((p) => p.category === 'lab');
+// Display order within each group: roughly by esteem / notoriety in the AI-risk
+// conversation (Turing/Nobel laureates and the most-cited voices first; controversial
+// figures included on the same footing). Ids not listed fall to the end. People are
+// always shown above labs (the two groups render under separate subheaders).
+const ESTEEM_ORDER = [
+  // people
+  'hinton', 'bengio', 'lecun', 'sutskever', 'yudkowsky', 'christiano', 'andreessen', 'acx', 'kokotajlo', 'yampolskiy', 'lifland',
+  // labs
+  'openai', 'hassabis', 'anthropic', 'meta', 'xai',
+];
+const esteemRank = (id: string) => {
+  const i = ESTEEM_ORDER.indexOf(id);
+  return i === -1 ? Number.MAX_SAFE_INTEGER : i;
+};
+const byEsteem = (a: Preset, b: Preset) => esteemRank(a.id) - esteemRank(b.id);
+
+const people = presets.filter((p) => p.category === 'person').sort(byEsteem);
+const labs = presets.filter((p) => p.category === 'lab').sort(byEsteem);
 
 function presetItem(p: Preset, ev: number) {
   return (
