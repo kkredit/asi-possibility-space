@@ -28,7 +28,6 @@ import { ScenarioTable } from '@viz/ScenarioTable';
 import { ParallelCoordinates } from '@viz/ParallelCoordinates';
 import { EvaluatorDiff, type DiffPoint } from '@viz/EvaluatorDiff';
 import { ModelLadder, type LadderRow } from '@viz/ModelLadder';
-import { InfoTip } from '@viz/InfoTip';
 import { Panel } from '@shell/Panel';
 import { ActionsTab } from '@shell/tabs/ActionsTab';
 import { IntroPage } from '@shell/pages/IntroPage';
