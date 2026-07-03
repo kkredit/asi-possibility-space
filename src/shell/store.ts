@@ -57,12 +57,23 @@ function readUrlPresetId(): string | null {
   return id && presets.some((p) => p.id === id) ? id : null;
 }
 
-/** Reflect the active preset in the URL so a chosen figure is shareable (SSR-safe). */
-function writeUrlPresetId(id: string | null): void {
+/**
+ * Set (or clear) one `#`-hash param, preserving the others — the hash is shared
+ * with e.g. the active `tab`, so we must not clobber the whole thing. SSR-safe.
+ */
+export function setHashParam(key: string, value: string | null): void {
   if (typeof window === 'undefined') return;
   const url = new URL(window.location.href);
-  url.hash = id ? `preset=${id}` : '';
+  const params = new URLSearchParams(url.hash.replace(/^#/, ''));
+  if (value) params.set(key, value);
+  else params.delete(key);
+  url.hash = params.toString();
   window.history.replaceState(null, '', url.toString());
+}
+
+/** Reflect the active preset in the URL so a chosen figure is shareable (SSR-safe). */
+function writeUrlPresetId(id: string | null): void {
+  setHashParam('preset', id);
 }
 
 function presetCredencesWeights(id: string) {

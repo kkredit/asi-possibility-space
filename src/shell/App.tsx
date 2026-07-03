@@ -19,7 +19,7 @@ import {
 import { Controls } from '@shell/controls/Controls';
 import { EvHeadline } from '@shell/EvHeadline';
 import { Logo } from '@shell/Logo';
-import { useBeliefs } from '@shell/store';
+import { setHashParam, useBeliefs } from '@shell/store';
 import { c, fonts } from '@shell/theme';
 import { EVDistribution } from '@viz/EVDistribution';
 import { ScenarioTable } from '@viz/ScenarioTable';
@@ -33,6 +33,17 @@ import { FactorsTab } from '@shell/tabs/FactorsTab';
 
 // The full scenario-space size, derived so it never goes stale as factors change.
 const SCENARIO_COUNT = dataset.factors.reduce((n, f) => n * f.states.length, 1);
+
+// Tab labels + their URL slugs, so the active tab is `#tab=<slug>`-linkable.
+const TABS = ['Landscape', 'Actions', 'Factors', 'Scenarios', 'Evaluators'] as const;
+const TAB_SLUGS = ['landscape', 'actions', 'factors', 'scenarios', 'evaluators'] as const;
+
+function readUrlTab(): number {
+  if (typeof window === 'undefined') return 0;
+  const slug = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('tab');
+  const i = slug ? (TAB_SLUGS as readonly string[]).indexOf(slug) : -1;
+  return i >= 0 ? i : 0;
+}
 
 function Masthead() {
   return (
@@ -77,7 +88,12 @@ export function App() {
   const pins = useBeliefs((s) => s.pins);
   const probabilityModel = useBeliefs((s) => s.probabilityModel);
   const bayesProbability = useBeliefs((s) => s.bayesProbability);
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState(readUrlTab);
+  const selectTab = (i: number) => {
+    setTab(i);
+    // Omit the default (Landscape) so plain / preset-only links stay clean.
+    setHashParam('tab', i > 0 ? TAB_SLUGS[i] : null);
+  };
 
   const evaluator = getEvaluator(evaluatorId);
   // In Bayes-net mode the reconciled joint drives every analysis (it can't be
@@ -187,12 +203,10 @@ export function App() {
             </Box>
 
             <Box sx={{ borderBottom: `1px solid ${c.line}`, mb: 2 }}>
-              <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto" allowScrollButtonsMobile>
-                <Tab label="Landscape" />
-                <Tab label="Actions" />
-                <Tab label="Factors" />
-                <Tab label="Scenarios" />
-                <Tab label="Evaluators" />
+              <Tabs value={tab} onChange={(_, v) => selectTab(v)} variant="scrollable" scrollButtons="auto" allowScrollButtonsMobile>
+                {TABS.map((label) => (
+                  <Tab key={label} label={label} />
+                ))}
               </Tabs>
             </Box>
 
