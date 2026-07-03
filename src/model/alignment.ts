@@ -169,14 +169,14 @@ const difficultyPoints: { [S in 'interpLegibility' | 'valueSpec' | 'corrigibilit
 
 /** Difficulty score (0…8.5) → P(tractability). Bands authored, monotone. */
 function difficultyBand(score: number): Record<StateOf<'tractability'>, number> {
-  if (score <= 0.5) return { easy: 0.78, hard: 0.21, nearImpossible: 0.01 };
-  if (score <= 1.5) return { easy: 0.5, hard: 0.46, nearImpossible: 0.04 };
+  if (score <= 0.5) return { easy: 0.9, hard: 0.095, nearImpossible: 0.005 };
+  if (score <= 1.5) return { easy: 0.56, hard: 0.41, nearImpossible: 0.03 };
   if (score <= 2.5) return { easy: 0.25, hard: 0.65, nearImpossible: 0.1 };
   if (score <= 3.5) return { easy: 0.12, hard: 0.7, nearImpossible: 0.18 };
   if (score <= 4.5) return { easy: 0.06, hard: 0.65, nearImpossible: 0.29 };
-  if (score <= 5.5) return { easy: 0.03, hard: 0.5, nearImpossible: 0.47 };
-  if (score <= 6.5) return { easy: 0.02, hard: 0.32, nearImpossible: 0.66 };
-  return { easy: 0.01, hard: 0.16, nearImpossible: 0.83 };
+  if (score <= 5.5) return { easy: 0.02, hard: 0.56, nearImpossible: 0.42 };
+  if (score <= 6.5) return { easy: 0.01, hard: 0.29, nearImpossible: 0.7 };
+  return { easy: 0.005, hard: 0.035, nearImpossible: 0.96 };
 }
 
 type TractabilityCptKey =
@@ -247,7 +247,7 @@ export const alignmentDerivations: Derivation[] = [
     noState: 'no',
     // Calibrated so the baseline sub-credences below derive P(yes) ≈ the
     // long-standing 0.65 baseline slider value.
-    baseOdds: 1.95,
+    baseOdds: 1.82,
     terms: [
       { area: 'interpResearch', gate: 'interpLegibility', multipliers: interpMult },
       { area: 'oversightResearch', gate: 'oversightScaling', multipliers: oversightMult },
@@ -262,7 +262,7 @@ export const alignmentDerivations: Derivation[] = [
     modifiers: [
       {
         factor: 'tractability',
-        multipliers: { easy: 2.2, hard: 1.0, nearImpossible: 0.08 } satisfies Record<StateOf<'tractability'>, number>,
+        multipliers: { easy: 2.4, hard: 1.0, nearImpossible: 0.05 } satisfies Record<StateOf<'tractability'>, number>,
       },
     ],
   },
@@ -271,10 +271,10 @@ export const alignmentDerivations: Derivation[] = [
 // Baseline sub-credences, calibrated so the derived parents land near the
 // long-standing baseline sliders (tractability ≈ {.1,.6,.3}, align-yes ≈ .65).
 export const alignmentSubBaseline = {
-  interpLegibility: { legible: 0.18, partially: 0.52, opaque: 0.3 },
-  valueSpec: { learnable: 0.45, brittle: 0.55 },
-  corrigibility: { broadBasin: 0.32, narrow: 0.47, antiNatural: 0.21 },
-  oversightScaling: { scales: 0.55, fails: 0.45 },
+  interpLegibility: { legible: 0.16, partially: 0.58, opaque: 0.26 },
+  valueSpec: { learnable: 0.46, brittle: 0.54 },
+  corrigibility: { broadBasin: 0.33, narrow: 0.51, antiNatural: 0.16 },
+  oversightScaling: { scales: 0.58, fails: 0.42 },
   interpResearch: { mature: 0.25, partial: 0.55, nascent: 0.2 },
   oversightResearch: { mature: 0.15, partial: 0.55, nascent: 0.3 },
   theoryResearch: { mature: 0.1, partial: 0.4, nascent: 0.5 },

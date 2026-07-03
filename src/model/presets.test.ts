@@ -88,20 +88,22 @@ describe('preset sub-credences (alignment deep dive)', () => {
   });
 
   it('derived parents stay in the neighborhood of the stated top-level credences', () => {
-    // The deep dive is calibrated so each preset's derived tractability /
-    // alignment-in-time land NEAR its sourced top-level numbers. Exact agreement is
-    // not forced — a residual gap (e.g. LeCun's stated easy-optimism exceeding his
-    // specific positions) is the deep dive doing its job — but a blowout means the
-    // sub-credences or the derivation drifted.
+    // The deep dive is calibrated (accuracy-damped sharpening + tilt against each
+    // preset's stated numbers) so derived tractability / alignment-in-time closely
+    // track the sourced top-level credences: the extremes are faithful (Yampolskiy
+    // derives nearImpossible ≈ 0.96 vs stated 0.99; alignYes within ±0.05 for all).
+    // The residual tractability gaps that remain (Hinton, Kokotajlo, Sutskever)
+    // share one shape — stated hard-but-doable numbers vs pessimistic specific
+    // positions on oversight/corrigibility — and are left visible on purpose.
     for (const p of presets) {
       const stated = { ...dataset.baselineCredences, ...p.credences };
       const subs: SubCredences = { ...dataset.subBaseline!, ...(p.subCredences ?? {}) };
       const d = deriveCredences(dataset, stated, subs);
       const dy = Math.abs(d.alignmentInTime.yes - stated.alignmentInTime.yes);
-      expect(dy, `${p.id} alignYes derived-vs-stated gap ${dy.toFixed(2)}`).toBeLessThanOrEqual(0.2);
+      expect(dy, `${p.id} alignYes derived-vs-stated gap ${dy.toFixed(2)}`).toBeLessThanOrEqual(0.08);
       const l1 = (['easy', 'hard', 'nearImpossible'] as const).reduce(
         (a, st) => a + Math.abs((d.tractability[st] ?? 0) - (stated.tractability[st] ?? 0)), 0);
-      expect(l1, `${p.id} tractability L1 gap ${l1.toFixed(2)}`).toBeLessThanOrEqual(0.9);
+      expect(l1, `${p.id} tractability L1 gap ${l1.toFixed(2)}`).toBeLessThanOrEqual(0.45);
     }
   });
 });

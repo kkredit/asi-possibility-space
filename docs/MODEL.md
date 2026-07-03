@@ -281,12 +281,15 @@ Consequences:
   ~99% of objective worlds — none backfires.
 - Baseline sub-credences are calibrated so the derived parents reproduce the
   long-standing baseline sliders (within a few points). Presets carry sourced
-  sub-credences (see the research pass documented in `presets.ts`); their derived
-  parents land near their stated top-level numbers, and the residual gaps are
-  informative — e.g. LeCun's stated easy-tractability optimism exceeds what his
-  specific positions on legibility/corrigibility support, and Hinton's stated
-  10–20% doom sits well above what his sub-positions imply. A test pins the
-  tolerance.
+  sub-credences whose *confidence* is calibrated against each preset's stated
+  top-level numbers (accuracy-damped sharpening: well-sourced positions barely
+  move, vaguely-sourced ones are pinned by what the entity states). The derived
+  parents track the stated credences closely — extremes included: Yampolskiy's
+  deep dive derives nearImpossible ≈ 0.96 and alignment-in-time ≈ 0.04 against
+  his stated 0.99 / 0.01. The few residual tractability gaps (Hinton, Kokotajlo,
+  Sutskever) share one shape — stated hard-but-doable numbers vs pessimistic
+  specific positions on oversight/corrigibility — and are left visible on
+  purpose. A test pins the tolerances.
 - The parent sliders show the derived distribution while the deep dive is active
   ("derive" toggle per group); detaching restores direct sliders, and the research
   actions fall back to small direct nudges.
