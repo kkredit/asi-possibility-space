@@ -156,15 +156,15 @@ const factors: Factor[] = factorDefs.map((f) => ({ ...f, background: factorBackg
 
 // Starting odds (default credences). Each factor's states sum to 1.
 const baselineCredences: Credences = {
-  orthogonality: { holds: 0.7, fails: 0.3 },
-  tractability: { easy: 0.2, hard: 0.5, nearImpossible: 0.3 },
-  offenseDefense: { offense: 0.45, balanced: 0.35, defense: 0.2 },
-  takeoff: { fast: 0.3, medium: 0.45, slow: 0.25 },
-  powerConcentration: { concentrated: 0.55, diffuse: 0.45 },
-  alignmentInTime: { yes: 0.35, no: 0.65 },
+  orthogonality: { holds: 0.8, fails: 0.2 },
+  tractability: { easy: 0.1, hard: 0.6, nearImpossible: 0.3 },
+  offenseDefense: { offense: 0.7, balanced: 0.2, defense: 0.1 },
+  takeoff: { fast: 0.2, medium: 0.6, slow: 0.2 },
+  powerConcentration: { concentrated: 0.8, diffuse: 0.2 },
+  alignmentInTime: { yes: 0.65, no: 0.35 },
   controlDeployed: { yes: 0.45, no: 0.55 },
-  coordination: { regime: 0.3, none: 0.7 },
-  deception: { deceptive: 0.5, faithful: 0.5 },
+  coordination: { regime: 0.75, none: 0.25 },
+  deception: { deceptive: 0.35, faithful: 0.65 },
 };
 
 // Default weights — survival & suffering weighted highest.
@@ -702,14 +702,18 @@ function expandCoordination(base: CachedCell): CachedCell[] {
   ];
 }
 
-// Deception's effect is the whole point of the factor and is CORNER-DEPENDENT: it
-// guts a CONTROL world (the leash was on a system that fools its evaluations) and
-// falsifies a verified-ALIGNED world (we only thought we'd aligned it); it barely
-// moves an already-DOOMED world and is moot under a BENIGN attractor.
+// Deception's effect is the whole point of the factor and is CORNER-DEPENDENT. In a
+// CONTROL or a verified-ALIGNED world the defection DOMINATES: once the system defects,
+// every prior consideration (the leash, the "alignment," concentration, coordination)
+// is void — we're in an uncontained misaligned-ASI takeover, i.e. the DOOM outcome. So
+// both deltas are large enough to collapse those worlds to ≈ doom (the clamp floors
+// them there). It barely moves an already-DOOMED world and is moot under a BENIGN
+// attractor. (Doom itself barely varies with offense/defense or power — the threat is
+// from within — so a near-uniform collapse is consistent with the doom narrative.)
 const deceptionDelta: Record<Corner, ValueTuple> = {
   doom: [-0.03, 0.0, -0.03, -0.02],
   control: [-1.1, -0.7, -0.55, -1.1],
-  aligned: [-0.9, -0.55, -0.45, -0.9],
+  aligned: [-1.9, -1.3, -1.3, -1.8],
   benign: [0.0, 0.0, 0.02, 0.0],
 };
 const deceptionClause: Record<Corner, string> = {

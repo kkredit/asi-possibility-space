@@ -121,9 +121,11 @@ describe('logical-gate (archetype) evaluator', () => {
   });
 
   it('separates the four archetypes (doom is far worse than benign on survival)', () => {
-    const doom = evalAt({ ...base, orthogonality: 'holds', alignmentInTime: 'no', controlDeployed: 'no' });
-    const benign = evalAt({ ...base, orthogonality: 'fails' });
-    const aligned = evalAt({ ...base, orthogonality: 'holds', alignmentInTime: 'yes' });
+    // Pin deception=faithful: a deceptive defection collapses the aligned/control
+    // corners to ≈ doom, so the corner comparison is only meaningful for faithful.
+    const doom = evalAt({ ...base, orthogonality: 'holds', alignmentInTime: 'no', controlDeployed: 'no', deception: 'faithful' });
+    const benign = evalAt({ ...base, orthogonality: 'fails', deception: 'faithful' });
+    const aligned = evalAt({ ...base, orthogonality: 'holds', alignmentInTime: 'yes', deception: 'faithful' });
     expect(doom.survival).toBeLessThan(benign.survival);
     expect(doom.survival).toBeLessThan(aligned.survival);
   });

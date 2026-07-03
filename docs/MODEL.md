@@ -67,10 +67,10 @@ from cached over all 1,728 scenarios, in value-vector space (each dimension is i
 
 | Model | Free params | RMS to cached | What its residual *is* |
 |---|---:|---:|---|
-| `linear` (hand-set)¹ | 22 | **0.533** | bad coefficients **+** non-linearity (conflated) |
-| `fitted` (additive) | 22 | **0.310** | **irreducible non-linearity** — what no sum-of-factors can express |
-| `archetype` (8 régimes) | 32 | **0.182** | structure beyond an 8-way logical split |
-| `fitted + pairwise` | 217 | **0.141** | genuinely **higher-than-pairwise** (3-way+) entanglement |
+| `linear` (hand-set)¹ | 22 | **0.636** | bad coefficients **+** non-linearity (conflated) |
+| `fitted` (additive) | 22 | **0.373** | **irreducible non-linearity** — what no sum-of-factors can express |
+| `fitted + pairwise` | 217 | **0.190** | two-way interaction captured, but misses the higher-order régime gating |
+| `archetype` (8 régimes) | 32 | **0.174** | **the best fit** — only within-régime modulation left |
 | `cached` | — | 0 | (the reference) |
 
 ¹ `linear` is the analytical baseline only; it's not selectable in the UI ladder (it
@@ -80,32 +80,31 @@ was too crude to be worth picking) — the picker shows `fitted`, `archetype`, a
 Three things fall out of this ladder:
 
 1. **About 40% of the hand-set model's error was just bad coefficients.**
-   `linear → fitted` drops the RMS from 0.533 to 0.308 with no change in form. So
+   `linear → fitted` drops the RMS from 0.636 to 0.373 with no change in form. So
    when you look at the cached-vs-linear scatter, much of the spread is *not*
    evidence of non-linearity — it's the hand-picked numbers being suboptimal. The
    fitted model is the honest foil.
 
-2. **The space is substantially non-linear, and most of that is pairwise.** The
-   best possible additive model still sits 0.308 from cached; adding two-way terms
-   more than halves that (to 0.141). Survival, agency and the rest really do depend
+2. **The space is substantially non-linear, and much of that is pairwise.** The
+   best possible additive model still sits 0.373 from cached; adding two-way terms
+   roughly halves that (to 0.190). Survival, agency and the rest really do depend
    on *combinations* of factors, not a sum of independent pulls.
 
-3. **The space is fundamentally *gated*, not additive — across eight régimes.**
-   The `archetype` model (0.182, just 32 data-derived numbers) decisively beats the
-   best 22-parameter additive model (0.310) and gets most of the way to the
-   217-parameter pairwise fit (0.141). It works by classifying each scenario into one
-   of **eight logical régimes** — the four archetypes (benign / aligned / control /
-   doom) each split by whether **deception** holds — and predicting that régime's mean.
-   *Which régime you're in* dominates *how much each factor adds*. Deception earns its
-   place here: when it was first added but the archetype still used only four buckets,
-   its lead collapsed to a hair (0.300 vs 0.308), because deception's large swing (it
-   guts a CONTROL world, falsifies an ALIGNED one) landed as within-bucket residual;
-   splitting the buckets on deception (4 → 8) recovered it. Part of the *remaining*
-   residual is deliberate interaction: **power concentration × coordination** — a
-   governance regime makes concentrated power accountable (agency recovers) but mildly
-   centralizes an already-diffuse world (agency dips), so its agency effect flips sign
-   on the power state. That's exactly the kind of two-way term the additive models can't
-   see and the pairwise fit can.
+3. **The space is fundamentally *gated*, not additive — and the gating wins outright.**
+   The `archetype` model (0.174, just 32 data-derived numbers) is **the single best
+   fit** — it beats not only the best additive model (0.373) but even the
+   217-parameter pairwise model (0.190), at a fraction of the parameters. It works by
+   classifying each scenario into one of **eight logical régimes** — the four
+   archetypes (benign / aligned / control / doom) each split by whether **deception**
+   holds — and predicting that régime's mean. *Which régime you're in* dominates *how
+   much each factor adds*. The sharpest structure is a **régime collapse**: a deceptive
+   defection turns an ALIGNED or CONTROL world into ≈ the DOOM outcome (the "alignment"
+   was never real; the leash was on a masked system). That is a higher-order (3-way+)
+   gate an additive-plus-pairwise model can only smear across coefficients, but an
+   8-régime classifier nails — which is why the archetype now edges out the pairwise
+   fit. (A smaller, deliberate two-way term also lives here: **power concentration ×
+   coordination** — a governance regime makes concentrated power accountable, so its
+   agency effect flips sign on the power state.)
 
 ### The gates
 
@@ -122,21 +121,21 @@ DOOM     holds ∧ ¬aligned ∧ ¬control                → uncontained misali
 
 This mirrors the structure the hand-reasoning already used (the
 `DOOM`/`CONTROL`/`ALIGNED`/`BENIGN` sub-arguments documented in `dataset.ts`). The
-fact that *recovering it statistically* outperforms additive fitting is the model
-confirming the narrative's own logic.
+fact that *recovering it statistically* beats even the 217-parameter pairwise fit is
+the model confirming the narrative's own logic.
 
 ### What this means for the tool
 
 - The `fitted` evaluator is the right **null model**: divergence from *it* (not from
   hand-`linear`) is real non-linearity worth investigating.
-- The `archetype` residual (0.182) localises *within-régime* variation — once you
+- The `archetype` residual (0.174) localises *within-régime* variation — once you
   know the gate (including deception), what's left is the secondary modulation
   (offense/defense balance, power concentration, takeoff, coordination) the means
   average over. Those are the cells most worth re-reasoning carefully.
 - The next evaluator worth building is a **gated-additive hybrid**: classify by the
-  eight régimes, then fit a small additive model *within* each. It should close the
-  remaining gap to the pairwise fit with a fraction of the parameters, and would be
-  both accurate and interpretable.
+  eight régimes, then fit a small additive model *within* each. Since the archetype
+  already beats pairwise, this would chip at the within-régime residual — accurate
+  *and* interpretable.
 
 ---
 

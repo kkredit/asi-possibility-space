@@ -18,10 +18,10 @@ decides whether to pursue the action.
 
 | Action | best lever in | positive gain in |
 |---|---:|---:|
-| Fund technical alignment | **73%** | 100% |
-| Broaden frontier access (open-source / antitrust) | **12%** | 36% |
-| Compute-governance / coordination regime | **10%** | 100% |
-| Standardize AI control | **4%** | 92% |
+| Fund technical alignment | **52%** | 66% |
+| Compute-governance / coordination regime | **29%** | 100% |
+| Broaden frontier access (open-source / antitrust) | **10%** | 15% |
+| Standardize AI control | **9%** | 92% |
 | Defensive acceleration (d/acc) | **0%** | 92% |
 
 The best-lever shares sum to ~100% (one action wins each world). "Positive gain" can exceed it — several actions help a world; only one is *best*.
@@ -30,84 +30,83 @@ The best-lever shares sum to ~100% (one action wins each world). "Positive gain"
 
 ## Fund technical alignment
 
-Best lever in **73%** of objective worlds · moves Alignment solved & deployed in time→Yes.
+Best lever in **52%** of objective worlds · moves Alignment solved & deployed in time→Yes.
 
-**Verdict:** the default priority. It yields the top slot mainly when **Orthogonality Thesis = Fails** (best-lever share drops to 0% there).
-
-| Crux (objective question) | answer | best-lever share | mean margin | flips? |
-|---|---|---:|---:|:---:|
-| Orthogonality Thesis | Holds | 94% | +0.053 | **yes** |
-|  | Fails | 0% | −0.004 |  |
-| Offense/defense balance at ASI scale | Offense-dominant | 78% | +0.049 | no |
-|  | Balanced | 78% | +0.039 |  |
-|  | Defense-dominant | 55% | +0.024 |  |
-| Deceptive alignment | Deceptive | 85% | +0.052 | no |
-|  | Faithful | 61% | +0.029 |  |
-
-**Most favorable conditions:** Orthogonality Thesis = Holds (+0.053); Deceptive alignment = Deceptive (+0.052); Alignment tractability (in principle) = Near-impossible (+0.051).
-**Least favorable:** Orthogonality Thesis = Fails (−0.004).
-
----
-
-## Broaden frontier access (open-source / antitrust)
-
-Best lever in **12%** of objective worlds · moves Power concentration→Diffuse.
-
-**Verdict:** a *conditional* priority — pursue it when **Orthogonality Thesis = Fails** (best-lever share 54%); otherwise a lower priority.
+**Verdict:** the default priority. It yields the top slot mainly when **Deceptive alignment = Deceptive** (best-lever share drops to 1% there).
 
 | Crux (objective question) | answer | best-lever share | mean margin | flips? |
 |---|---|---:|---:|:---:|
-| Orthogonality Thesis | Holds | 0% | −0.148 | **yes** |
-|  | Fails | 54% | −0.004 |  |
-| Alignment tractability (in principle) | Easy | 21% | −0.092 | no |
-|  | Hard | 12% | −0.118 |  |
-|  | Near-impossible | 3% | −0.137 |  |
-| Offense/defense balance at ASI scale | Offense-dominant | 18% | −0.126 | no |
-|  | Balanced | 0% | −0.115 |  |
-|  | Defense-dominant | 18% | −0.095 |  |
+| Deceptive alignment | Deceptive | 1% | −0.018 | **yes** |
+|  | Faithful | 83% | +0.062 |  |
+| Takeoff speed | Fast | 61% | +0.059 | no |
+|  | Medium | 51% | +0.032 |  |
+|  | Slow | 51% | +0.013 |  |
+| Orthogonality Thesis | Holds | 60% | +0.038 | **yes** |
+|  | Fails | 8% | −0.002 |  |
 
-**Least favorable:** Orthogonality Thesis = Holds (−0.148); Alignment tractability (in principle) = Near-impossible (−0.137); Deceptive alignment = Faithful (−0.129).
+**Most favorable conditions:** Deceptive alignment = Faithful (+0.062); Takeoff speed = Fast (+0.059); Orthogonality Thesis = Holds (+0.038).
+**Least favorable:** Deceptive alignment = Deceptive (−0.018); Orthogonality Thesis = Fails (−0.002).
 
 ---
 
 ## Compute-governance / coordination regime
 
-Best lever in **10%** of objective worlds · moves Coordination regime→Regime, Power concentration→Concentrated.
+Best lever in **29%** of objective worlds · moves Coordination regime→Regime, Power concentration→Concentrated.
 
-**Verdict:** a *conditional* priority — pursue it when **Orthogonality Thesis = Fails** (best-lever share 46%); otherwise a lower priority.
+**Verdict:** a *conditional* priority — pursue it when **Deceptive alignment = Deceptive** (best-lever share 70%); otherwise a lower priority.
 
 | Crux (objective question) | answer | best-lever share | mean margin | flips? |
 |---|---|---:|---:|:---:|
-| Orthogonality Thesis | Holds | 0% | −0.074 | no |
-|  | Fails | 46% | −0.001 |  |
-| Alignment tractability (in principle) | Easy | 18% | −0.045 | no |
-|  | Hard | 10% | −0.059 |  |
-|  | Near-impossible | 3% | −0.069 |  |
-| Offense/defense balance at ASI scale | Offense-dominant | 4% | −0.054 | no |
-|  | Balanced | 22% | −0.059 |  |
-|  | Defense-dominant | 4% | −0.066 |  |
+| Deceptive alignment | Deceptive | 70% | +0.002 | **yes** |
+|  | Faithful | 4% | −0.070 |  |
+| Takeoff speed | Fast | 35% | −0.078 | no |
+|  | Medium | 27% | −0.042 |  |
+|  | Slow | 32% | −0.024 |  |
+| Orthogonality Thesis | Holds | 30% | −0.050 | no |
+|  | Fails | 21% | −0.003 |  |
 
-**Least favorable:** Orthogonality Thesis = Holds (−0.074); Alignment tractability (in principle) = Near-impossible (−0.069); Offense/defense balance at ASI scale = Defense-dominant (−0.066).
+**Most favorable conditions:** Deceptive alignment = Deceptive (+0.002).
+**Least favorable:** Takeoff speed = Fast (−0.078); Deceptive alignment = Faithful (−0.070); Offense/defense balance at ASI scale = Defense-dominant (−0.053).
+
+---
+
+## Broaden frontier access (open-source / antitrust)
+
+Best lever in **10%** of objective worlds · moves Power concentration→Diffuse.
+
+**Verdict:** a *conditional* priority — pursue it when **Deceptive alignment = Deceptive** (best-lever share 6%); otherwise a lower priority.
+
+| Crux (objective question) | answer | best-lever share | mean margin | flips? |
+|---|---|---:|---:|:---:|
+| Deceptive alignment | Deceptive | 6% | −0.018 | no |
+|  | Faithful | 13% | −0.138 |  |
+| Orthogonality Thesis | Holds | 0% | −0.109 | **yes** |
+|  | Fails | 71% | −0.002 |  |
+| Offense/defense balance at ASI scale | Offense-dominant | 13% | −0.099 | no |
+|  | Balanced | 0% | −0.085 |  |
+|  | Defense-dominant | 13% | −0.070 |  |
+
+**Least favorable:** Deceptive alignment = Faithful (−0.138); Orthogonality Thesis = Holds (−0.109); Takeoff speed = Fast (−0.106).
 
 ---
 
 ## Standardize AI control
 
-Best lever in **4%** of objective worlds · moves Control solved & deployed→Yes.
+Best lever in **9%** of objective worlds · moves Control solved & deployed→Yes.
 
-**Verdict:** a *conditional* priority — pursue it when **Orthogonality Thesis = Fails** (best-lever share 0%); otherwise a lower priority.
+**Verdict:** a *conditional* priority — pursue it when **Deceptive alignment = Deceptive** (best-lever share 24%); otherwise a lower priority.
 
 | Crux (objective question) | answer | best-lever share | mean margin | flips? |
 |---|---|---:|---:|:---:|
-| Orthogonality Thesis | Holds | 6% | −0.071 | no |
-|  | Fails | 0% | −0.004 |  |
-| Deceptive alignment | Deceptive | 0% | −0.079 | no |
-|  | Faithful | 9% | −0.033 |  |
-| Offense/defense balance at ASI scale | Offense-dominant | 0% | −0.072 | no |
-|  | Balanced | 0% | −0.053 |  |
-|  | Defense-dominant | 22% | −0.027 |  |
+| Deceptive alignment | Deceptive | 24% | −0.003 | no |
+|  | Faithful | 0% | −0.068 |  |
+| Orthogonality Thesis | Holds | 10% | −0.050 | no |
+|  | Fails | 0% | −0.002 |  |
+| Takeoff speed | Fast | 4% | −0.066 | no |
+|  | Medium | 10% | −0.043 |  |
+|  | Slow | 6% | −0.032 |  |
 
-**Least favorable:** Deceptive alignment = Deceptive (−0.079); Offense/defense balance at ASI scale = Offense-dominant (−0.072); Orthogonality Thesis = Holds (−0.071).
+**Least favorable:** Deceptive alignment = Faithful (−0.068); Takeoff speed = Fast (−0.066); Orthogonality Thesis = Holds (−0.050).
 
 ---
 
@@ -119,16 +118,15 @@ Best lever in **0%** of objective worlds · moves Control solved & deployed→Ye
 
 | Crux (objective question) | answer | best-lever share | mean margin | flips? |
 |---|---|---:|---:|:---:|
-| Orthogonality Thesis | Holds | 0% | −0.101 | no |
-|  | Fails | 0% | −0.008 |  |
-| Alignment tractability (in principle) | Easy | 0% | −0.063 | no |
-|  | Hard | 0% | −0.081 |  |
-|  | Near-impossible | 0% | −0.095 |  |
-| Offense/defense balance at ASI scale | Offense-dominant | 0% | −0.088 | no |
-|  | Balanced | 0% | −0.079 |  |
-|  | Defense-dominant | 0% | −0.065 |  |
+| Deceptive alignment | Deceptive | 0% | −0.007 | no |
+|  | Faithful | 0% | −0.089 |  |
+| Orthogonality Thesis | Holds | 0% | −0.067 | no |
+|  | Fails | 0% | −0.006 |  |
+| Takeoff speed | Fast | 0% | −0.085 | no |
+|  | Medium | 0% | −0.057 |  |
+|  | Slow | 0% | −0.045 |  |
 
-**Least favorable:** Orthogonality Thesis = Holds (−0.101); Alignment tractability (in principle) = Near-impossible (−0.095); Offense/defense balance at ASI scale = Offense-dominant (−0.088).
+**Least favorable:** Deceptive alignment = Faithful (−0.089); Takeoff speed = Fast (−0.085); Orthogonality Thesis = Holds (−0.067).
 
 ---
 

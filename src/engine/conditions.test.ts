@@ -156,9 +156,12 @@ describe('action conditions', () => {
     for (const cx of a.cruxes) expect(objIds.has(cx.factorId)).toBe(true);
   });
 
-  it('orthogonality is fund-alignment’s top crux and it flips', () => {
+  it('deception is fund-alignment’s top crux and it flips', () => {
+    // Funding alignment pushes into the ALIGNED corner, but a deceptive defection
+    // collapses that corner to ≈ doom — so whether deception holds is what most
+    // decides if funding alignment is the best lever.
     const a = runA();
-    expect(a.cruxes[0].factorId).toBe('orthogonality');
+    expect(a.cruxes[0].factorId).toBe('deception');
     expect(a.cruxes[0].flips).toBe(true);
   });
 

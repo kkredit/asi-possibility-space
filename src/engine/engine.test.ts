@@ -94,7 +94,8 @@ describe('probability model', () => {
       alignmentInTime: 'no',
       controlDeployed: 'yes',
     };
-    const expected = 0.7 * 0.5 * 0.45 * 0.45 * 0.65 * 0.45;
+    // orth holds · tract hard · offense · power diffuse · align no · control yes
+    const expected = 0.8 * 0.6 * 0.7 * 0.2 * 0.35 * 0.45;
     expect(scenarioProbability(scenario, dataset.baselineCredences)).toBeCloseTo(expected, 10);
   });
 
@@ -216,7 +217,7 @@ describe('actions', () => {
 
   it('funding alignment raises P(alignmentInTime=yes)', () => {
     const next = applyAction(dataset.baselineCredences, dataset.actions[0]);
-    expect(next.alignmentInTime.yes).toBeCloseTo(0.5, 10); // 0.35 + 0.15
+    expect(next.alignmentInTime.yes).toBeCloseTo(0.8, 10); // 0.65 + 0.15
   });
 
   it('ranks actions by EV gain, all gains finite', () => {

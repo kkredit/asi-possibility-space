@@ -159,8 +159,8 @@ export function App() {
   const ladder = useMemo<LadderRow[]>(() => {
     const NOTES: Record<string, string> = {
       cached: 'The hand-reasoned surface itself — the reference every model is measured against.',
-      fittedPairwise: 'Best fit with two-way interactions. Its residual is genuinely higher-than-pairwise (3-way+) structure.',
-      archetype: 'Eight logical régimes — the four archetypes (benign / aligned / control / doom) each split by whether deception holds — predicting each régime’s mean value. Zero hand-tuning, yet it decisively beats the fitted additive model and nears the pairwise fit: the surface is gated, not additive.',
+      fittedPairwise: 'Every two-way interaction, fit by least squares. Captures pairwise structure but still misses the higher-order régime gating — so it now trails the archetype despite far more parameters.',
+      archetype: 'Eight logical régimes — the four archetypes (benign / aligned / control / doom) each split by whether deception holds — predicting each régime’s mean value. Zero hand-tuning, yet it’s the single best fit: it beats even the 217-parameter pairwise model, because the surface’s sharpest structure is a régime collapse (a deceptive defection turns an aligned/controlled world into ≈ doom) that only a gate can represent.',
       fitted: 'Best possible interaction-free fit. Its residual is the irreducible non-linearity — what no sum-of-factors can capture.',
     };
     return evaluators
@@ -256,8 +256,9 @@ export function App() {
                       <>
                         Each model is fit to (or hand-set against) the same hand-reasoned cells. The drop
                         from <em>linear</em> to <em>fitted linear</em> is coefficients the hand-set model got
-                        wrong; the drop to <em>fitted + pairwise</em> is two-way interaction; what remains is
-                        genuinely higher-order entanglement (the hard logical gates). See docs/MODEL.md.
+                        wrong; <em>fitted + pairwise</em> adds two-way interaction — yet <em>logical gates</em>
+                        beats it at a fraction of the parameters, because the surface is gated (régimes), not
+                        additive. See docs/MODEL.md.
                       </>
                     }
                   />
