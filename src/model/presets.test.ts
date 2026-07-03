@@ -4,6 +4,7 @@ import type { Credences } from '@model/types';
 import type { KnownFactorId } from '@model/ids';
 import { presets } from '@model/presets';
 import { deriveCredences } from '@engine/derive';
+import { analyze, cachedEvaluator, disempowermentMass, doomMass, reconcileJoint } from '@engine/index';
 import { VALUE_DIMENSION_IDS } from '@engine/value';
 import type { SubCredences } from '@model/types';
 
@@ -115,6 +116,49 @@ describe('preset sub-credences (alignment deep dive)', () => {
       const l1 = (['easy', 'hard', 'nearImpossible'] as const).reduce(
         (a, st) => a + Math.abs((d.tractability[st] ?? 0) - (stated.tractability[st] ?? 0)), 0);
       expect(l1, `${p.id} tractability L1 gap ${l1.toFixed(2)}`).toBeLessThanOrEqual(0.45);
+    }
+  });
+});
+
+describe('preset doom calibration (stated vs model-implied, net mode)', () => {
+  // Guard bands around each entity's clearly-stated numbers (extinction and/or
+  // takeover-total = extinction + alive-but-disempowered), as reconciled in the
+  // per-preset notes. Content edits that silently push an entity outside its
+  // stated reading should fail here, not be discovered in the UI.
+  const BANDS: Record<string, { ext?: [number, number]; total?: [number, number] }> = {
+    yampolskiy: { ext: [0.95, 1] },
+    yudkowsky: { ext: [0.9, 1] },
+    kokotajlo: { total: [0.6, 0.8] },
+    lifland: { ext: [0.2, 0.4], total: [0.4, 0.6] },
+    bengio: { ext: [0.12, 0.32] },
+    christiano: { ext: [0.08, 0.26] },
+    acx: { ext: [0.1, 0.3] },
+    hinton: { ext: [0.08, 0.28] },
+    anthropic: { total: [0.15, 0.35] },
+    xai: { ext: [0.08, 0.28] },
+    lecun: { ext: [0, 0.05] },
+    andreessen: { ext: [0, 0.05] },
+  };
+
+  it('every banded preset lands inside its stated reading', () => {
+    for (const p of presets) {
+      const band = BANDS[p.id];
+      if (!band) continue;
+      const stated = { ...dataset.baselineCredences, ...p.credences };
+      const subs: SubCredences = { ...dataset.subBaseline!, ...(p.subCredences as SubCredences) };
+      const cred = deriveCredences(dataset, stated, subs);
+      const joint = reconcileJoint(dataset.bayesNet!, dataset.factors, cred, cred).probability;
+      const a = analyze(dataset, cred, p.weights ?? dataset.defaultWeights, cachedEvaluator, {}, joint);
+      const ext = doomMass(a.scenarios);
+      const total = ext + disempowermentMass(a.scenarios);
+      if (band.ext) {
+        expect(ext, `${p.id} extinction ${(ext * 100).toFixed(0)}%`).toBeGreaterThanOrEqual(band.ext[0]);
+        expect(ext, `${p.id} extinction ${(ext * 100).toFixed(0)}%`).toBeLessThanOrEqual(band.ext[1]);
+      }
+      if (band.total) {
+        expect(total, `${p.id} takeover-total ${(total * 100).toFixed(0)}%`).toBeGreaterThanOrEqual(band.total[0]);
+        expect(total, `${p.id} takeover-total ${(total * 100).toFixed(0)}%`).toBeLessThanOrEqual(band.total[1]);
+      }
     }
   });
 });

@@ -285,7 +285,7 @@ export const presets: KnownPreset[] = [
       alignmentInTime: { yes: 0.45, no: 0.55 },
       controlDeployed: { yes: 0.35, no: 0.65 },
       coordination: { regime: 0.25, none: 0.75 },
-      deception: { deceptive: 0.55, faithful: 0.45 },
+      deception: { deceptive: 0.5, faithful: 0.5 },
       takeoverSeverity: { extinction: 0.5, subjugation: 0.5 },
     },
     subCredences: {
