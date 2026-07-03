@@ -176,7 +176,7 @@ function difficultyBand(score: number): Record<StateOf<'tractability'>, number> 
   if (score <= 4.5) return { easy: 0.06, hard: 0.65, nearImpossible: 0.29 };
   if (score <= 5.5) return { easy: 0.02, hard: 0.56, nearImpossible: 0.42 };
   if (score <= 6.5) return { easy: 0.01, hard: 0.29, nearImpossible: 0.7 };
-  return { easy: 0.005, hard: 0.035, nearImpossible: 0.96 };
+  return { easy: 0.002, hard: 0.018, nearImpossible: 0.98 };
 }
 
 type TractabilityCptKey =

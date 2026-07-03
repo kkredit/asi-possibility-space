@@ -24,6 +24,16 @@ import type { KnownCredences, KnownFactorId, KnownSubCredences, KnownSubfactorId
  * concerns above that bound are read as "conditional on failure, it's deceptive"
  * and capped — otherwise the two failure modes would double-count.
  *
+ * Odds-scale granularity: probabilities near 0/1 are stated to THREE decimals for
+ * the extremists (Yampolskiy, Yudkowsky), because on the odds scale 0.99 vs 0.995
+ * vs 0.999 are different claims (100:1 / 200:1 / 1000:1) and a 0.01 floor on any
+ * survival route caps implied doom at ~100:1 no matter what else is set. With
+ * these, Yampolskiy's model-implied doom is ~99.7% (net) / ~99.96% (independence)
+ * — hundreds-to-thousands to one. The remaining distance to his professed
+ * 99.999999% is the SHARED model's floor, not his: the benign-attractor credence
+ * he can't push below 0.002 here, and the Bayes-net raking that redistributes a
+ * little mass into correlated lucky corners.
+ *
  * `subCredences` (the alignment deep-dive: legibility, value spec, corrigibility,
  * oversight scaling + the four research-area maturity forecasts) come from a
  * dedicated 2026 sourcing pass (per-subfactor notes/accuracy/refs in `factors`).
@@ -64,25 +74,25 @@ export const presets: KnownPreset[] = [
       'Control of superintelligence is not merely hard but fundamentally impossible — a "perpetual safety machine" — so building AGI is near-certain catastrophe; the only winning move is not to build it.',
     pdoom: '~99.999999%',
     credences: {
-      orthogonality: { holds: 0.99, fails: 0.01 },
-      tractability: { easy: 0.0, hard: 0.01, nearImpossible: 0.99 },
+      orthogonality: { holds: 0.998, fails: 0.002 },
+      tractability: { easy: 0.001, hard: 0.004, nearImpossible: 0.995 },
       offenseDefense: { offense: 0.85, balanced: 0.1, defense: 0.05 },
       takeoff: { fast: 0.55, medium: 0.35, slow: 0.1 },
       powerConcentration: { concentrated: 0.55, diffuse: 0.45 },
-      alignmentInTime: { yes: 0.01, no: 0.99 },
-      controlDeployed: { yes: 0.01, no: 0.99 },
-      coordination: { regime: 0.1, none: 0.9 },
-      deception: { deceptive: 0.9, faithful: 0.1 },
+      alignmentInTime: { yes: 0.005, no: 0.995 },
+      controlDeployed: { yes: 0.005, no: 0.995 },
+      coordination: { regime: 0.05, none: 0.95 },
+      deception: { deceptive: 0.99, faithful: 0.01 },
     },
     subCredences: {
-      interpLegibility: { legible: 0.005, partially: 0.063, opaque: 0.932 },
-      valueSpec: { learnable: 0.002, brittle: 0.998 },
-      corrigibility: { broadBasin: 0.002, narrow: 0.004, antiNatural: 0.994 },
-      oversightScaling: { scales: 0.002, fails: 0.998 },
-      interpResearch: { mature: 0.002, partial: 0.002, nascent: 0.996 },
-      oversightResearch: { mature: 0.002, partial: 0.002, nascent: 0.996 },
-      theoryResearch: { mature: 0.002, partial: 0.002, nascent: 0.996 },
-      evalsResearch: { mature: 0.002, partial: 0.003, nascent: 0.995 },
+      interpLegibility: { legible: 0.002, partially: 0.008, opaque: 0.99 },
+      valueSpec: { learnable: 0.005, brittle: 0.995 },
+      corrigibility: { broadBasin: 0.002, narrow: 0.008, antiNatural: 0.99 },
+      oversightScaling: { scales: 0.005, fails: 0.995 },
+      interpResearch: { mature: 0.002, partial: 0.018, nascent: 0.98 },
+      oversightResearch: { mature: 0.002, partial: 0.018, nascent: 0.98 },
+      theoryResearch: { mature: 0.002, partial: 0.018, nascent: 0.98 },
+      evalsResearch: { mature: 0.005, partial: 0.045, nascent: 0.95 },
     },
     weights: { survival: 1.0, agency: 0.7, suffering: 0.85, flourishing: 0.4 },
     references: [
@@ -127,25 +137,25 @@ export const presets: KnownPreset[] = [
       'Building superhuman AI under anything like current conditions kills everyone by default; alignment is unsolved and will not be solved in time — the only adequate response is to halt frontier development.',
     pdoom: '>95% (resists a single number)',
     credences: {
-      orthogonality: { holds: 0.98, fails: 0.02 },
-      tractability: { easy: 0.0, hard: 0.05, nearImpossible: 0.95 },
+      orthogonality: { holds: 0.995, fails: 0.005 },
+      tractability: { easy: 0.001, hard: 0.019, nearImpossible: 0.98 },
       offenseDefense: { offense: 0.92, balanced: 0.06, defense: 0.02 },
       takeoff: { fast: 0.85, medium: 0.13, slow: 0.02 },
       powerConcentration: { concentrated: 0.3, diffuse: 0.7 },
-      alignmentInTime: { yes: 0.03, no: 0.97 },
-      controlDeployed: { yes: 0.05, no: 0.95 },
+      alignmentInTime: { yes: 0.01, no: 0.99 },
+      controlDeployed: { yes: 0.01, no: 0.99 },
       coordination: { regime: 0.07, none: 0.93 },
-      deception: { deceptive: 0.92, faithful: 0.08 },
+      deception: { deceptive: 0.98, faithful: 0.02 },
     },
     subCredences: {
-      interpLegibility: { legible: 0.006, partially: 0.119, opaque: 0.875 },
-      valueSpec: { learnable: 0.015, brittle: 0.985 },
-      corrigibility: { broadBasin: 0.006, narrow: 0.054, antiNatural: 0.94 },
-      oversightScaling: { scales: 0.006, fails: 0.994 },
-      interpResearch: { mature: 0.002, partial: 0.032, nascent: 0.966 },
-      oversightResearch: { mature: 0.002, partial: 0.011, nascent: 0.987 },
-      theoryResearch: { mature: 0.002, partial: 0.02, nascent: 0.978 },
-      evalsResearch: { mature: 0.002, partial: 0.02, nascent: 0.978 },
+      interpLegibility: { legible: 0.005, partially: 0.045, opaque: 0.95 },
+      valueSpec: { learnable: 0.01, brittle: 0.99 },
+      corrigibility: { broadBasin: 0.002, narrow: 0.018, antiNatural: 0.98 },
+      oversightScaling: { scales: 0.01, fails: 0.99 },
+      interpResearch: { mature: 0.002, partial: 0.048, nascent: 0.95 },
+      oversightResearch: { mature: 0.002, partial: 0.028, nascent: 0.97 },
+      theoryResearch: { mature: 0.002, partial: 0.018, nascent: 0.98 },
+      evalsResearch: { mature: 0.005, partial: 0.075, nascent: 0.92 },
     },
     weights: { survival: 1.0, agency: 0.3, suffering: 0.4, flourishing: 0.5 },
     references: [
