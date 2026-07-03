@@ -31,6 +31,8 @@ import { ModelLadder, type LadderRow } from '@viz/ModelLadder';
 import { InfoTip } from '@viz/InfoTip';
 import { Panel } from '@shell/Panel';
 import { ActionsTab } from '@shell/tabs/ActionsTab';
+import { IntroPage } from '@shell/pages/IntroPage';
+import { ResourcesPage } from '@shell/pages/ResourcesPage';
 import { FactorsTab } from '@shell/tabs/FactorsTab';
 
 // The full scenario-space size, derived so it never goes stale as factors change.
@@ -53,7 +55,36 @@ function readUrlTab(): number {
   return i >= 0 ? i : 0;
 }
 
-function Masthead() {
+// Top-level pages, hash-navigable (`#page=intro` / `#page=resources`) — the app
+// deliberately has no client-side router (see AGENTS.md), so pages follow the same
+// hash-param pattern as tabs and presets.
+const PAGES = ['explorer', 'intro', 'resources'] as const;
+type Page = (typeof PAGES)[number];
+
+function readUrlPage(): Page {
+  if (typeof window === 'undefined') return 'explorer';
+  const p = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('page');
+  return p === 'intro' || p === 'resources' ? p : 'explorer';
+}
+
+function Masthead({ page, onNavigate }: { page: Page; onNavigate: (p: Page) => void }) {
+  const navLink = (p: Page, label: string) => (
+    <Typography
+      key={p}
+      onClick={() => onNavigate(p)}
+      sx={{
+        fontFamily: fonts.display,
+        fontSize: '0.82rem',
+        fontWeight: page === p ? 700 : 400,
+        color: page === p ? c.teal : c.mute,
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+        '&:hover': { color: c.teal },
+      }}
+    >
+      {label}
+    </Typography>
+  );
   return (
     <Box
       component="header"
@@ -81,8 +112,13 @@ function Masthead() {
           </Typography>
         </Box>
       </Box>
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', ml: { xs: 0, sm: 2 } }}>
+        {navLink('explorer', 'Explorer')}
+        {navLink('intro', 'Intro')}
+        {navLink('resources', 'Resources')}
+      </Box>
       <Box sx={{ flex: 1 }} />
-      <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.68rem', color: c.faint, whiteSpace: 'nowrap' }}>
+      <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.68rem', color: c.faint, whiteSpace: 'nowrap', display: { xs: 'none', sm: 'block' } }}>
         {SCENARIO_COUNT.toLocaleString()}-scenario model · editable content
       </Typography>
     </Box>
@@ -105,6 +141,11 @@ export function App() {
     setTab(i);
     // Omit the default (Landscape) so plain / preset-only links stay clean.
     setHashParam('tab', i > 0 ? TABS[i].slug : null);
+  };
+  const [page, setPage] = useState<Page>(readUrlPage);
+  const selectPage = (p: Page) => {
+    setPage(p);
+    setHashParam('page', p === 'explorer' ? null : p);
   };
 
   // Mobile: the Beliefs panel is a bottom sheet instead of a huge in-flow column
@@ -205,9 +246,20 @@ export function App() {
       .sort((a, b) => b.rms - a.rms);
   }, [weights, tab]);
 
+  if (page !== 'explorer') {
+    return (
+      <Box sx={{ minHeight: '100vh' }}>
+        <Masthead page={page} onNavigate={selectPage} />
+        <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3 } }}>
+          {page === 'intro' ? <IntroPage /> : <ResourcesPage />}
+        </Container>
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ minHeight: '100vh' }}>
-      <Masthead />
+      <Masthead page={page} onNavigate={selectPage} />
 
       <Container maxWidth="xl" sx={{ pt: { xs: 2, sm: 3 }, pb: { xs: 10, md: 3 } }}>
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: 'flex-start' }}>

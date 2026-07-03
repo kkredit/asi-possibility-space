@@ -302,7 +302,9 @@ cell was authored vs. fell back. The fitted models train only on reasoned cells.
   introduce client-side routing or absolute asset URLs — the app uses tab
   navigation, not a router.
 - **URL state lives in the hash**: `#preset=<id>` (a known preset), `#tab=<slug>`
-  (active tab), and `#beliefs=<base64url>` — a full CUSTOM belief set (credences,
+  (active tab), `#page=intro|resources` (the top-level pages — still no client-side
+  router; pages follow the same hash pattern), and `#beliefs=<base64url>` — a full
+  CUSTOM belief set (credences,
   sub-credences, weights, both modes) compactly encoded in
   [`src/shell/urlBeliefs.ts`](src/shell/urlBeliefs.ts) and minted by the Beliefs
   panel's "Copy link" button. All SSR-safe; `beliefs=` takes precedence over
