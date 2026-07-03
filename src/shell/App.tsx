@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Box, Container, Paper, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Container, Paper, Tab, Tabs, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { dataset } from '@model/dataset';
 import {
   analyze,
@@ -18,6 +18,7 @@ import {
   zeroVector,
 } from '@engine/index';
 import { Controls } from '@shell/controls/Controls';
+import { BeliefsSheet } from '@shell/BeliefsSheet';
 import { EvHeadline } from '@shell/EvHeadline';
 import { Logo } from '@shell/Logo';
 import { setHashParam, useBeliefs } from '@shell/store';
@@ -105,6 +106,10 @@ export function App() {
     // Omit the default (Landscape) so plain / preset-only links stay clean.
     setHashParam('tab', i > 0 ? TABS[i].slug : null);
   };
+
+  // Mobile: the Beliefs panel is a bottom sheet instead of a huge in-flow column
+  // (results-first; see BeliefsSheet). Desktop keeps the sticky side panel.
+  const isMobile = useMediaQuery(useTheme().breakpoints.down('md'));
 
   const evaluator = getEvaluator(evaluatorId);
   // In Bayes-net mode the reconciled joint drives every analysis (it can't be
@@ -204,21 +209,23 @@ export function App() {
     <Box sx={{ minHeight: '100vh' }}>
       <Masthead />
 
-      <Container maxWidth="xl" sx={{ py: { xs: 2, sm: 3 } }}>
+      <Container maxWidth="xl" sx={{ pt: { xs: 2, sm: 3 }, pb: { xs: 10, md: 3 } }}>
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: 'flex-start' }}>
-          <Paper
-            sx={{
-              p: { xs: 1.75, sm: 2.25 },
-              width: { xs: '100%', md: 360 },
-              flexShrink: 0,
-              position: { md: 'sticky' },
-              top: { md: 16 },
-              maxHeight: { md: 'calc(100vh - 32px)' },
-              overflowY: { md: 'auto' },
-            }}
-          >
-            <Controls />
-          </Paper>
+          {!isMobile && (
+            <Paper
+              sx={{
+                p: 2.25,
+                width: 360,
+                flexShrink: 0,
+                position: 'sticky',
+                top: 16,
+                maxHeight: 'calc(100vh - 32px)',
+                overflowY: 'auto',
+              }}
+            >
+              <Controls />
+            </Paper>
+          )}
 
           <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
             <Box sx={{ mb: 2 }}>
@@ -317,6 +324,8 @@ export function App() {
           </Box>
         </Box>
       </Container>
+
+      {isMobile && <BeliefsSheet ev={analysis.ev} pDoom={pDoom} pDisempowered={pDisempowered} />}
     </Box>
   );
 }
