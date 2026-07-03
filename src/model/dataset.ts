@@ -198,7 +198,7 @@ const baselineCredences = {
   controlDeployed: { yes: 0.45, no: 0.55 },
   coordination: { regime: 0.75, none: 0.25 },
   deception: { deceptive: 0.35, faithful: 0.65 },
-  takeoverSeverity: { extinction: 0.5, subjugation: 0.5 },
+  takeoverSeverity: { extinction: 0.8, subjugation: 0.2 },
 } satisfies KnownCredences;
 
 // Default weights — survival & suffering weighted highest.
