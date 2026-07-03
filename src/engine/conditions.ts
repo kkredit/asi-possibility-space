@@ -3,13 +3,15 @@ import type {
   Credences,
   Dataset,
   Evaluator,
+  Factor,
   FactorId,
   FactorKind,
   Scenario,
   StateId,
+  ValueVector,
 } from '@model/types';
 import { analyze } from '@engine/analyze';
-import { applyAction } from '@engine/actions';
+import { applyAction, withMarginal } from '@engine/actions';
 import { scenarioKey, type Pins } from '@engine/scenarios';
 
 /**
@@ -102,7 +104,7 @@ interface RestGroup {
 function groupByRest(
   dataset: Dataset,
   credences: Credences,
-  weights: Parameters<typeof analyze>[2],
+  weights: ValueVector,
   evaluator: Evaluator,
   decision: Decision,
   given: Pins,
@@ -143,34 +145,20 @@ function summarize(groups: RestGroup[]) {
   return { delta: (evA - evB) / p, favorableShare: fav / p, evA: evA / p, evB: evB / p, mass: p };
 }
 
-export function conditionalContrast(
-  dataset: Dataset,
-  credences: Credences,
-  weights: Parameters<typeof analyze>[2],
-  evaluator: Evaluator,
-  decision: Decision,
-  given: Pins = {},
-  jointProbability?: (s: Scenario) => number,
-): ConditionalContrast {
-  // The decision factor is the free variable, so any `given` pin on it is dropped.
-  const base: Pins = { ...given };
-  delete base[decision.factor];
-
-  const groups = groupByRest(dataset, credences, weights, evaluator, decision, base, jointProbability);
-  const overall = summarize(groups);
-
-  // Cruxes: every other free factor, with the contrast's mean delta conditioned on
-  // each of that factor's states (the subgroup of rest-worlds where it holds).
+/**
+ * Fold per-factor state deltas into the crux tornado + the favorable/unfavorable
+ * condition lists — the shared read-out shape behind both the factor-contrast and
+ * the action-conditions views. Sorting: cruxes by largest absolute conditional
+ * delta, condition lines by magnitude.
+ */
+function cruxTornado(
+  entries: { factor: Factor; states: CruxStateDelta[] }[],
+): Pick<ConditionalContrast, 'cruxes' | 'favorableWhen' | 'unfavorableWhen'> {
   const cruxes: Crux[] = [];
   const favorableWhen: ConditionLine[] = [];
   const unfavorableWhen: ConditionLine[] = [];
 
-  for (const factor of dataset.factors) {
-    if (factor.id === decision.factor || base[factor.id] !== undefined) continue;
-    const states: CruxStateDelta[] = factor.states.map((st) => {
-      const delta = summarize(groups.filter((g) => g.rest[factor.id] === st.id)).delta;
-      return { stateId: st.id, label: st.label, delta };
-    });
+  for (const { factor, states } of entries) {
     let low = states[0];
     let high = states[0];
     for (const s of states) {
@@ -203,15 +191,81 @@ export function conditionalContrast(
   cruxes.sort((a, b) => Math.max(Math.abs(b.low), Math.abs(b.high)) - Math.max(Math.abs(a.low), Math.abs(a.high)));
   favorableWhen.sort((a, b) => b.delta - a.delta);
   unfavorableWhen.sort((a, b) => a.delta - b.delta);
+  return { cruxes, favorableWhen, unfavorableWhen };
+}
+
+/** Assemble a two-way state grid from a per-(state, state) delta function. */
+function buildGrid(f1: Factor, f2: Factor, delta: (s1: StateId, s2: StateId) => number): ContrastGrid {
+  const cells: number[][] = [];
+  let maxAbs = 0;
+  for (const s1 of f1.states) {
+    const row: number[] = [];
+    for (const s2 of f2.states) {
+      const d = delta(s1.id, s2.id);
+      maxAbs = Math.max(maxAbs, Math.abs(d));
+      row.push(d);
+    }
+    cells.push(row);
+  }
+  return {
+    f1: f1.id,
+    f2: f2.id,
+    rows: f1.states.map((s) => ({ stateId: s.id, label: s.label })),
+    cols: f2.states.map((s) => ({ stateId: s.id, label: s.label })),
+    cells,
+    maxAbs,
+  };
+}
+
+/** Zero crossings of a netDelta trace, linearly interpolated between samples. */
+function findCrossings(points: ThresholdPoint[]): ThresholdCrossing[] {
+  const crossings: ThresholdCrossing[] = [];
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1];
+    const b = points[i];
+    if ((a.netDelta < 0 && b.netDelta >= 0) || (a.netDelta > 0 && b.netDelta <= 0)) {
+      const t = a.netDelta / (a.netDelta - b.netDelta);
+      crossings.push({ p: a.p + t * (b.p - a.p), favorableAbove: b.netDelta >= a.netDelta });
+    }
+  }
+  return crossings;
+}
+
+export function conditionalContrast(
+  dataset: Dataset,
+  credences: Credences,
+  weights: ValueVector,
+  evaluator: Evaluator,
+  decision: Decision,
+  given: Pins = {},
+  jointProbability?: (s: Scenario) => number,
+): ConditionalContrast {
+  // The decision factor is the free variable, so any `given` pin on it is dropped.
+  const base: Pins = { ...given };
+  delete base[decision.factor];
+
+  const groups = groupByRest(dataset, credences, weights, evaluator, decision, base, jointProbability);
+  const overall = summarize(groups);
+
+  // Cruxes: every other free factor, with the contrast's mean delta conditioned on
+  // each of that factor's states (the subgroup of rest-worlds where it holds).
+  const entries = dataset.factors
+    .filter((factor) => factor.id !== decision.factor && base[factor.id] === undefined)
+    .map((factor) => ({
+      factor,
+      states: factor.states.map((st) => ({
+        stateId: st.id,
+        label: st.label,
+        delta: summarize(groups.filter((g) => g.rest[factor.id] === st.id)).delta,
+      })),
+    }));
 
   return {
     evA: overall.evA,
     evB: overall.evB,
     netDelta: overall.delta,
     favorableShare: overall.favorableShare,
-    cruxes,
-    favorableWhen,
-    unfavorableWhen,
+    ...cruxTornado(entries),
   };
 }
 
@@ -223,7 +277,7 @@ export function conditionalContrast(
 function netDeltaFor(
   dataset: Dataset,
   credences: Credences,
-  weights: Parameters<typeof analyze>[2],
+  weights: ValueVector,
   evaluator: Evaluator,
   decision: Decision,
   given: Pins,
@@ -231,21 +285,6 @@ function netDeltaFor(
   const base: Pins = { ...given };
   delete base[decision.factor];
   return summarize(groupByRest(dataset, credences, weights, evaluator, decision, base)).delta;
-}
-
-/** Set one state's probability to `value`, redistributing the rest proportionally. */
-function withMarginal(
-  dist: Record<StateId, number>,
-  state: StateId,
-  value: number,
-): Record<StateId, number> {
-  const v = Math.max(0, Math.min(1, value));
-  const others = Object.keys(dist).filter((s) => s !== state);
-  const priorOthers = others.reduce((a, s) => a + dist[s], 0);
-  const remaining = 1 - v;
-  const out: Record<StateId, number> = { [state]: v };
-  for (const s of others) out[s] = priorOthers > 0 ? remaining * (dist[s] / priorOthers) : remaining / others.length;
-  return out;
 }
 
 export interface ThresholdPoint {
@@ -285,7 +324,7 @@ export interface BeliefThreshold {
 export function beliefThreshold(
   dataset: Dataset,
   credences: Credences,
-  weights: Parameters<typeof analyze>[2],
+  weights: ValueVector,
   evaluator: Evaluator,
   decision: Decision,
   sweepFactor: FactorId,
@@ -303,24 +342,13 @@ export function beliefThreshold(
     points.push({ p, netDelta: netDeltaFor(dataset, swept, weights, evaluator, decision, given) });
   }
 
-  const crossings: ThresholdCrossing[] = [];
-  for (let i = 1; i < points.length; i++) {
-    const a = points[i - 1];
-    const b = points[i];
-    if ((a.netDelta < 0 && b.netDelta >= 0) || (a.netDelta > 0 && b.netDelta <= 0)) {
-      // Linear-interpolate the zero crossing between the two samples.
-      const t = a.netDelta / (a.netDelta - b.netDelta);
-      crossings.push({ p: a.p + t * (b.p - a.p), favorableAbove: b.netDelta >= a.netDelta });
-    }
-  }
-
   return {
     sweepFactor,
     sweepState,
     currentP,
     netDeltaAtCurrent: netDeltaFor(dataset, credences, weights, evaluator, decision, given),
     points,
-    crossings,
+    crossings: findCrossings(points),
   };
 }
 
@@ -338,7 +366,7 @@ export interface ContrastGrid {
 export function contrastGrid(
   dataset: Dataset,
   credences: Credences,
-  weights: Parameters<typeof analyze>[2],
+  weights: ValueVector,
   evaluator: Evaluator,
   decision: Decision,
   f1Id: FactorId,
@@ -354,27 +382,9 @@ export function contrastGrid(
   delete base[decision.factor];
 
   const groups = groupByRest(dataset, credences, weights, evaluator, decision, base, jointProbability);
-  const cells: number[][] = [];
-  let maxAbs = 0;
-  for (const s1 of f1.states) {
-    const row: number[] = [];
-    for (const s2 of f2.states) {
-      const delta = summarize(
-        groups.filter((g) => g.rest[f1.id] === s1.id && g.rest[f2.id] === s2.id),
-      ).delta;
-      maxAbs = Math.max(maxAbs, Math.abs(delta));
-      row.push(delta);
-    }
-    cells.push(row);
-  }
-  return {
-    f1: f1.id,
-    f2: f2.id,
-    rows: f1.states.map((s) => ({ stateId: s.id, label: s.label })),
-    cols: f2.states.map((s) => ({ stateId: s.id, label: s.label })),
-    cells,
-    maxAbs,
-  };
+  return buildGrid(f1, f2, (s1, s2) =>
+    summarize(groups.filter((g) => g.rest[f1.id] === s1 && g.rest[f2.id] === s2)).delta,
+  );
 }
 
 // ===========================================================================
@@ -398,7 +408,7 @@ export function contrastGrid(
 function condMeanEV(
   dataset: Dataset,
   credences: Credences,
-  weights: Parameters<typeof analyze>[2],
+  weights: ValueVector,
   evaluator: Evaluator,
   pins: Pins,
 ): number {
@@ -428,7 +438,7 @@ function conditionFactorIds(dataset: Dataset, given: Pins): FactorId[] {
 function actionWorlds(
   dataset: Dataset,
   credences: Credences,
-  weights: Parameters<typeof analyze>[2],
+  weights: ValueVector,
   evaluator: Evaluator,
   action: Action,
   given: Pins,
@@ -473,6 +483,12 @@ function actionWorlds(
 export type ActionMetric = 'margin' | 'gain';
 const metricValue = (w: ActionWorld, metric: ActionMetric) => (metric === 'gain' ? w.gain : w.margin);
 
+/** Probability-weighted mean of the selected metric over a subset of worlds (0 if massless). */
+function meanMetric(worlds: ActionWorld[], metric: ActionMetric): number {
+  const mass = worlds.reduce((a, w) => a + w.prob, 0);
+  return mass > 0 ? worlds.reduce((a, w) => a + w.prob * metricValue(w, metric), 0) / mass : 0;
+}
+
 export interface ActionConditions {
   /** Which quantity the cruxes/lists/headline reflect. */
   metric: ActionMetric;
@@ -498,7 +514,7 @@ export interface ActionConditions {
 export function actionConditions(
   dataset: Dataset,
   credences: Credences,
-  weights: Parameters<typeof analyze>[2],
+  weights: ValueVector,
   evaluator: Evaluator,
   action: Action,
   given: Pins = {},
@@ -513,66 +529,40 @@ export function actionConditions(
   const mean = metric === 'gain' ? meanGain : meanMargin;
   const favorableShare = metric === 'gain' ? positiveGainShare : bestLeverShare;
 
-  const cruxes: Crux[] = [];
-  const favorableWhen: ConditionLine[] = [];
-  const unfavorableWhen: ConditionLine[] = [];
-  for (const fid of condIds) {
+  const entries = condIds.map((fid) => {
     const factor = dataset.factors.find((f) => f.id === fid)!;
-    const states: CruxStateDelta[] = factor.states.map((st) => {
-      const sel = worlds.filter((w) => w.pins[fid] === st.id);
-      const m = sel.reduce((a, w) => a + w.prob, 0);
-      const delta = m > 0 ? sel.reduce((a, w) => a + w.prob * metricValue(w, metric), 0) / m : 0;
-      return { stateId: st.id, label: st.label, delta };
-    });
-    let low = states[0];
-    let high = states[0];
-    for (const s of states) {
-      if (s.delta < low.delta) low = s;
-      if (s.delta > high.delta) high = s;
-      const line: ConditionLine = { factorId: fid, label: factor.label, stateId: s.stateId, stateLabel: s.label, delta: s.delta };
-      if (s.delta > 0) favorableWhen.push(line);
-      else if (s.delta < 0) unfavorableWhen.push(line);
-    }
-    cruxes.push({
-      factorId: fid,
-      label: factor.label,
-      kind: factor.kind,
-      states,
-      low: low.delta,
-      high: high.delta,
-      lowStateLabel: low.label,
-      highStateLabel: high.label,
-      flips: low.delta < 0 && high.delta > 0,
-      span: high.delta - low.delta,
-    });
-  }
-  cruxes.sort((a, b) => Math.max(Math.abs(b.low), Math.abs(b.high)) - Math.max(Math.abs(a.low), Math.abs(a.high)));
-  favorableWhen.sort((a, b) => b.delta - a.delta);
-  unfavorableWhen.sort((a, b) => a.delta - b.delta);
+    return {
+      factor,
+      states: factor.states.map((st) => ({
+        stateId: st.id,
+        label: st.label,
+        delta: meanMetric(worlds.filter((w) => w.pins[fid] === st.id), metric),
+      })),
+    };
+  });
 
-  return { metric, mean, favorableShare, bestLeverShare, positiveGainShare, meanGain, meanMargin, cruxes, favorableWhen, unfavorableWhen };
+  return { metric, mean, favorableShare, bestLeverShare, positiveGainShare, meanGain, meanMargin, ...cruxTornado(entries) };
 }
 
 /** Just the prob-weighted mean of the selected metric — for fast credence sweeps. */
 function actionMean(
   dataset: Dataset,
   credences: Credences,
-  weights: Parameters<typeof analyze>[2],
+  weights: ValueVector,
   evaluator: Evaluator,
   action: Action,
   given: Pins,
   metric: ActionMetric,
 ): number {
   const { worlds } = actionWorlds(dataset, credences, weights, evaluator, action, given);
-  const totP = worlds.reduce((a, w) => a + w.prob, 0) || 1;
-  return worlds.reduce((a, w) => a + w.prob * metricValue(w, metric), 0) / totP;
+  return meanMetric(worlds, metric);
 }
 
 /** Two-way map of an action's selected metric over two objective condition factors. */
 export function actionContrastGrid(
   dataset: Dataset,
   credences: Credences,
-  weights: Parameters<typeof analyze>[2],
+  weights: ValueVector,
   evaluator: Evaluator,
   action: Action,
   f1Id: FactorId,
@@ -585,34 +575,16 @@ export function actionContrastGrid(
   if (!f1 || !f2 || f1.id === f2.id) return null;
   const { worlds, condIds } = actionWorlds(dataset, credences, weights, evaluator, action, given);
   if (!condIds.includes(f1Id) || !condIds.includes(f2Id)) return null;
-  const cells: number[][] = [];
-  let maxAbs = 0;
-  for (const s1 of f1.states) {
-    const row: number[] = [];
-    for (const s2 of f2.states) {
-      const sel = worlds.filter((w) => w.pins[f1.id] === s1.id && w.pins[f2.id] === s2.id);
-      const m = sel.reduce((a, w) => a + w.prob, 0);
-      const delta = m > 0 ? sel.reduce((a, w) => a + w.prob * metricValue(w, metric), 0) / m : 0;
-      maxAbs = Math.max(maxAbs, Math.abs(delta));
-      row.push(delta);
-    }
-    cells.push(row);
-  }
-  return {
-    f1: f1.id,
-    f2: f2.id,
-    rows: f1.states.map((s) => ({ stateId: s.id, label: s.label })),
-    cols: f2.states.map((s) => ({ stateId: s.id, label: s.label })),
-    cells,
-    maxAbs,
-  };
+  return buildGrid(f1, f2, (s1, s2) =>
+    meanMetric(worlds.filter((w) => w.pins[f1.id] === s1 && w.pins[f2.id] === s2), metric),
+  );
 }
 
 /** "How sure would you need to be?" for an action — sweep an objective factor's credence. */
 export function actionBeliefThreshold(
   dataset: Dataset,
   credences: Credences,
-  weights: Parameters<typeof analyze>[2],
+  weights: ValueVector,
   evaluator: Evaluator,
   action: Action,
   sweepFactor: FactorId,
@@ -621,27 +593,19 @@ export function actionBeliefThreshold(
   metric: ActionMetric = 'margin',
 ): BeliefThreshold {
   const steps = 20;
+  const dist = credences[sweepFactor] ?? {};
   const points: ThresholdPoint[] = [];
   for (let i = 0; i <= steps; i++) {
     const p = i / steps;
-    const cred: Credences = { ...credences, [sweepFactor]: withMarginal(credences[sweepFactor], sweepState, p) };
+    const cred: Credences = { ...credences, [sweepFactor]: withMarginal(dist, sweepState, p) };
     points.push({ p, netDelta: actionMean(dataset, cred, weights, evaluator, action, given, metric) });
-  }
-  const crossings: ThresholdCrossing[] = [];
-  for (let i = 1; i < points.length; i++) {
-    const a = points[i - 1];
-    const b = points[i];
-    if ((a.netDelta < 0 && b.netDelta >= 0) || (a.netDelta > 0 && b.netDelta <= 0)) {
-      const t = a.netDelta / (a.netDelta - b.netDelta);
-      crossings.push({ p: a.p + t * (b.p - a.p), favorableAbove: b.netDelta >= a.netDelta });
-    }
   }
   return {
     sweepFactor,
     sweepState,
-    currentP: credences[sweepFactor][sweepState] ?? 0,
+    currentP: dist[sweepState] ?? 0,
     netDeltaAtCurrent: actionMean(dataset, credences, weights, evaluator, action, given, metric),
     points,
-    crossings,
+    crossings: findCrossings(points),
   };
 }

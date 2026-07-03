@@ -69,20 +69,29 @@ whatever is there. To refine the model, you almost never touch `engine/` or
 `shell/`; you edit `dataset.ts`. (Belief *presets* — public figures' stated views
 — live in the sibling [`src/model/presets.ts`](src/model/presets.ts).)
 
-The shapes you'll edit are all in [`src/model/types.ts`](src/model/types.ts).
+The shapes you'll edit are all in [`src/model/types.ts`](src/model/types.ts)
+(content-agnostic vocabulary), and the **canonical factor/state ids** live in
+[`src/model/ids.ts`](src/model/ids.ts) (`FACTOR_STATES`). The content is typed
+against those ids, so adding a factor or state in `ids.ts` ripples as **compile
+errors** through everything that must keep up (factor defs, credences, linear
+contributions, couplings, Bayes-net nodes, backgrounds, every preset) — follow
+the errors and you can't forget a touchpoint.
 
 ### Add or edit a factor
 
 A `Factor` ([types.ts:23](src/model/types.ts)):
 
 ```ts
-{
-  id: 'takeoff',
+// ids.ts — the canonical id vocabulary (drives all the content typing):
+takeoff: ['fast', 'medium', 'slow'],
+
+// dataset.ts factorDefs — keyed by factor id, states keyed by state id:
+takeoff: {
   label: 'Takeoff speed',
   kind: 'objective',           // see below
   question: '…',
   description: '…',
-  states: [ { id: 'fast', label: 'Fast', blurb: '…' }, … ],  // ≤ 3 states
+  states: { fast: { label: 'Fast', blurb: '…' }, … },  // ≤ 3 states (all required)
 }
 ```
 
@@ -118,19 +127,20 @@ total probability over all scenarios is 1; broken sums will surface there.
 The cached evaluator's content is the cleverest part of `dataset.ts`. Don't author
 all 1,728 cells by hand:
 
-1. The **`cell(...)` helper** ([dataset.ts:227](src/model/dataset.ts)) builds one
+1. The **`cell(...)` helper** (in `dataset.ts`) builds one
    `CachedCell` over the **six** non-takeoff factors from a
    `[survival, agency, suffering, flourishing]` tuple plus a narrative.
-2. **`failsTable`** ([dataset.ts:261](src/model/dataset.ts)) generates the
+2. **`failsTable`** (in `dataset.ts`) generates the
    orthogonality-`fails` branch from a compact table (when orthogonality fails the
    AI is benign regardless, so tractability is moot and the same value is emitted
    at all three tractability levels).
-3. Together these produce **144 `baseCells`** ([dataset.ts:319](src/model/dataset.ts)),
+3. Together these produce **144 `baseCells`**,
    which are the **MEDIUM-takeoff anchor**.
-4. **`expandTakeoff`** ([dataset.ts:600](src/model/dataset.ts)) turns each
+4. **`expandTakeoff`** turns each
    medium-anchor cell into its `{fast, medium, slow}` variants: `medium` is the
    authored value **verbatim**; `fast`/`slow` are derived by adding a
-   **corner-dependent delta** (`classifyCorner` → `doom`/`control`/`aligned`/
+   **corner-dependent delta** (`classifyCorner` from
+   [`src/model/corners.ts`](src/model/corners.ts) → `doom`/`control`/`aligned`/
    `benign`, then `takeoffDelta` + `takeoffClause`). So takeoff's effect is
    reasoned per-corner, not assumed uniform.
 5. **`expandCoordination`** then splits each cell into `{none, regime}` (a small
@@ -149,8 +159,8 @@ its medium anchor and both derived variants), or adjust the `takeoffDelta` /
 
 ### Couplings
 
-`couplings` ([dataset.ts:628](src/model/dataset.ts), shape at
-[types.ts:84](src/model/types.ts)) correct the independence assumption. Each is a
+`couplings` (in `dataset.ts`, `Coupling` shape in `types.ts`) correct the
+independence assumption. Each is a
 **log-linear multiplier**: every scenario matching all of its `when`
 `(factor=state)` conditions has its independent prior multiplied (`>1` boosts,
 `<1` suppresses, `0` forbids). `analyze` then **renormalizes** so total mass is
@@ -164,8 +174,8 @@ to it; it's off by default. Validate edits with `validateBayesNet`. See docs/MOD
 
 ### Actions
 
-`actions` ([dataset.ts:693](src/model/dataset.ts), shape at
-[types.ts:102](src/model/types.ts)) are sets of `ActionDelta`s that shift
+`actions` (in `dataset.ts`, `Action` shape in `types.ts`) are sets of
+`ActionDelta`s that shift
 probability mass toward a target state. **Deltas may target influenceable factors,
 and (with smaller magnitude) contingent ones — never objective factors**, since
 those are timeless facts, not features of the world-to-come. `applyAction` moves
@@ -183,7 +193,10 @@ those are timeless facts, not features of the world-to-come. `applyAction` moves
 Touchpoints, in order — all in `dataset.ts` unless noted. (The `coordination`
 factor, commit history, is a complete worked example of every step.)
 
-1. **`factors[]`** — add the `Factor` (≤ 3 states; pick the `kind`).
+0. **`ids.ts`** — add the factor and its state ids to `FACTOR_STATES`. From here,
+   steps 1–3, 6, 8 and every preset's credences become **compile errors** until
+   done — let `pnpm typecheck` walk you through the rest.
+1. **`factorDefs`** — add the factor definition (≤ 3 states; pick the `kind`).
 2. **`baselineCredences`** — add its prior; states **must sum to 1**.
 3. **`linearContributions`** — add per-state value contributions (use `{}` per state
    for a value-neutral factor whose effect is purely on probabilities).
@@ -193,9 +206,10 @@ factor, commit history, is a complete worked example of every step.)
    count. (Skip only if you accept a flagged linear fallback for the new dimension.)
 5. **`couplings`** — add any dependencies so the factor is causal in the *independence*
    model (the default).
-6. **`bayesNet`** — add a node. Root (prior from slider) or child with a `cpt`. If it's
+6. **`bayesNodes`** — add a node. Root (prior from slider) or child with a `cpt`. If it's
    a *parent* of existing children, expand their CPTs (keys are parent states joined
-   by `|` in `parents` order). Every factor needs a node or `validateBayesNet` fails.
+   by `|` in `parents` order). Every factor needs a node (compile-enforced; and
+   `validateBayesNet` still checks CPT completeness at runtime).
 7. **`actions`** — point any relevant action at it (objective factors stay off-limits).
 8. **`factorBackground.ts`** — add the factor's scholarly deep-dive (the "learn more"
    modal): a couple of `paragraphs` on the debate, the named `positions`, and ≥3

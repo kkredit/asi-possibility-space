@@ -1,4 +1,5 @@
 import type { Dataset, Evaluator, Scenario, ValueVector } from '@model/types';
+import { classifyCorner, CORNER_FACTORS } from '@model/corners';
 import { isReasoned } from '@engine/evaluators/cached';
 import { linearEvaluator } from '@engine/evaluators/linear';
 import { VALUE_DIMENSION_IDS, zeroVector } from '@engine/value';
@@ -29,31 +30,17 @@ import { VALUE_DIMENSION_IDS, zeroVector } from '@engine/value';
  * if the core gate factors are absent it degrades to linear.
  */
 
-const ARCHETYPE_FACTORS = ['orthogonality', 'alignmentInTime', 'controlDeployed'] as const;
-
-type Corner = 'benign' | 'aligned' | 'control' | 'doom';
-
-function corner(scenario: Scenario): Corner | undefined {
-  const orth = scenario['orthogonality'];
-  const align = scenario['alignmentInTime'];
-  const ctrl = scenario['controlDeployed'];
-  if (orth === undefined || align === undefined || ctrl === undefined) return undefined;
-  if (orth === 'fails') return 'benign';
-  if (align === 'yes') return 'aligned';
-  if (ctrl === 'yes') return 'control';
-  return 'doom';
-}
-
-/** The régime key: corner, split by deception when the factor is present (8 vs 4). */
+/** The régime key: corner (shared classifier from @model/corners), split by
+ *  deception when the factor is present (8 vs 4 régimes). */
 function regime(scenario: Scenario): string | undefined {
-  const c = corner(scenario);
+  const c = classifyCorner(scenario);
   if (!c) return undefined;
   return scenario['deception'] !== undefined ? `${c}|${scenario['deception']}` : c;
 }
 
 function hasArchetypeFactors(dataset: Dataset): boolean {
   const ids = new Set(dataset.factors.map((f) => f.id));
-  return ARCHETYPE_FACTORS.every((f) => ids.has(f));
+  return CORNER_FACTORS.every((f) => ids.has(f));
 }
 
 /** Mean cached value vector per régime, computed from the reasoned cells. */

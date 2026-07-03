@@ -34,14 +34,20 @@ import { FactorsTab } from '@shell/tabs/FactorsTab';
 // The full scenario-space size, derived so it never goes stale as factors change.
 const SCENARIO_COUNT = dataset.factors.reduce((n, f) => n * f.states.length, 1);
 
-// Tab labels + their URL slugs, so the active tab is `#tab=<slug>`-linkable.
-const TABS = ['Landscape', 'Actions', 'Factors', 'Scenarios', 'Evaluators'] as const;
-const TAB_SLUGS = ['landscape', 'actions', 'factors', 'scenarios', 'evaluators'] as const;
+// Tabs with their URL slugs (one array so label and slug can't drift apart);
+// the active tab is `#tab=<slug>`-linkable.
+const TABS = [
+  { label: 'Landscape', slug: 'landscape' },
+  { label: 'Actions', slug: 'actions' },
+  { label: 'Factors', slug: 'factors' },
+  { label: 'Scenarios', slug: 'scenarios' },
+  { label: 'Evaluators', slug: 'evaluators' },
+] as const;
 
 function readUrlTab(): number {
   if (typeof window === 'undefined') return 0;
   const slug = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('tab');
-  const i = slug ? (TAB_SLUGS as readonly string[]).indexOf(slug) : -1;
+  const i = slug ? TABS.findIndex((t) => t.slug === slug) : -1;
   return i >= 0 ? i : 0;
 }
 
@@ -92,7 +98,7 @@ export function App() {
   const selectTab = (i: number) => {
     setTab(i);
     // Omit the default (Landscape) so plain / preset-only links stay clean.
-    setHashParam('tab', i > 0 ? TAB_SLUGS[i] : null);
+    setHashParam('tab', i > 0 ? TABS[i].slug : null);
   };
 
   const evaluator = getEvaluator(evaluatorId);
@@ -204,8 +210,8 @@ export function App() {
 
             <Box sx={{ borderBottom: `1px solid ${c.line}`, mb: 2 }}>
               <Tabs value={tab} onChange={(_, v) => selectTab(v)} variant="scrollable" scrollButtons="auto" allowScrollButtonsMobile>
-                {TABS.map((label) => (
-                  <Tab key={label} label={label} />
+                {TABS.map(({ label, slug }) => (
+                  <Tab key={slug} label={label} />
                 ))}
               </Tabs>
             </Box>

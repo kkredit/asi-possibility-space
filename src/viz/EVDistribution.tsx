@@ -4,6 +4,7 @@ import type { DistributionBin, EvaluatedScenario } from '@engine/analyze';
 import type { Factor } from '@model/types';
 import { c, fonts, valueColor } from '@shell/theme';
 import { VizHeading } from '@viz/VizHeading';
+import { fmtSigned } from '@viz/text';
 
 interface Props {
   bins: DistributionBin[];
@@ -137,7 +138,7 @@ export function EVDistribution({ bins, ev, factors, valence }: Props) {
         {/* EV marker */}
         <line x1={xOf(ev)} x2={xOf(ev)} y1={padding.top - 8} y2={plotBottom} stroke={c.bone} strokeWidth={1.5} />
         <text x={xOf(ev)} y={padding.top - 12} fill={c.bone} fontSize={11} fontFamily={fonts.mono} textAnchor={evAnchor}>
-          EV {ev >= 0 ? '+' : '−'}{Math.abs(ev).toFixed(2)}
+          EV {fmtSigned(ev)}
         </text>
 
         {/* numeric ticks */}

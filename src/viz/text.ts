@@ -20,3 +20,9 @@ export function wrapLabel(text: string, maxChars: number, maxLines: number, elli
   else if (current && ellipsis) lines[maxLines - 1] = `${lines[maxLines - 1].replace(/.$/, '')}…`;
   return lines;
 }
+
+/** Signed value with a true minus sign: "+0.12" / "−0.30". One formatter for every
+ *  EV/delta readout, so panels don't disagree between "-" and "−". */
+export function fmtSigned(v: number, digits = 2): string {
+  return `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(digits)}`;
+}

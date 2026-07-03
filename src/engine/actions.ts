@@ -1,6 +1,25 @@
-import type { Action, Credences, Dataset, Evaluator, ValueVector } from '@model/types';
+import type { Action, Credences, Dataset, Evaluator, StateId, ValueVector } from '@model/types';
 import { analyze } from '@engine/analyze';
 import type { Pins } from '@engine/scenarios';
+
+/**
+ * Set one state's probability to `value` (clamped to [0, 1]), redistributing the
+ * remaining mass across the other states in proportion to their prior weights.
+ * The one marginal-shift rule shared by actions and belief-threshold sweeps.
+ */
+export function withMarginal(
+  dist: Record<StateId, number>,
+  state: StateId,
+  value: number,
+): Record<StateId, number> {
+  const v = Math.max(0, Math.min(1, value));
+  const others = Object.keys(dist).filter((s) => s !== state);
+  const priorOthers = others.reduce((a, s) => a + dist[s], 0);
+  const remaining = 1 - v;
+  const out: Record<StateId, number> = { [state]: v };
+  for (const s of others) out[s] = priorOthers > 0 ? remaining * (dist[s] / priorOthers) : remaining / others.length;
+  return out;
+}
 
 /**
  * Apply an action's deltas to a copy of the credences. Each delta moves
@@ -14,16 +33,7 @@ export function applyAction(credences: Credences, action: Action): Credences {
   for (const delta of action.deltas) {
     const dist = next[delta.factor];
     if (!dist || dist[delta.towardState] === undefined) continue;
-
-    const target = Math.max(0, Math.min(1, dist[delta.towardState] + delta.magnitude));
-    const others = Object.keys(dist).filter((s) => s !== delta.towardState);
-    const remaining = 1 - target;
-    const priorOthers = others.reduce((sum, s) => sum + dist[s], 0);
-
-    dist[delta.towardState] = target;
-    for (const s of others) {
-      dist[s] = priorOthers > 0 ? remaining * (dist[s] / priorOthers) : remaining / others.length;
-    }
+    next[delta.factor] = withMarginal(dist, delta.towardState, dist[delta.towardState] + delta.magnitude);
   }
   return next;
 }

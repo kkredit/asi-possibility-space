@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useBeliefs } from '@shell/store';
 import { presets } from '@model/presets';
 import { dataset } from '@model/dataset';
@@ -68,5 +68,33 @@ describe('belief store — probability model', () => {
     expect(s().probabilityModel).toBe('bayesNet');
     expect(typeof s().bayesProbability).toBe('function');
     expect(s().activePresetId).toBe(presets[0].id);
+  });
+
+  it('initial state from a #preset= URL rakes the joint to the preset, not the baseline', async () => {
+    // Regression: the initial bayesProbability used to be built from the BASELINE
+    // credences even when a #preset= link overrode them, so a shared Bayes-net link
+    // rendered the wrong EV/p(doom). Boot a fresh store with a stubbed window.
+    vi.resetModules();
+    vi.stubGlobal('window', {
+      location: { hash: '#preset=yampolskiy', href: 'https://example.test/#preset=yampolskiy' },
+      history: { replaceState: () => {} },
+    });
+    try {
+      const { useBeliefs: freshStore } = await import('@shell/store');
+      const st = freshStore.getState();
+      expect(st.activePresetId).toBe('yampolskiy');
+      const jp = st.bayesProbability!;
+      expect(typeof jp).toBe('function');
+      // The joint's orthogonality marginal must match the PRESET (0.99), not baseline (0.8).
+      let holds = 0;
+      for (const sc of enumerateScenarios(dataset.factors)) {
+        if (sc.orthogonality === 'holds') holds += jp(sc);
+      }
+      expect(holds).toBeCloseTo(st.credences.orthogonality.holds, 4);
+      expect(holds).toBeGreaterThan(0.95);
+    } finally {
+      vi.unstubAllGlobals();
+      vi.resetModules();
+    }
   });
 });

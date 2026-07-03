@@ -18,7 +18,7 @@ import {
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { dataset } from '@model/dataset';
 import { evaluators } from '@engine/index';
-import type { Factor, FactorKind } from '@model/types';
+import { FACTOR_KINDS, type Factor, type FactorKind } from '@model/types';
 import { useBeliefs } from '@shell/store';
 import { Presets } from '@shell/controls/Presets';
 import { InfoTip } from '@viz/InfoTip';
@@ -26,7 +26,6 @@ import { BayesNetDiagram } from '@viz/BayesNetDiagram';
 import { FactorBackground } from '@viz/FactorBackground';
 import { c, fonts, kindColor } from '@shell/theme';
 
-const KIND_ORDER: FactorKind[] = ['objective', 'contingent', 'influenceable'];
 const KIND_HEADING: Record<FactorKind, string> = {
   objective: 'Objective · timeless structural fact',
   contingent: 'Contingent · the world at ASI · low leverage',
@@ -261,7 +260,7 @@ export function Controls() {
         </Typography>
       </Box>
 
-      {KIND_ORDER.map((kind) => {
+      {FACTOR_KINDS.map((kind) => {
         const factors = dataset.factors.filter((f) => f.kind === kind);
         if (factors.length === 0) return null;
         return (

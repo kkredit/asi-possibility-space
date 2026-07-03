@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import type { Factor } from '@model/types';
 import type { EvaluatedScenario } from '@engine/analyze';
+import { fmtSigned } from '@viz/text';
 import { c, fonts, valueColor } from '@shell/theme';
 
 type SortKey = 'probability' | 'scalar' | 'contribution';
@@ -79,8 +80,8 @@ export function ScenarioTable({ scenarios, factors, limit = 25 }: Props) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {shown.map((s, i) => (
-              <TableRow key={i} hover>
+            {shown.map((s) => (
+              <TableRow key={factors.map((f) => s.scenario[f.id]).join('|')} hover>
                 <TableCell sx={{ whiteSpace: 'nowrap', fontFamily: fonts.mono, fontSize: '0.78rem', color: c.mute, verticalAlign: 'top' }}>
                   {(s.probability * 100).toFixed(2)}%
                 </TableCell>
@@ -100,7 +101,7 @@ export function ScenarioTable({ scenarios, factors, limit = 25 }: Props) {
                       textAlign: 'center',
                     }}
                   >
-                    {s.scalar >= 0 ? '+' : '−'}{Math.abs(s.scalar).toFixed(2)}
+                    {fmtSigned(s.scalar)}
                   </Box>
                 </TableCell>
                 <TableCell>

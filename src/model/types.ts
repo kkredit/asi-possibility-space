@@ -30,7 +30,8 @@
  * exogenous forces do. Objective is the genuinely distinct kind: a timeless fact,
  * never a forecast.
  */
-export type FactorKind = 'objective' | 'contingent' | 'influenceable';
+export const FACTOR_KINDS = ['objective', 'contingent', 'influenceable'] as const;
+export type FactorKind = (typeof FACTOR_KINDS)[number];
 
 export type FactorId = string;
 export type StateId = string;

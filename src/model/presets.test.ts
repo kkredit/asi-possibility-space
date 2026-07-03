@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { dataset } from '@model/dataset';
+import type { Credences } from '@model/types';
+import type { KnownFactorId } from '@model/ids';
 import { presets } from '@model/presets';
 import { VALUE_DIMENSION_IDS } from '@engine/value';
 
@@ -13,7 +15,7 @@ describe('belief presets', () => {
     for (const p of presets) {
       // What the app actually applies: the preset over the dataset baseline, so a
       // factor a preset doesn't state (e.g. coordination) inherits the baseline.
-      const effective = { ...dataset.baselineCredences, ...p.credences };
+      const effective: Credences = { ...dataset.baselineCredences, ...p.credences };
       for (const factor of dataset.factors) {
         const dist = effective[factor.id];
         expect(dist, `${p.id} missing ${factor.id}`).toBeDefined();
@@ -43,7 +45,7 @@ describe('belief presets', () => {
   it('reference every current factor, each with a note', () => {
     for (const p of presets) {
       for (const factor of dataset.factors) {
-        const view = p.factors[factor.id];
+        const view = p.factors[factor.id as KnownFactorId];
         expect(view, `${p.id} missing factor view ${factor.id}`).toBeDefined();
         expect(view!.note.length, `${p.id}/${factor.id} empty note`).toBeGreaterThan(0);
       }

@@ -2,6 +2,7 @@ import { Box, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { dataset } from '@model/dataset';
 import type { ValueVector } from '@model/types';
 import { c, fonts, valueColor, valueGradient } from '@shell/theme';
+import { fmtSigned } from '@viz/text';
 import { InfoTip } from '@viz/InfoTip';
 
 interface Props {
@@ -57,8 +58,7 @@ export function EvHeadline({ ev, evVector, pDoom }: Props) {
             <Typography
               sx={{ fontFamily: fonts.mono, fontWeight: 700, fontSize: { xs: '2.6rem', sm: '3.2rem' }, lineHeight: 0.9, color: valueColor(ev) }}
             >
-              {ev >= 0 ? '+' : '−'}
-              {Math.abs(ev).toFixed(3)}
+              {fmtSigned(ev, 3)}
             </Typography>
             <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.72rem', color: c.faint }}>
               / 1.000

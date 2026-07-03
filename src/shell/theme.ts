@@ -1,4 +1,5 @@
 import { createTheme } from '@mui/material/styles';
+import type { FactorKind } from '@model/types';
 
 /** Design tokens. Imported by SVG viz components that can't read MUI theme directly. */
 export const c = {
@@ -28,7 +29,8 @@ function hexToRgb(hex: string): [number, number, number] {
   const n = parseInt(hex.slice(1), 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
-function mix(a: string, b: string, t: number): string {
+/** Linear blend of two hex colors, t in [0,1] toward `b`. */
+export function mix(a: string, b: string, t: number): string {
   const [ar, ag, ab] = hexToRgb(a);
   const [br, bg, bb] = hexToRgb(b);
   const r = Math.round(ar + (br - ar) * t);
@@ -49,13 +51,15 @@ export function valueColor(scalar: number): string {
 /** The full spectrum as a CSS gradient (for the EV gauge). */
 export const valueGradient = `linear-gradient(90deg, ${c.red} 0%, ${c.slate} 50%, ${c.teal} 100%)`;
 
-export const kindColor: Record<string, string> = {
+// Record<FactorKind, ...> so adding a kind is a compile error here until it gets
+// a color and a legend line (and a typo'd kind can't silently map to undefined).
+export const kindColor: Record<FactorKind, string> = {
   objective: c.amber,
   contingent: c.contingent,
   influenceable: c.teal,
 };
 
-export const kindLabel: Record<string, string> = {
+export const kindLabel: Record<FactorKind, string> = {
   objective: 'Objective — timeless fact; reduce by research (value of info)',
   contingent: 'Contingent — low leverage; forecast & position (situational awareness)',
   influenceable: 'Influenceable — high leverage; move it by acting',

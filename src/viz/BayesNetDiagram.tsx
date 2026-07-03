@@ -1,5 +1,5 @@
 import { Box, Stack, Tooltip, Typography } from '@mui/material';
-import type { BayesNet, Factor } from '@model/types';
+import { FACTOR_KINDS, type BayesNet, type Factor } from '@model/types';
 import { c, fonts, kindColor } from '@shell/theme';
 import { wrapLabel } from '@viz/text';
 
@@ -121,7 +121,7 @@ export function BayesNetDiagram({ net, factors }: Props) {
 
       {/* kind legend */}
       <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
-        {(['objective', 'contingent', 'influenceable'] as const).map((k) => (
+        {FACTOR_KINDS.map((k) => (
           <Stack key={k} direction="row" spacing={0.75} alignItems="center">
             <Box sx={{ width: 11, height: 11, border: `1.5px solid ${kindColor[k]}`, borderRadius: 0.5, bgcolor: c.panel2 }} />
             <Typography variant="caption" sx={{ color: c.mute, textTransform: 'capitalize' }}>{k}</Typography>

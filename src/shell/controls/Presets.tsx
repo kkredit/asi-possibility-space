@@ -17,24 +17,28 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import type { Preset } from '@model/types';
 import { presets } from '@model/presets';
 import { dataset } from '@model/dataset';
+import type { KnownFactorId } from '@model/ids';
 import { analyze, cachedEvaluator, doomMass, reconcileJoint } from '@engine/index';
 import { useBeliefs, type ProbabilityModel } from '@shell/store';
 import { InfoTip } from '@viz/InfoTip';
+import { fmtSigned } from '@viz/text';
 import { c, fonts, valueColor } from '@shell/theme';
 
 /** Analyze a preset under the ACTIVE probability model — the net's raked joint when in
  *  Bayes-net mode, independence×couplings otherwise — so the preset's EV and implied
- *  p(doom) match what the headline shows once that preset is loaded. */
+ *  p(doom) match what the headline shows once that preset is loaded. Credences are
+ *  merged over the baseline exactly as the store does when applying the preset, so a
+ *  preset that omits a factor still analyzes with a full distribution. */
 function analyzePreset(p: Preset, model: ProbabilityModel) {
+  const credences = { ...dataset.baselineCredences, ...p.credences };
   const weights = p.weights ?? dataset.defaultWeights;
   const joint =
     model === 'bayesNet' && dataset.bayesNet
-      ? reconcileJoint(dataset.bayesNet, dataset.factors, p.credences, p.credences).probability
+      ? reconcileJoint(dataset.bayesNet, dataset.factors, credences, credences).probability
       : undefined;
-  return analyze(dataset, p.credences, weights, cachedEvaluator, {}, joint);
+  return analyze(dataset, credences, weights, cachedEvaluator, {}, joint);
 }
 
-const fmtEv = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}`;
 
 const sectionLabel = {
   fontFamily: fonts.display,
@@ -80,10 +84,10 @@ function presetItem(p: Preset, ev: number) {
       <Box component="span" sx={{ flex: 1 }}>{displayName(p)}</Box>
       <Box
         component="span"
-        title={`expected value ${fmtEv(ev)}`}
+        title={`expected value ${fmtSigned(ev)}`}
         sx={{ fontFamily: fonts.mono, fontSize: '0.74rem', color: valueColor(ev), ml: 1.5 }}
       >
-        {fmtEv(ev)}
+        {fmtSigned(ev)}
       </Box>
     </MenuItem>
   );
@@ -214,7 +218,7 @@ export function Presets() {
                 How each factor was set · per-factor accuracy
               </Typography>
               {dataset.factors.map((f) => {
-                const view = active.factors[f.id];
+                const view = active.factors[f.id as KnownFactorId];
                 if (!view) return null;
                 return (
                   <Box key={f.id} sx={{ mb: 0.85 }}>

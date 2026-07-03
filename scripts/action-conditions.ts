@@ -20,46 +20,30 @@
  * viz). Regenerate with:
  *   pnpm exec vitest run --config scripts/findings.config.ts
  */
-import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { test } from 'vitest';
 import { dataset } from '@model/dataset';
-import { analyze, applyAction, cachedEvaluator } from '@engine/index';
-import type { Pins } from '@engine/index';
-import type { Scenario } from '@model/types';
+import { applyAction } from '@engine/index';
+import {
+  actionLabel,
+  base,
+  condMean,
+  docLines,
+  factorLabel,
+  objectiveWorlds,
+  pct,
+  sev,
+  stateLabel,
+} from './lib';
 
 const OUT = resolve(dirname(fileURLToPath(import.meta.url)), '../docs/ACTION-CONDITIONS.md');
-const base = dataset.baselineCredences;
-const W = dataset.defaultWeights;
-const ev = cachedEvaluator;
 
 const objectives = dataset.factors.filter((f) => f.kind === 'objective');
 const objIds = objectives.map((f) => f.id);
 
-const sev = (x: number) => `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(3)}`;
-const pct = (x: number) => `${(x * 100).toFixed(0)}%`;
-const stateLabel = (fid: string, sid: string) =>
-  dataset.factors.find((f) => f.id === fid)?.states.find((s) => s.id === sid)?.label ?? sid;
-const factorLabel = (fid: string) => dataset.factors.find((f) => f.id === fid)?.label ?? fid;
-const actionLabel = (id: string) => dataset.actions.find((a) => a.id === id)?.label ?? id;
-
-function condMean(credences: typeof base, pins: Pins): number {
-  const a = analyze(dataset, credences, W, ev, pins);
-  return a.totalProbability > 0 ? a.ev / a.totalProbability : 0;
-}
-
 // ── the objective-world distribution (the "conditions" space) ────────────────
-const scenarios = analyze(dataset, base, W, ev).scenarios;
-const wKey = (s: Scenario) => objIds.map((id) => s[id]).join('|');
-const worldProb: Record<string, number> = {};
-const worldPins: Record<string, Pins> = {};
-for (const sc of scenarios) {
-  const k = wKey(sc.scenario);
-  worldProb[k] = (worldProb[k] ?? 0) + sc.probability;
-  if (!worldPins[k]) worldPins[k] = Object.fromEntries(objIds.map((id) => [id, sc.scenario[id]])) as Pins;
-}
-const worlds = Object.keys(worldProb);
+const { worlds, worldProb, worldPins } = objectiveWorlds();
 
 // gain[actionId][world] = conditional-mean EV improvement of that action in that world
 const baseByWorld: Record<string, number> = {};
@@ -77,8 +61,7 @@ function marginOf(aid: string, w: string): number {
   return gain[aid][w] - bestOther;
 }
 
-const lines: string[] = [];
-const P = (s = '') => lines.push(s);
+const { P, save } = docLines();
 
 P('# Under what conditions should I pursue each action?');
 P();
@@ -204,7 +187,5 @@ P();
 P('*Prototype. Caveat from the findings: the actions are largely correlated, so several have small or empty best-lever regions — the output reads "pursue A only when [narrow crux]." That is the honest answer, and also the case for designing more differentiated actions (adding the open-source/antitrust lever, for instance, is what gives orthogonality a top-action flip). Conditioning is on objective factors only; a fuller version would also let you condition on the influenceable/contingent factors an action doesn\'t itself move.*');
 
 test('action conditions → docs/ACTION-CONDITIONS.md', () => {
-  writeFileSync(OUT, lines.join('\n') + '\n', 'utf8');
-  // eslint-disable-next-line no-console
-  console.log(`\nWrote ${lines.length} lines to ${OUT}\n`);
+  save(OUT);
 });

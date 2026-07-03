@@ -17,35 +17,28 @@
  *
  * Independence × couplings probability model (the app defaults to the Bayes net) + cached value surface.
  */
-import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { test } from 'vitest';
 import { dataset } from '@model/dataset';
-import { analyze, applyAction, cachedEvaluator } from '@engine/index';
+import { applyAction } from '@engine/index';
 import type { Pins } from '@engine/index';
-import type { Scenario, ValueVector } from '@model/types';
+import {
+  actionLabel,
+  base,
+  condMean,
+  docLines,
+  objectiveWorlds,
+  pct,
+  sev,
+  stateLabel,
+} from './lib';
 
 const OUT = resolve(dirname(fileURLToPath(import.meta.url)), '../docs/RESEARCH-PRIORITIES.md');
-const base = dataset.baselineCredences;
-const W = dataset.defaultWeights;
-const ev = cachedEvaluator;
 const EPS = 0.02; // "materially improves" threshold, in EV units
 
 const objectives = dataset.factors.filter((f) => f.kind === 'objective');
 const objIds = objectives.map((f) => f.id);
-
-const sev = (x: number) => `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(3)}`;
-const pct = (x: number) => `${(x * 100).toFixed(0)}%`;
-const stateLabel = (fid: string, sid: string) =>
-  dataset.factors.find((f) => f.id === fid)?.states.find((s) => s.id === sid)?.label ?? sid;
-const actionLabel = (id: string) => dataset.actions.find((a) => a.id === id)?.label ?? id;
-
-/** Normalized conditional-mean EV over the free factors given `pins` (not mass-weighted). */
-function condMean(credences: typeof base, pins: Pins): number {
-  const a = analyze(dataset, credences, W, ev, pins);
-  return a.totalProbability > 0 ? a.ev / a.totalProbability : 0;
-}
 
 /** Actions ranked by conditional-mean EV gain given `pins`. */
 function rankCond(pins: Pins) {
@@ -55,8 +48,7 @@ function rankCond(pins: Pins) {
     .sort((x, y) => y.gain - x.gain);
 }
 
-const lines: string[] = [];
-const P = (s = '') => lines.push(s);
+const { P, save } = docLines();
 
 P('# Research priorities & action ROI');
 P();
@@ -153,16 +145,7 @@ P('Point-estimate EV gain at baseline beliefs is one number; it hides *how relia
 P();
 
 // Distribution over objective-factor resolutions, from the coupled joint.
-const scenarios = analyze(dataset, base, W, ev).scenarios;
-const wKey = (s: Scenario) => objIds.map((id) => s[id]).join('|');
-const worldProb: Record<string, number> = {};
-const worldPins: Record<string, Pins> = {};
-for (const sc of scenarios) {
-  const k = wKey(sc.scenario);
-  worldProb[k] = (worldProb[k] ?? 0) + sc.probability;
-  if (!worldPins[k]) worldPins[k] = Object.fromEntries(objIds.map((id) => [id, sc.scenario[id]])) as Pins;
-}
-const worlds = Object.keys(worldProb);
+const { worlds, worldProb, worldPins } = objectiveWorlds();
 
 type ActionStat = {
   id: string;
@@ -233,7 +216,5 @@ P();
 P('*Model outputs, not predictions. The recurring signal across both sections: the action set is too coarse and too correlated for objective knowledge to change the plan — the highest-leverage meta-move is designing more differentiated actions.*');
 
 test('research ROI → docs/RESEARCH-PRIORITIES.md', () => {
-  writeFileSync(OUT, lines.join('\n') + '\n', 'utf8');
-  // eslint-disable-next-line no-console
-  console.log(`\nWrote ${lines.length} lines to ${OUT}\n`);
+  save(OUT);
 });

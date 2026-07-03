@@ -1,4 +1,5 @@
-import type { Preset } from './types';
+import type { Preset, PresetFactorView } from './types';
+import type { KnownCredences, KnownFactorId } from './ids';
 
 /**
  * ============================================================================
@@ -22,7 +23,17 @@ import type { Preset } from './types';
  * ============================================================================
  */
 
-export const presets: Preset[] = [
+/**
+ * Content-typed preset: full credences over every known factor — a typo'd state, a
+ * missing factor, or a stray key is a compile error, and adding a factor in ids.ts
+ * forces every preset to take a position on it. Factor notes are keyed likewise.
+ */
+type KnownPreset = Omit<Preset, 'credences' | 'factors'> & {
+  credences: KnownCredences;
+  factors: Partial<Record<KnownFactorId, PresetFactorView>>;
+};
+
+export const presets: KnownPreset[] = [
   {
     id: 'yampolskiy',
     name: 'Roman Yampolskiy',

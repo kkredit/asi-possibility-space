@@ -1,5 +1,5 @@
 import { Box, Typography } from '@mui/material';
-import { c, fonts } from '@shell/theme';
+import { c, fonts, mix } from '@shell/theme';
 
 export interface HeatmapData {
   f1Label: string;
@@ -14,16 +14,11 @@ interface Props {
   data: HeatmapData;
 }
 
-/** Diverging color for a contrast delta, normalized by the grid's own range. */
+/** Diverging color for a contrast delta, normalized by the grid's own range:
+ *  red (unfavorable) → neutral panel → teal (favorable). */
 function deltaColor(delta: number, maxAbs: number): string {
   const t = maxAbs > 0 ? Math.max(-1, Math.min(1, delta / maxAbs)) : 0;
-  // red (unfavorable) → neutral panel → teal (favorable)
-  const mix = (a: number[], b: number[], u: number) =>
-    `rgb(${a.map((x, i) => Math.round(x + (b[i] - x) * u)).join(',')})`;
-  const neutral = [26, 32, 41]; // c.panel2
-  const red = [228, 86, 74];
-  const teal = [52, 211, 181];
-  return t < 0 ? mix(neutral, red, -t) : mix(neutral, teal, t);
+  return t < 0 ? mix(c.panel2, c.red, -t) : mix(c.panel2, c.teal, t);
 }
 
 /**

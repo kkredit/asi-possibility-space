@@ -22,6 +22,11 @@ interface Props {
   jointProbability?: (s: Scenario) => number;
 }
 
+// The design doc's canonical opening question — "is open-sourcing the frontier
+// favorable?" — as the initial contrast. Content ids; if the factor or its states
+// are renamed in ids.ts/dataset.ts, update here too.
+const DEFAULT_DECISION: Decision = { factor: 'powerConcentration', toward: 'diffuse', baseline: 'concentrated' };
+
 /**
  * Everything about FACTORS: how much your EV hinges on each factor (the sensitivity
  * tornado — value of information / leverage / situational awareness), and — for a
@@ -42,7 +47,7 @@ export function FactorsTab({ credences, weights, evaluator, pins, jointProbabili
   );
 
   // ── interventional contrast: "under what conditions is factor = state favorable?" ─
-  const [decision, setDecision] = useState<Decision>({ factor: 'powerConcentration', toward: 'diffuse', baseline: 'concentrated' });
+  const [decision, setDecision] = useState<Decision>(DEFAULT_DECISION);
   const decisionFactor = dataset.factors.find((f) => f.id === decision.factor)!;
   const towardLabel = decisionFactor.states.find((s) => s.id === decision.toward)?.label ?? decision.toward;
   const baselineLabel = decisionFactor.states.find((s) => s.id === decision.baseline)?.label ?? decision.baseline;

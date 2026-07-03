@@ -1,4 +1,5 @@
-import type { FactorBackground, FactorId } from '@model/types';
+import type { FactorBackground } from '@model/types';
+import type { KnownFactorId } from '@model/ids';
 
 /**
  * Scholarly background for each factor — the "learning launchpad."
@@ -13,7 +14,9 @@ import type { FactorBackground, FactorId } from '@model/types';
  * When you add or revise a factor, add its background here (the factor-checklist in
  * AGENTS.md points at this file).
  */
-export const factorBackgrounds: Record<FactorId, FactorBackground> = {
+// Record over KnownFactorId: a factor added in ids.ts is a compile error here
+// until its background is authored (and a stray key can't survive a rename).
+export const factorBackgrounds: Record<KnownFactorId, FactorBackground> = {
   orthogonality: {
     paragraphs: [
       'The orthogonality thesis, due to Nick Bostrom, holds that an agent’s level of intelligence and its final goals are independent axes: almost any level of capability can in principle be paired with almost any goal. A superintelligence is not thereby wise or benevolent — a system can be brilliant at achieving ends we would find pointless or horrifying. If this holds, capability does not imply good values, so misalignment is the *default* outcome that safety work must actively prevent.',

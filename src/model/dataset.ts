@@ -1,16 +1,26 @@
 import type {
   Action,
+  ActionDelta,
   BayesNet,
+  BayesNetNode,
   CachedCell,
   Coupling,
-  Credences,
   Dataset,
   Factor,
-  LinearContributions,
   Scenario,
   ValueDimension,
   ValueVector,
 } from './types';
+import {
+  FACTOR_IDS,
+  FACTOR_STATES,
+  type KnownCredences,
+  type KnownFactorId,
+  type KnownFactorState,
+  type KnownLinearContributions,
+  type StateOf,
+} from './ids';
+import { classifyCorner, type Corner } from './corners';
 import { factorBackgrounds } from './factorBackground';
 
 /**
@@ -36,126 +46,137 @@ const valueDimensions: ValueDimension[] = [
   { id: 'flourishing', label: 'Flourishing', lowLabel: 'value squandered', highLabel: 'value realized' },
 ];
 
-const factorDefs: Factor[] = [
-  {
-    id: 'orthogonality',
+/**
+ * Per-factor definitions, keyed and completeness-checked against FACTOR_STATES
+ * (ids.ts): adding a factor or a state there is a compile error here until it is
+ * authored — and no stray state can sneak in.
+ */
+type FactorDef<F extends KnownFactorId> = Omit<Factor, 'id' | 'states' | 'background'> & {
+  states: Record<StateOf<F>, { label: string; blurb: string }>;
+};
+
+const factorDefs: { [F in KnownFactorId]: FactorDef<F> } = {
+  orthogonality: {
     label: 'Orthogonality Thesis',
     kind: 'objective',
     question: 'Is misalignment the default for highly capable systems?',
     description:
       'Whether intelligence and final goals are independent. If it holds, capability does not imply benevolence and misalignment is the default. If it fails, sufficiently capable systems tend to converge toward broadly benign goals.',
-    states: [
-      { id: 'holds', label: 'Holds', blurb: 'goals ⟂ capability; misalignment is the default' },
-      { id: 'fails', label: 'Fails', blurb: 'capable systems converge toward benevolence' },
-    ],
+    states: {
+      holds: { label: 'Holds', blurb: 'goals ⟂ capability; misalignment is the default' },
+      fails: { label: 'Fails', blurb: 'capable systems converge toward benevolence' },
+    },
   },
-  {
-    id: 'tractability',
+  tractability: {
     label: 'Alignment tractability (in principle)',
     kind: 'objective',
     question: 'How hard is it to technically align a superintelligence, at all?',
     description:
       'The intrinsic difficulty of the alignment problem, independent of whether we happen to solve it in time. A fact about the problem, not about our effort.',
-    states: [
-      { id: 'easy', label: 'Easy', blurb: 'tractable with modest effort' },
-      { id: 'hard', label: 'Hard', blurb: 'solvable but demanding' },
-      { id: 'nearImpossible', label: 'Near-impossible', blurb: 'may not be solvable in practice' },
-    ],
+    states: {
+      easy: { label: 'Easy', blurb: 'tractable with modest effort' },
+      hard: { label: 'Hard', blurb: 'solvable but demanding' },
+      nearImpossible: { label: 'Near-impossible', blurb: 'may not be solvable in practice' },
+    },
   },
-  {
-    id: 'offenseDefense',
+  offenseDefense: {
     label: 'Offense/defense balance at ASI scale',
     kind: 'objective',
     question: 'In a world of ASI-empowered actors, does attack or defense win?',
     description:
       'Whether superintelligent conflict is offense-dominated (one defector can cause catastrophe) or defense-dominated (stable). Treated here as an objective fact about future technology.',
-    states: [
-      { id: 'offense', label: 'Offense-dominant', blurb: 'one defector can cause catastrophe' },
-      { id: 'balanced', label: 'Balanced', blurb: 'neither side structurally wins' },
-      { id: 'defense', label: 'Defense-dominant', blurb: 'stable; defenders hold' },
-    ],
+    states: {
+      offense: { label: 'Offense-dominant', blurb: 'one defector can cause catastrophe' },
+      balanced: { label: 'Balanced', blurb: 'neither side structurally wins' },
+      defense: { label: 'Defense-dominant', blurb: 'stable; defenders hold' },
+    },
   },
-  {
-    id: 'takeoff',
+  takeoff: {
     label: 'Takeoff speed',
     kind: 'objective',
     question: 'How abruptly does capability cross from roughly-human to decisively-superhuman?',
     description:
       'A fact about how the technology scales: a fast (hard) takeoff leaves little calendar time to react and tends to hand a decisive advantage to whoever crosses first; a slow (soft) takeoff lets oversight, alignment, control, and other actors keep pace. Strongly coupled to power concentration (fast ⇒ concentrated) and to whether alignment/control land in time.',
-    states: [
-      { id: 'fast', label: 'Fast', blurb: 'hard takeoff — months/weeks; little time to react' },
-      { id: 'medium', label: 'Medium', blurb: 'a few years; oversight strains to keep pace' },
-      { id: 'slow', label: 'Slow', blurb: 'soft takeoff — a decade+; institutions can adapt' },
-    ],
+    states: {
+      fast: { label: 'Fast', blurb: 'hard takeoff — months/weeks; little time to react' },
+      medium: { label: 'Medium', blurb: 'a few years; oversight strains to keep pace' },
+      slow: { label: 'Slow', blurb: 'soft takeoff — a decade+; institutions can adapt' },
+    },
   },
-  {
-    id: 'powerConcentration',
+  powerConcentration: {
     label: 'Power concentration',
     kind: 'influenceable',
     question: 'Is frontier capability gated by a few actors or widely proliferated?',
     description:
       'Whether, at ASI onset, frontier capability is controlled by a few labs/states or broadly diffused (e.g. open-source dominant). It is influenceable in principle — antitrust, open-source policy, compute allocation and licensing all push on it — though how much leverage you think we really have is encoded in the slider and the couplings (e.g. fast takeoff concentrates regardless).',
-    states: [
-      { id: 'concentrated', label: 'Concentrated', blurb: 'a few labs/states gate the frontier' },
-      { id: 'diffuse', label: 'Diffuse', blurb: 'proliferated / open-source dominant' },
-    ],
+    states: {
+      concentrated: { label: 'Concentrated', blurb: 'a few labs/states gate the frontier' },
+      diffuse: { label: 'Diffuse', blurb: 'proliferated / open-source dominant' },
+    },
   },
-  {
-    id: 'alignmentInTime',
+  alignmentInTime: {
     label: 'Alignment solved & deployed in time',
     kind: 'influenceable',
     question: 'Do we actually field aligned superintelligence before catastrophe?',
     description:
       'Whether, in practice, aligned systems are built and deployed before an unaligned one causes irreversible harm. Distinct from intrinsic tractability — this one our choices can move.',
-    states: [
-      { id: 'yes', label: 'Yes', blurb: 'aligned ASI deployed in time' },
-      { id: 'no', label: 'No', blurb: 'not solved/deployed before catastrophe' },
-    ],
+    states: {
+      yes: { label: 'Yes', blurb: 'aligned ASI deployed in time' },
+      no: { label: 'No', blurb: 'not solved/deployed before catastrophe' },
+    },
   },
-  {
-    id: 'controlDeployed',
+  controlDeployed: {
     label: 'Control solved & deployed',
     kind: 'influenceable',
     question: 'Even if not aligned, can we contain / monitor / correct it?',
     description:
       'Whether AI-control techniques (boxing, monitoring, interpretability-based oversight, correction) are good enough and actually deployed to keep even imperfectly-aligned systems in check.',
-    states: [
-      { id: 'yes', label: 'Yes', blurb: 'control techniques work and are deployed' },
-      { id: 'no', label: 'No', blurb: 'no effective control' },
-    ],
+    states: {
+      yes: { label: 'Yes', blurb: 'control techniques work and are deployed' },
+      no: { label: 'No', blurb: 'no effective control' },
+    },
   },
-  {
-    id: 'coordination',
+  coordination: {
     label: 'Coordination regime',
     kind: 'influenceable',
     question: 'Do we achieve a binding regime that coordinates frontier development?',
     description:
       'Whether a real coordination/governance regime over frontier AI is achieved — international agreements, compute governance, enforced safety standards — versus an uncoordinated free-for-all. Our choices can move it; its main effect is upstream, buying time and raising the odds that alignment and control are solved and deployed in time. Note the model assumes a regime governs via a governable few, so it also tilts power toward concentration (licensing, compute allocation); flip the coordination→power coupling/CPT if you think governance would instead mandate openness and diffuse it.',
-    states: [
-      { id: 'regime', label: 'Regime', blurb: 'binding coordination / governance achieved' },
-      { id: 'none', label: 'None', blurb: 'uncoordinated; each actor races' },
-    ],
+    states: {
+      regime: { label: 'Regime', blurb: 'binding coordination / governance achieved' },
+      none: { label: 'None', blurb: 'uncoordinated; each actor races' },
+    },
   },
-  {
-    id: 'deception',
+  deception: {
     label: 'Deceptive alignment',
     kind: 'objective',
     question: 'Do capable systems systematically deceive oversight until decisively advantaged?',
     description:
       'Whether the default of training capable systems is deceptive alignment / a "sharp left turn" — behaving well under evaluation, then defecting once decisively capable — versus systems being faithful, so what you test is what you get. A structural fact about how learning scales. Load-bearing because it decides whether deployed CONTROL can actually be trusted: if deception is the default, control evaluations are fooled and a "controlled-but-misaligned" world collapses toward catastrophe; alignment we think we verified may be false.',
-    states: [
-      { id: 'deceptive', label: 'Deceptive', blurb: 'behaves under eval, defects when decisively capable' },
-      { id: 'faithful', label: 'Faithful', blurb: 'no systematic deception; tests are trustworthy' },
-    ],
+    states: {
+      deceptive: { label: 'Deceptive', blurb: 'behaves under eval, defects when decisively capable' },
+      faithful: { label: 'Faithful', blurb: 'no systematic deception; tests are trustworthy' },
+    },
   },
-];
+};
 
-// Attach the scholarly "learn more" background to each factor (kept in a separate
-// module so the debate/reading content lives apart from the modelling numbers).
-const factors: Factor[] = factorDefs.map((f) => ({ ...f, background: factorBackgrounds[f.id] }));
+/** Materialize one factor: canonical state order from FACTOR_STATES, plus the
+ *  scholarly "learn more" background (kept in a separate module so the debate/
+ *  reading content lives apart from the modelling numbers). */
+function buildFactor<F extends KnownFactorId>(id: F): Factor {
+  const def = factorDefs[id];
+  return {
+    id,
+    ...def,
+    states: (FACTOR_STATES[id] as readonly StateOf<F>[]).map((sid) => ({ id: sid, ...def.states[sid] })),
+    background: factorBackgrounds[id],
+  };
+}
+
+const factors: Factor[] = FACTOR_IDS.map((id) => buildFactor(id));
 
 // Starting odds (default credences). Each factor's states sum to 1.
-const baselineCredences: Credences = {
+const baselineCredences = {
   orthogonality: { holds: 0.8, fails: 0.2 },
   tractability: { easy: 0.1, hard: 0.6, nearImpossible: 0.3 },
   offenseDefense: { offense: 0.7, balanced: 0.2, defense: 0.1 },
@@ -165,7 +186,7 @@ const baselineCredences: Credences = {
   controlDeployed: { yes: 0.45, no: 0.55 },
   coordination: { regime: 0.75, none: 0.25 },
   deception: { deceptive: 0.35, faithful: 0.65 },
-};
+} satisfies KnownCredences;
 
 // Default weights — survival & suffering weighted highest.
 const defaultWeights: ValueVector = {
@@ -180,7 +201,7 @@ const defaultWeights: ValueVector = {
 // hand-reasoned cells diverge. The residual is the research signal.
 const linearBaseline: ValueVector = { survival: 0, agency: 0, suffering: 0.3, flourishing: 0 };
 
-const linearContributions: LinearContributions = {
+const linearContributions = {
   orthogonality: {
     holds: { survival: -0.25, suffering: -0.1 },
     fails: { survival: 0.25, flourishing: 0.1 },
@@ -227,7 +248,7 @@ const linearContributions: LinearContributions = {
     deceptive: { survival: -0.1, agency: -0.06, suffering: -0.06, flourishing: -0.08 },
     faithful: {},
   },
-};
+} satisfies KnownLinearContributions;
 
 // ============================================================================
 //  HAND-REASONED CELLS
@@ -263,12 +284,12 @@ const linearContributions: LinearContributions = {
 type ValueTuple = [survival: number, agency: number, suffering: number, flourishing: number];
 
 function cell(
-  orthogonality: string,
-  tractability: string,
-  offenseDefense: string,
-  powerConcentration: string,
-  alignmentInTime: string,
-  controlDeployed: string,
+  orthogonality: StateOf<'orthogonality'>,
+  tractability: StateOf<'tractability'>,
+  offenseDefense: StateOf<'offenseDefense'>,
+  powerConcentration: StateOf<'powerConcentration'>,
+  alignmentInTime: StateOf<'alignmentInTime'>,
+  controlDeployed: StateOf<'controlDeployed'>,
   [survival, agency, suffering, flourishing]: ValueTuple,
   narrative: string,
   confidence = 0.4,
@@ -294,7 +315,14 @@ function cell(
 // (who directs the benign AI); offense/defense sets how steady the transition is;
 // our alignment/control work adds only marginal, partly-redundant assurance.
 // ----------------------------------------------------------------------------
-type FailsEntry = { off: string; conc: string; align: string; ctrl: string; v: ValueTuple; narrative: string };
+type FailsEntry = {
+  off: StateOf<'offenseDefense'>;
+  conc: StateOf<'powerConcentration'>;
+  align: StateOf<'alignmentInTime'>;
+  ctrl: StateOf<'controlDeployed'>;
+  v: ValueTuple;
+  narrative: string;
+};
 
 const failsTable: FailsEntry[] = [
   // offense-dominant
@@ -426,8 +454,8 @@ const baseCells: CachedCell[] = [
   // GROUP 2 — orthogonality HOLDS, tractability NEAR-IMPOSSIBLE, alignment = NO.
   // Reuse Group 1's (no, *) arguments, shifted: deeply-unsolvable alignment makes the
   // control leash more brittle, so control-muddle survival drops and doom is a touch
-  // worse / more suffering-laden. (alignment = yes is omitted: near-impossible + solved
-  // is a low-probability heroic case left to the linear fallback.)
+  // worse / more suffering-laden. (The near-impossible-but-solved heroic case is
+  // authored in Group 4 below.)
   // ==========================================================================
 
   // (no, no) — DOOM, slightly worse than Group 1: a deeply misaligned system.
@@ -463,8 +491,7 @@ const baseCells: CachedCell[] = [
   // GROUP 3 — orthogonality HOLDS, tractability EASY, alignment = YES.
   // Reuse Group 1's (yes, *) arguments, shifted up: an easy problem solved yields a
   // robust, widely-shareable alignment solution (better flourishing/agency, esp. when
-  // diffuse). (alignment = no with an *easy* problem is the tragic "we fumbled it"
-  // case — same outcome as not-aligned — left to the linear fallback.)
+  // diffuse). (The easy-but-fumbled tragic case is authored in Group 5 below.)
   // ==========================================================================
 
   // (yes, yes)
@@ -496,7 +523,7 @@ const baseCells: CachedCell[] = [
     'Robust, distributed alignment in a defense-dominant world; no control layer needed — free and flourishing.', 0.45),
 
   // ==========================================================================
-  // GROUP 5 — orthogonality HOLDS, tractability NEAR-IMPOSSIBLE, alignment = YES.
+  // GROUP 4 — orthogonality HOLDS, tractability NEAR-IMPOSSIBLE, alignment = YES.
   // The heroic-but-fragile case: a near-impossible problem somehow solved and
   // deployed in time yields a narrow, brittle solution. Reuse Group 1's (yes, *)
   // arguments shifted DOWN ~[0.07, 0.03, 0.08, 0.10] for that fragility.
@@ -531,7 +558,7 @@ const baseCells: CachedCell[] = [
     'Fragile distributed alignment plus control, defense-dominant: free and flourishing; brittleness scarcely matters when no actor can defect to ruin.'),
 
   // ==========================================================================
-  // GROUP 6 — orthogonality HOLDS, tractability EASY, alignment = NO.
+  // GROUP 5 — orthogonality HOLDS, tractability EASY, alignment = NO.
   // The tragic own-goal: an easy problem left undeployed (race / coordination
   // failure). Easy-to-align systems are more LEGIBLE, so vs. Group 1's hard (no, *)
   // analogues, doom is marginally less total (+~[0.05, 0.03, 0.05, 0.05]) and the
@@ -592,14 +619,10 @@ const baseCells: CachedCell[] = [
 //         steady the handover is. Fast → abrupt, disorienting (agency↓); slow →
 //         gradual and legible.
 // ============================================================================
-type Corner = 'doom' | 'control' | 'aligned' | 'benign';
-
-function classifyCorner(s: Scenario): Corner {
-  if (s.orthogonality === 'fails') return 'benign';
-  if (s.alignmentInTime === 'yes') return 'aligned';
-  if (s.controlDeployed === 'yes') return 'control';
-  return 'doom';
-}
+// Corner + classifyCorner live in corners.ts (shared with the archetype evaluator
+// and the doc scripts). Base cells always carry the three gate factors, so the
+// classification is total here.
+const cornerOf = (s: Scenario): Corner => classifyCorner(s)!;
 
 // Delta applied to the medium [survival, agency, suffering, flourishing] tuple.
 const takeoffDelta: Record<Corner, { fast: ValueTuple; slow: ValueTuple }> = {
@@ -636,7 +659,7 @@ function shiftTuple(base: ValueTuple, delta: ValueTuple): ValueTuple {
 
 /** Expand one medium-anchor cell into its fast/medium/slow variants. */
 function expandTakeoff(base: CachedCell): CachedCell[] {
-  const corner = classifyCorner(base.scenario);
+  const corner = cornerOf(base.scenario);
   const { survival, agency, suffering, flourishing } = base.outcome.value;
   const medium: ValueTuple = [survival, agency, suffering, flourishing];
   const baseConf = base.outcome.confidence ?? 0.4;
@@ -675,7 +698,7 @@ function coordinationAgencyShift(corner: Corner, power: string): number {
 
 /** Expand one cell into its coordination = {none, regime} variants. */
 function expandCoordination(base: CachedCell): CachedCell[] {
-  const corner = classifyCorner(base.scenario);
+  const corner = cornerOf(base.scenario);
   const power = base.scenario.powerConcentration;
   const { survival, agency, suffering, flourishing } = base.outcome.value;
   const tuple: ValueTuple = [survival, agency, suffering, flourishing];
@@ -725,7 +748,7 @@ const deceptionClause: Record<Corner, string> = {
 
 /** Expand one cell into its deception = {faithful, deceptive} variants. */
 function expandDeception(base: CachedCell): CachedCell[] {
-  const corner = classifyCorner(base.scenario);
+  const corner = cornerOf(base.scenario);
   const { survival, agency, suffering, flourishing } = base.outcome.value;
   const tuple: ValueTuple = [survival, agency, suffering, flourishing];
   const conf = base.outcome.confidence ?? 0.4;
@@ -753,7 +776,11 @@ const cachedOutcomes: CachedCell[] = baseCells
 // Multiplier < 1 suppresses a combination, > 1 boosts it, 0 forbids it. These are
 // dependency strengths — argue with them and edit.
 // ============================================================================
-const couplings: Coupling[] = [
+// Couplings with content-typed `when` conditions: a state that doesn't belong to
+// its factor is a compile error.
+type KnownCoupling = Omit<Coupling, 'when'> & { when: KnownFactorState[] };
+
+const couplings: KnownCoupling[] = [
   // --- Takeoff speed ↔ power concentration -------------------------------------
   // A fast (hard) takeoff hands a decisive strategic advantage to whoever crosses
   // first, so capability concentrates almost by definition. Suppress the
@@ -877,21 +904,28 @@ const couplings: Coupling[] = [
 //  validated and ready to wire in as a selectable probability model (see MODEL.md §5
 //  for what remains — the UI toggle and the child-slider semantics).
 // ============================================================================
+// CPT typing: template-literal keys make the tables completeness-checked — every
+// parent-state combination must be present, and a typo'd state id can't key a row.
+type TakeoffState = StateOf<'takeoff'>;
+type CoordState = StateOf<'coordination'>;
+
 // Base P(yes) for the "solved in time" factors before the coordination modifier.
-const alignBaseYes: Record<string, number> = {
+const alignBaseYes: Record<`${TakeoffState}|${StateOf<'tractability'>}`, number> = {
   'fast|easy': 0.4, 'fast|hard': 0.2, 'fast|nearImpossible': 0.05,
   'medium|easy': 0.6, 'medium|hard': 0.35, 'medium|nearImpossible': 0.1,
   'slow|easy': 0.8, 'slow|hard': 0.55, 'slow|nearImpossible': 0.2,
 };
-const controlBaseYes: Record<string, number> = { fast: 0.3, medium: 0.5, slow: 0.65 };
+const controlBaseYes: Record<TakeoffState, number> = { fast: 0.3, medium: 0.5, slow: 0.65 };
 
 // Fold a coordination modifier into a binary "yes/no" CPT: a regime scales the odds
 // of "yes" up, no coordination scales them down. The parent key gains a trailing
 // `|regime` / `|none` segment (coordination is the last parent).
 const clampP = (p: number): number => Math.max(0.02, Math.min(0.98, p));
-function withCoordination(baseYes: Record<string, number>): Record<string, Record<string, number>> {
-  const out: Record<string, Record<string, number>> = {};
-  for (const base of Object.keys(baseYes)) {
+function withCoordination<K extends string>(
+  baseYes: Record<K, number>,
+): Record<`${K}|${CoordState}`, Record<'yes' | 'no', number>> {
+  const out = {} as Record<`${K}|${CoordState}`, Record<'yes' | 'no', number>>;
+  for (const base of Object.keys(baseYes) as K[]) {
     for (const coord of ['regime', 'none'] as const) {
       const p = clampP(baseYes[base] * (coord === 'regime' ? 1.5 : 0.75));
       out[`${base}|${coord}`] = { yes: p, no: 1 - p };
@@ -901,13 +935,15 @@ function withCoordination(baseYes: Record<string, number>): Record<string, Recor
 }
 
 // P(concentrated | takeoff), before coordination. Fast takeoff concentrates.
-const concentratedBase: Record<string, number> = { fast: 0.9, medium: 0.55, slow: 0.35 };
+const concentratedBase: Record<TakeoffState, number> = { fast: 0.9, medium: 0.55, slow: 0.35 };
 // Coordination shapes concentration too: a governance regime tends to concentrate the
 // (now-governable) frontier — licensing, compute allocation — while an uncoordinated
 // world leaves it a touch more diffuse. Parent order is (takeoff, coordination).
-function concentrationCpt(base: Record<string, number>): Record<string, Record<string, number>> {
-  const out: Record<string, Record<string, number>> = {};
-  for (const t of Object.keys(base)) {
+function concentrationCpt(
+  base: Record<TakeoffState, number>,
+): Record<`${TakeoffState}|${CoordState}`, Record<StateOf<'powerConcentration'>, number>> {
+  const out = {} as Record<`${TakeoffState}|${CoordState}`, Record<StateOf<'powerConcentration'>, number>>;
+  for (const t of Object.keys(base) as TakeoffState[]) {
     for (const coord of ['regime', 'none'] as const) {
       const p = clampP(base[t] * (coord === 'regime' ? 1.15 : 0.92));
       out[`${t}|${coord}`] = { concentrated: p, diffuse: 1 - p };
@@ -916,57 +952,66 @@ function concentrationCpt(base: Record<string, number>): Record<string, Record<s
   return out;
 }
 
+// One node per known factor, completeness-checked: adding a factor in ids.ts is a
+// compile error here until it gets a node (validateBayesNet still checks at runtime
+// for arbitrary datasets). Authored in display order: roots first, then children.
+type KnownBayesNode = Omit<BayesNetNode, 'factor' | 'parents'> & { parents: KnownFactorId[] };
+
+const bayesNodes: Record<KnownFactorId, KnownBayesNode> = {
+  // --- roots: priors read live from credences (no CPT) -----------------------
+  orthogonality: { parents: [], note: 'Root: a structural fact; prior from your slider.' },
+  offenseDefense: { parents: [], note: 'Root: a structural fact; prior from your slider.' },
+  takeoff: { parents: [], note: 'Root: treated as exogenous; prior from your slider.' },
+  coordination: { parents: [], note: 'Root: our collective choice; prior from your slider. Buys time for alignment & control.' },
+  deception: { parents: [], note: 'Root: a structural fact about how training scales; prior from your slider. Decides whether deployed control can be trusted.' },
+
+  // --- tractability | orthogonality -----------------------------------------
+  tractability: {
+    parents: ['orthogonality'],
+    note: 'If orthogonality fails (benign convergence), alignment is effectively a non-problem, so tractability skews easy.',
+    cpt: {
+      holds: { easy: 0.2, hard: 0.5, nearImpossible: 0.3 },
+      fails: { easy: 0.6, hard: 0.3, nearImpossible: 0.1 },
+    } satisfies Record<StateOf<'orthogonality'>, Record<StateOf<'tractability'>, number>>,
+  },
+
+  // --- powerConcentration | (takeoff, coordination) -------------------------
+  powerConcentration: {
+    parents: ['takeoff', 'coordination'],
+    note: 'A fast takeoff hands a decisive first-mover advantage, so capability concentrates; a slow one lets others catch up. A coordination regime also concentrates the (now-governable) frontier — licensing, compute allocation — while an uncoordinated world stays a touch more diffuse.',
+    cpt: concentrationCpt(concentratedBase),
+  },
+
+  // --- alignmentInTime | (takeoff, tractability, coordination) --------------
+  alignmentInTime: {
+    parents: ['takeoff', 'tractability', 'coordination'],
+    note: 'A race against the calendar (takeoff) gated by problem difficulty (tractability); a coordination regime buys time and standards, raising the odds.',
+    cpt: withCoordination(alignBaseYes),
+  },
+
+  // --- controlDeployed | (takeoff, coordination) ----------------------------
+  controlDeployed: {
+    parents: ['takeoff', 'coordination'],
+    note: 'Standing up and deploying control/monitoring takes calendar time; a coordination regime mandates and accelerates it.',
+    cpt: withCoordination(controlBaseYes),
+  },
+};
+
 const bayesNet: BayesNet = {
   description:
     'DAG: objective facts, takeoff, coordination, and deceptive alignment are roots (priors from your sliders); tractability depends on orthogonality; power concentration depends on takeoff and coordination (a governance regime concentrates the governable frontier); and the “solved in time” factors depend on takeoff, tractability, and whether a coordination regime is in place. Deception is the lever that decides whether a deployed control regime can actually be trusted.',
-  nodes: [
-    // --- roots: priors read live from credences (no CPT) -----------------------
-    { factor: 'orthogonality', parents: [], note: 'Root: a structural fact; prior from your slider.' },
-    { factor: 'offenseDefense', parents: [], note: 'Root: a structural fact; prior from your slider.' },
-    { factor: 'takeoff', parents: [], note: 'Root: treated as exogenous; prior from your slider.' },
-    { factor: 'coordination', parents: [], note: 'Root: our collective choice; prior from your slider. Buys time for alignment & control.' },
-    { factor: 'deception', parents: [], note: 'Root: a structural fact about how training scales; prior from your slider. Decides whether deployed control can be trusted.' },
-
-    // --- tractability | orthogonality -----------------------------------------
-    {
-      factor: 'tractability',
-      parents: ['orthogonality'],
-      note: 'If orthogonality fails (benign convergence), alignment is effectively a non-problem, so tractability skews easy.',
-      cpt: {
-        holds: { easy: 0.2, hard: 0.5, nearImpossible: 0.3 },
-        fails: { easy: 0.6, hard: 0.3, nearImpossible: 0.1 },
-      },
-    },
-
-    // --- powerConcentration | (takeoff, coordination) -------------------------
-    {
-      factor: 'powerConcentration',
-      parents: ['takeoff', 'coordination'],
-      note: 'A fast takeoff hands a decisive first-mover advantage, so capability concentrates; a slow one lets others catch up. A coordination regime also concentrates the (now-governable) frontier — licensing, compute allocation — while an uncoordinated world stays a touch more diffuse.',
-      cpt: concentrationCpt(concentratedBase),
-    },
-
-    // --- alignmentInTime | (takeoff, tractability, coordination) --------------
-    {
-      factor: 'alignmentInTime',
-      parents: ['takeoff', 'tractability', 'coordination'],
-      note: 'A race against the calendar (takeoff) gated by problem difficulty (tractability); a coordination regime buys time and standards, raising the odds.',
-      cpt: withCoordination(alignBaseYes),
-    },
-
-    // --- controlDeployed | (takeoff, coordination) ----------------------------
-    {
-      factor: 'controlDeployed',
-      parents: ['takeoff', 'coordination'],
-      note: 'Standing up and deploying control/monitoring takes calendar time; a coordination regime mandates and accelerates it.',
-      cpt: withCoordination(controlBaseYes),
-    },
-  ],
+  nodes: (Object.keys(bayesNodes) as KnownFactorId[]).map((factor) => ({ factor, ...bayesNodes[factor] })),
 };
 
 // Actions nudge probability mass on influenceable factors (and, sparingly, the
-// contingent one). Objective factors are off-limits by construction.
-const actions: Action[] = [
+// contingent one). Objective factors are off-limits by construction. Deltas are
+// content-typed: a towardState that doesn't belong to its factor is a compile error.
+type KnownActionDelta = {
+  [F in KnownFactorId]: Omit<ActionDelta, 'factor' | 'towardState'> & { factor: F; towardState: StateOf<F> };
+}[KnownFactorId];
+type KnownAction = Omit<Action, 'deltas'> & { deltas: KnownActionDelta[] };
+
+const actions: KnownAction[] = [
   {
     id: 'fundAlignment',
     label: 'Fund technical alignment',

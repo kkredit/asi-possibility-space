@@ -12,7 +12,6 @@
  * itself now defaults to the Bayes net) and the *cached* (hand-reasoned) value surface.
  * Numbers move whenever dataset.ts is re-authored — that's expected; rerun.
  */
-import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { test } from 'vitest';
@@ -20,7 +19,6 @@ import { dataset } from '@model/dataset';
 import {
   analyze,
   applyAction,
-  cachedEvaluator,
   rankActions,
   scalarize,
   sensitivity,
@@ -28,18 +26,14 @@ import {
   type Analysis,
   type Pins,
 } from '@engine/index';
+import { classifyCorner } from '@model/corners';
 import type { Credences, ValueVector } from '@model/types';
+import { actionLabel, base, condMean, docLines, ev, powerGap, pct as pctN, sev, W } from './lib';
 
 const OUT = resolve(dirname(fileURLToPath(import.meta.url)), '../docs/FINDINGS.md');
 
-const base = dataset.baselineCredences;
-const W = dataset.defaultWeights;
-const ev = cachedEvaluator;
-
 // ── helpers ────────────────────────────────────────────────────────────────
-const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
-const sev = (x: number) => `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(3)}`;
-const actionLabel = (id: string) => dataset.actions.find((a) => a.id === id)?.label ?? id;
+const pct = (x: number) => pctN(x, 1); // findings quote shares to 1 decimal
 
 function weights(partial: Partial<ValueVector>): ValueVector {
   return { survival: 0, agency: 0, suffering: 0, flourishing: 0, ...partial };
@@ -75,8 +69,7 @@ function topAction(cred: Credences, w: ValueVector) {
   return ranked[0];
 }
 
-const lines: string[] = [];
-const P = (s = '') => lines.push(s);
+const { P, save } = docLines();
 
 // ── header ───────────────────────────────────────────────────────────────
 P('# Surprising findings');
@@ -135,23 +128,10 @@ const agencyW = weights({ agency: 1 });
 const sensAgency = sensitivity(dataset, base, agencyW, ev).sort((a, b) => b.swing - a.swing);
 const powerAgencyRank = sensAgency.findIndex((r) => r.factorId === 'powerConcentration') + 1;
 const powerAgencySwing = sensAgency.find((r) => r.factorId === 'powerConcentration')?.swing ?? 0;
-/** Normalized conditional-mean EV (not mass-weighted). */
-function condMeanEV(pins: Pins, w: ValueVector): number {
-  const a = analyze(dataset, base, w, ev, pins);
-  return a.totalProbability > 0 ? a.ev / a.totalProbability : 0;
-}
-/** concentrated − diffuse conditional-mean EV under weights w and an extra condition. */
-function powerGap(cond: Pins, w: ValueVector): number {
-  return condMeanEV({ ...cond, powerConcentration: 'concentrated' }, w) - condMeanEV({ ...cond, powerConcentration: 'diffuse' }, w);
-}
+// condMean / powerGap come from ./lib.
 
 // Deception flips SIGN by régime: catastrophic everywhere except the benign attractor.
-function cornerOf(s: Parameters<typeof ev.evaluate>[0]): string {
-  if (s.orthogonality === 'fails') return 'benign';
-  if (s.alignmentInTime === 'yes') return 'aligned';
-  if (s.controlDeployed === 'yes') return 'control';
-  return 'doom';
-}
+const cornerOf = (s: Parameters<typeof ev.evaluate>[0]): string => classifyCorner(s)!;
 const decByCorner: Record<string, { sum: number; n: number }> = {};
 for (const s of enumerateScenarios(dataset.factors)) {
   if (s.deception !== 'faithful') continue;
@@ -402,7 +382,5 @@ P('*These are model outputs, not predictions. Their value is in exposing where t
 
 // ── write ──────────────────────────────────────────────────────────────────
 test('mine findings → docs/FINDINGS.md', () => {
-  writeFileSync(OUT, lines.join('\n') + '\n', 'utf8');
-  // eslint-disable-next-line no-console
-  console.log(`\nWrote ${lines.length} lines to ${OUT}\n`);
+  save(OUT);
 });

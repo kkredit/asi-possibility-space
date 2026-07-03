@@ -1,5 +1,6 @@
-import { Box, Stack, Tooltip, Typography } from '@mui/material';
+import { alpha, Box, Stack, Tooltip, Typography } from '@mui/material';
 import type { RankedAction } from '@engine/actions';
+import { fmtSigned } from '@viz/text';
 import { c, fonts } from '@shell/theme';
 
 interface Props {
@@ -20,7 +21,7 @@ export function ActionRanking({ ranked, baselineEv }: Props) {
       <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 1.5 }}>
         each action ranked by the EV gain it produces vs. baseline{' '}
         <Box component="span" sx={{ fontFamily: fonts.mono, color: c.bone }}>
-          {baselineEv >= 0 ? '+' : '−'}{Math.abs(baselineEv).toFixed(2)}
+          {fmtSigned(baselineEv)}
         </Box>
       </Typography>
 
@@ -35,7 +36,7 @@ export function ActionRanking({ ranked, baselineEv }: Props) {
             mb: 2,
             borderRadius: 1.5,
             border: `1px solid ${c.teal}`,
-            bgcolor: 'rgba(52,211,181,0.12)',
+            bgcolor: alpha(c.teal, 0.12),
           }}
         >
           <Typography sx={{ fontFamily: fonts.display, fontWeight: 600, color: c.bone, fontSize: '0.9rem' }}>
@@ -59,8 +60,7 @@ export function ActionRanking({ ranked, baselineEv }: Props) {
                     {r.action.label}
                   </Typography>
                   <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.8rem', color: positive ? c.teal : c.red }}>
-                    {r.evGain >= 0 ? '+' : '−'}
-                    {Math.abs(r.evGain).toFixed(3)}
+                    {fmtSigned(r.evGain, 3)}
                   </Typography>
                 </Stack>
                 {/* diverging bar from the center */}

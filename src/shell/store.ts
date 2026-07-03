@@ -3,6 +3,7 @@ import type { Credences, FactorId, Scenario, StateId, ValueDimensionId, ValueVec
 import { dataset } from '@model/dataset';
 import { presets } from '@model/presets';
 import type { Pins } from '@engine/scenarios';
+import { withMarginal } from '@engine/actions';
 import { reconcileJoint } from '@engine/softevidence';
 
 export type ProbabilityModel = 'independence' | 'bayesNet';
@@ -28,26 +29,6 @@ export interface BeliefState {
   applyPreset: (id: string) => void;
   setProbabilityModel: (model: ProbabilityModel) => void;
   reset: () => void;
-}
-
-/**
- * Set one state's probability and redistribute the remainder across the other
- * states in proportion to their current values (so the distribution stays valid).
- */
-function setStateProbability(
-  dist: Record<StateId, number>,
-  state: StateId,
-  value: number,
-): Record<StateId, number> {
-  const v = Math.max(0, Math.min(1, value));
-  const others = Object.keys(dist).filter((s) => s !== state);
-  const remaining = 1 - v;
-  const priorOthers = others.reduce((sum, s) => sum + dist[s], 0);
-  const next: Record<StateId, number> = { [state]: v };
-  for (const s of others) {
-    next[s] = priorOthers > 0 ? remaining * (dist[s] / priorOthers) : remaining / others.length;
-  }
-  return next;
 }
 
 /** Read a `#preset=<id>` from the URL (SSR-safe); only returns known preset ids. */
@@ -120,8 +101,18 @@ function baselineState() {
 /** Initial state honors a shared `#preset=<id>` URL if present. */
 function initialState() {
   const urlId = readUrlPresetId();
-  if (urlId) return { ...baselineState(), activePresetId: urlId, ...presetCredencesWeights(urlId) };
-  return baselineState();
+  const state = baselineState();
+  if (!urlId) return state;
+  const { credences, weights } = presetCredencesWeights(urlId);
+  return {
+    ...state,
+    activePresetId: urlId,
+    credences,
+    weights,
+    // Re-rake the Bayes-net joint to the preset's marginals — leaving the baseline
+    // joint here would render a shared preset link with the wrong EV/p(doom).
+    bayesProbability: state.probabilityModel === 'bayesNet' ? netJoint(credences) : null,
+  };
 }
 
 export const useBeliefs = create<BeliefState>((set) => ({
@@ -131,7 +122,7 @@ export const useBeliefs = create<BeliefState>((set) => ({
   setCredence: (factor, state, value) =>
     set((s) => {
       if (s.activePresetId) writeUrlPresetId(null);
-      const credences = { ...s.credences, [factor]: setStateProbability(s.credences[factor], state, value) };
+      const credences = { ...s.credences, [factor]: withMarginal(s.credences[factor], state, value) };
       return {
         activePresetId: null,
         credences,
