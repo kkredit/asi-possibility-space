@@ -318,7 +318,7 @@ export function Controls() {
   return (
     <Stack spacing={2.25}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Typography variant="overline" sx={{ color: c.mute }}>
+        <Typography sx={{ fontFamily: fonts.display, fontWeight: 700, fontSize: '1.05rem', letterSpacing: '0.01em', color: c.bone }}>
           Beliefs
         </Typography>
         <Stack direction="row" spacing={0.5}>
