@@ -156,17 +156,19 @@ describe('action conditions', () => {
     for (const cx of a.cruxes) expect(objIds.has(cx.factorId)).toBe(true);
   });
 
-  it('deception is fund-alignment’s top verdict-flipping crux', () => {
-    // Funding alignment pushes into the ALIGNED corner, but a deceptive defection
-    // collapses that corner (and the control corner) to ≈ doom — in deceptive
-    // worlds the funding gains ~nothing, so deception is the factor that flips
-    // the verdict and moves it most end-to-end. (Takeoff's absolute swing is a
-    // hair larger, but it never flips the sign.)
+  it('deception mutes fund-alignment’s payoff but no longer flips it (overlap priced in)', () => {
+    // Deceptive alignment is modeled as a subclass of UNSOLVED alignment (the
+    // deceptive_underminesAlignment coupling + the deception→alignmentInTime CPT
+    // edge), so in deceptive worlds pushing "alignment solved in time" moves mostly
+    // coherent mass — the funding stays ≥ neutral instead of backfiring into
+    // collapsed deceptive-"aligned" worlds. Deception still modulates the gain
+    // heavily; the verdict-flipper is now orthogonality (funding is moot if
+    // capable systems are benign anyway).
     const a = runA();
-    const flippers = a.cruxes.filter((c) => c.flips);
-    expect(flippers[0].factorId).toBe('deception');
-    const bySpan = [...a.cruxes].sort((x, y) => y.span - x.span);
-    expect(bySpan[0].factorId).toBe('deception');
+    const dec = a.cruxes.find((c) => c.factorId === 'deception')!;
+    expect(dec.low).toBeGreaterThanOrEqual(0); // never harmful merely because systems scheme
+    expect(dec.flips).toBe(false);
+    expect(dec.span).toBeGreaterThan(0.03); // but it still strongly modulates the payoff
   });
 
   it('action grid is over objective factors and sized to their states', () => {

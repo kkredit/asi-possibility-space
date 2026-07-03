@@ -17,6 +17,12 @@ import type { KnownCredences, KnownFactorId } from './ids';
  *
  * These are one editor's reading of public statements (per a 2024–2025 sourcing
  * pass), NOT the entities' own per-factor numbers except where directly quoted.
+ *
+ * Coherence rule: deceptive alignment is a subclass of unsolved alignment (a system
+ * that fakes its evaluations IS an alignment failure), so each preset's
+ * P(deception=deceptive) is capped at its P(alignmentInTime=no). Stated deception
+ * concerns above that bound are read as "conditional on failure, it's deceptive"
+ * and capped — otherwise the two failure modes would double-count.
  * offense/defense balance is rarely addressed head-on and is usually the weakest
  * cell. Corrections welcome: edit this file. Ordered roughly most-pessimistic →
  * most-skeptical.
@@ -133,7 +139,7 @@ export const presets: KnownPreset[] = [
       alignmentInTime: { yes: 0.3, no: 0.7 },
       controlDeployed: { yes: 0.4, no: 0.6 },
       coordination: { regime: 0.25, none: 0.75 },
-      deception: { deceptive: 0.85, faithful: 0.15 },
+      deception: { deceptive: 0.7, faithful: 0.3 },
     },
     weights: { survival: 1.0, agency: 0.8, suffering: 0.45, flourishing: 0.55 },
     references: [
@@ -175,7 +181,7 @@ export const presets: KnownPreset[] = [
       alignmentInTime: { yes: 0.45, no: 0.55 },
       controlDeployed: { yes: 0.35, no: 0.65 },
       coordination: { regime: 0.25, none: 0.75 },
-      deception: { deceptive: 0.75, faithful: 0.25 },
+      deception: { deceptive: 0.55, faithful: 0.45 },
     },
     weights: { survival: 1.0, agency: 0.8, suffering: 0.5, flourishing: 0.6 },
     references: [
@@ -216,7 +222,7 @@ export const presets: KnownPreset[] = [
       alignmentInTime: { yes: 0.45, no: 0.55 },
       controlDeployed: { yes: 0.4, no: 0.6 },
       coordination: { regime: 0.45, none: 0.55 },
-      deception: { deceptive: 0.65, faithful: 0.35 },
+      deception: { deceptive: 0.55, faithful: 0.45 },
     },
     weights: { survival: 1.0, agency: 0.7, suffering: 0.5, flourishing: 0.6 },
     references: [
@@ -297,7 +303,7 @@ export const presets: KnownPreset[] = [
       alignmentInTime: { yes: 0.65, no: 0.35 },
       controlDeployed: { yes: 0.6, no: 0.4 },
       coordination: { regime: 0.4, none: 0.6 },
-      deception: { deceptive: 0.45, faithful: 0.55 },
+      deception: { deceptive: 0.35, faithful: 0.65 },
     },
     weights: { survival: 0.4, suffering: 0.25, agency: 0.15, flourishing: 0.2 },
     references: [
@@ -459,7 +465,7 @@ export const presets: KnownPreset[] = [
       alignmentInTime: { yes: 0.55, no: 0.45 },
       controlDeployed: { yes: 0.5, no: 0.5 },
       coordination: { regime: 0.3, none: 0.7 },
-      deception: { deceptive: 0.6, faithful: 0.4 },
+      deception: { deceptive: 0.45, faithful: 0.55 },
     },
     weights: { survival: 0.95, agency: 0.45, suffering: 0.7, flourishing: 0.8 },
     references: [
@@ -538,7 +544,7 @@ export const presets: KnownPreset[] = [
       alignmentInTime: { yes: 0.65, no: 0.35 },
       controlDeployed: { yes: 0.6, no: 0.4 },
       coordination: { regime: 0.4, none: 0.6 },
-      deception: { deceptive: 0.55, faithful: 0.45 },
+      deception: { deceptive: 0.35, faithful: 0.65 },
     },
     weights: { survival: 0.95, agency: 0.7, suffering: 0.55, flourishing: 0.9 },
     references: [
@@ -579,7 +585,7 @@ export const presets: KnownPreset[] = [
       alignmentInTime: { yes: 0.55, no: 0.45 },
       controlDeployed: { yes: 0.7, no: 0.3 },
       coordination: { regime: 0.45, none: 0.55 },
-      deception: { deceptive: 0.5, faithful: 0.5 },
+      deception: { deceptive: 0.45, faithful: 0.55 },
     },
     weights: { survival: 0.85, agency: 0.75, suffering: 0.45, flourishing: 0.95 },
     references: [

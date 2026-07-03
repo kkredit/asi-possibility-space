@@ -12,17 +12,17 @@
 
 At the default beliefs and default weights (survival 0.4, suffering 0.3, agency 0.15, flourishing 0.15):
 
-- **Expected value:** +0.003 (scale −1…+1)
-- **Extinction mass** P(survival < −0.5): **42.3%** · **s-risk mass** P(suffering < −0.5): **25.1%** · **agency-loss mass** P(agency < −0.5): **41.0%**
+- **Expected value:** +0.174 (scale −1…+1)
+- **Extinction mass** P(survival < −0.5): **30.7%** · **s-risk mass** P(suffering < −0.5): **16.1%** · **agency-loss mass** P(agency < −0.5): **29.6%**
 - **Action ranking (EV gain vs. no action):**
 
   | rank | action | EV gain |
   |---|---|---:|
-  | 1 | Fund technical alignment | +0.074 |
-  | 2 | Compute-governance / coordination regime | +0.028 |
-  | 3 | Standardize AI control | +0.027 |
-  | 4 | Defensive acceleration (d/acc) | +0.014 |
-  | 5 | Broaden frontier access (open-source / antitrust) | −0.017 |
+  | 1 | Fund technical alignment | +0.134 |
+  | 2 | Compute-governance / coordination regime | +0.038 |
+  | 3 | Standardize AI control | +0.033 |
+  | 4 | Defensive acceleration (d/acc) | +0.017 |
+  | 5 | Broaden frontier access (open-source / antitrust) | −0.018 |
 
 So the headline lever is **Fund technical alignment**, with **Compute-governance / coordination regime** as runner-up.
 
@@ -32,11 +32,11 @@ The full tables are below; these are the results that most defy first intuition.
 
 1. **The #1 action barely moves — the levers are too correlated to reward most beliefs.** Across every value profile (§1) and every forced *marginal* belief (§2), *Fund technical alignment* stays the top lever. A recommendation that survives believing alignment is near-impossible, that takeoff is fast, that deception is default, *and* the opposite of each isn't robustness — most actions push the same few downstream factors, so the one moving the single highest-leverage factor wins almost by construction. The one crack: *conditional* on a benign attractor (orthogonality fails), broadening frontier access overtakes it (see RESEARCH-PRIORITIES.md §1) — the lone objective question with top-action ROI. The lesson holds: **more differentiated actions make beliefs matter more.**
 
-2. **Funding alignment scores _highest_ exactly when you believe alignment is hardest.** Convinced it's near-impossible → EV gain **+0.079**; convinced it's easy → only **+0.061**. Backwards on its face. The mechanism: the modeled action moves *alignment-deployed-in-time*, which the model treats as decoupled from intrinsic *tractability*, and near-impossible worlds have the worst baseline (most headroom). **This is a genuine model artifact worth fixing** — an action that "funds alignment" should plausibly be gated by tractability. Flagged, not hidden.
+2. **Funding alignment scores _highest_ exactly when you believe alignment is hardest.** Convinced it's near-impossible → EV gain **+0.146**; convinced it's easy → only **+0.110**. Backwards on its face. The mechanism: the modeled action moves *alignment-deployed-in-time*, which the model treats as decoupled from intrinsic *tractability*, and near-impossible worlds have the worst baseline (most headroom). **This is a genuine model artifact worth fixing** — an action that "funds alignment" should plausibly be gated by tractability. Flagged, not hidden.
 
-3. **The most decision-relevant question in the whole model is one nobody can act on.** The Orthogonality Thesis has the largest EV swing of anything — **0.690**, larger than the best *action's* gain of +0.074. Resolving whether misalignment is the default is worth more than any intervention. Deceptive-alignment is close behind (1.197). The highest-value moves here are *research/forecasting*, not deployment.
+3. **The most decision-relevant question in the whole model is one nobody can act on.** The Orthogonality Thesis has the largest EV swing of anything — **0.496**, larger than the best *action's* gain of +0.134. Resolving whether misalignment is the default is worth more than any intervention. Deceptive-alignment is close behind (1.211). The highest-value moves here are *research/forecasting*, not deployment.
 
-5. **Power concentration has the smallest weighted-EV swing (0.130) — but that's the survival-heavy weights hiding it, not irrelevance.** Two things shrink it on the default scalar: it's *moot in the doom corner* (~40% of the mass — a misaligned takeover moots who held power), and it's *sign-split* everywhere else (concentration buys survival-safety but costs agency), which a survival-weighted average nets toward zero. Change the lens and it comes back: on the **agency** dimension alone it is the **#5** most decisive factor of all (swing 0.324), and *conditional* on a survivable world its concentrated−diffuse gap is large (§7). It matters exactly where intuition says — under slow takeoff, under governance, in worlds we survive — the survival-weighted headline just averages it away.
+5. **Power concentration has the smallest weighted-EV swing (0.139) — but that's the survival-heavy weights hiding it, not irrelevance.** Two things shrink it on the default scalar: it's *moot in the doom corner* (~40% of the mass — a misaligned takeover moots who held power), and it's *sign-split* everywhere else (concentration buys survival-safety but costs agency), which a survival-weighted average nets toward zero. Change the lens and it comes back: on the **agency** dimension alone it is the **#4** most decisive factor of all (swing 0.321), and *conditional* on a survivable world its concentrated−diffuse gap is large (§7). It matters exactly where intuition says — under slow takeoff, under governance, in worlds we survive — the survival-weighted headline just averages it away.
 
 6. **Deception is catastrophic in every régime but one — where it's mildly *good*.** Averaged within each logical corner, switching faithful → deceptive changes value by **+0.006** in the **benign** corner (orthogonality fails) but −1.539 in ALIGNED and −1.057 in CONTROL worlds. Deception is the only factor that flips *sign* on the régime: when capable systems are benign by default, a system that "masks under evaluation" is scheming about nothing — the deception is moot, even marginally friction-reducing. The benign effect is tiny (one +0.02 suffering nudge, worth a sanity check) but the structure is the point — **deception's harm is entirely contingent on the orthogonality thesis holding.** If you were sure of a benign attractor, deceptive alignment would drop off the worry list.
 
@@ -48,11 +48,11 @@ Re-rank the actions under different value weightings — someone who only wants 
 
 | If you care about… | Top action | EV gain | Runner-up | Runner-up flips? |
 |---|---|---:|---|:---:|
-| Survival only | **Fund technical alignment** | +0.079 | Standardize AI control | **YES** |
-| Suffering only (s-risk) | **Fund technical alignment** | +0.070 | Compute-governance / coordination regime | no |
-| Agency only | **Fund technical alignment** | +0.062 | Broaden frontier access (open-source / antitrust) | **YES** |
-| Flourishing only | **Fund technical alignment** | +0.079 | Standardize AI control | **YES** |
-| S-risk-averse | **Fund technical alignment** | +0.073 | Compute-governance / coordination regime | no |
+| Survival only | **Fund technical alignment** | +0.148 | Standardize AI control | **YES** |
+| Suffering only (s-risk) | **Fund technical alignment** | +0.120 | Compute-governance / coordination regime | no |
+| Agency only | **Fund technical alignment** | +0.111 | Broaden frontier access (open-source / antitrust) | **YES** |
+| Flourishing only | **Fund technical alignment** | +0.145 | Standardize AI control | **YES** |
+| S-risk-averse | **Fund technical alignment** | +0.130 | Compute-governance / coordination regime | no |
 
 *Baseline: #1 = Fund technical alignment, #2 = Compute-governance / coordination regime. The #1 never flips on values; the runner-up sometimes does — that's the real values-driven fork.*
 
@@ -64,16 +64,16 @@ Now hold the values at default and instead force one belief to near-certainty. T
 
 | If you're convinced… | Top action | EV gain | Runner-up | Runner-up flips? |
 |---|---|---:|---|:---:|
-| Alignment is near-impossible | **Fund technical alignment** | +0.079 | Compute-governance / coordination regime | no |
-| Alignment is easy | **Fund technical alignment** | +0.061 | Standardize AI control | **YES** |
-| Orthogonality fails (benign by default) | **Fund technical alignment** | +0.011 | Standardize AI control | **YES** |
-| Takeoff will be fast | **Fund technical alignment** | +0.101 | Standardize AI control | **YES** |
-| Takeoff will be slow | **Fund technical alignment** | +0.055 | Compute-governance / coordination regime | no |
-| Deception is the default | **Fund technical alignment** | +0.008 | Compute-governance / coordination regime | no |
-| Systems will be faithful | **Fund technical alignment** | +0.112 | Standardize AI control | **YES** |
-| Power will be concentrated | **Fund technical alignment** | +0.075 | Standardize AI control | **YES** |
-| Power will be diffuse | **Fund technical alignment** | +0.065 | Compute-governance / coordination regime | no |
-| Offense dominates | **Fund technical alignment** | +0.075 | Compute-governance / coordination regime | no |
+| Alignment is near-impossible | **Fund technical alignment** | +0.146 | Compute-governance / coordination regime | no |
+| Alignment is easy | **Fund technical alignment** | +0.110 | Compute-governance / coordination regime | no |
+| Orthogonality fails (benign by default) | **Fund technical alignment** | +0.013 | Standardize AI control | **YES** |
+| Takeoff will be fast | **Fund technical alignment** | +0.167 | Standardize AI control | **YES** |
+| Takeoff will be slow | **Fund technical alignment** | +0.105 | Compute-governance / coordination regime | no |
+| Deception is the default | **Fund technical alignment** | +0.023 | Compute-governance / coordination regime | no |
+| Systems will be faithful | **Fund technical alignment** | +0.115 | Standardize AI control | **YES** |
+| Power will be concentrated | **Fund technical alignment** | +0.136 | Standardize AI control | **YES** |
+| Power will be diffuse | **Fund technical alignment** | +0.119 | Compute-governance / coordination regime | no |
+| Offense dominates | **Fund technical alignment** | +0.134 | Compute-governance / coordination regime | no |
 
 *Note the paradox in the first two rows: Fund technical alignment gains **more** when you believe alignment is near-impossible than when you believe it's easy — see Headline surprise #2.*
 
@@ -85,11 +85,11 @@ EV gain hides *which* dimension an action buys and whether it costs another. For
 
 | Action | ΔEV | Δ extinction | Δ s-risk | Δ agency-loss | Δ squandered |
 |---|---:|---:|---:|---:|---:|
-| Fund technical alignment | +0.074 | −0.035 | −0.005 | −0.033 | −0.035 |
-| Standardize AI control | +0.027 | −0.025 | −0.013 | −0.029 | −0.025 |
-| Compute-governance / coordination regime | +0.028 | −0.010 | −0.025 | −0.004 | −0.010 |
-| Broaden frontier access (open-source / antitrust) | −0.017 | +0.006 | +0.018 | −0.005 | +0.006 |
-| Defensive acceleration (d/acc) | +0.014 | −0.013 | −0.007 | −0.015 | −0.013 |
+| Fund technical alignment | +0.134 | −0.072 | −0.027 | −0.068 | −0.072 |
+| Standardize AI control | +0.033 | −0.032 | +0.001 | −0.036 | −0.032 |
+| Compute-governance / coordination regime | +0.038 | −0.016 | −0.021 | −0.011 | −0.016 |
+| Broaden frontier access (open-source / antitrust) | −0.018 | +0.006 | +0.011 | −0.003 | +0.006 |
+| Defensive acceleration (d/acc) | +0.017 | −0.016 | +0.000 | −0.018 | −0.016 |
 
 *A positive number in a risk column means the action, while raising average EV, makes that specific catastrophe **more** likely — the kind of trade a single EV number conceals.*
 
@@ -99,31 +99,31 @@ EV gain hides *which* dimension an action buys and whether it costs another. For
 
 Suppose you set the odds aside and ask: *among the scenarios that actually go well, which lever is most over-represented?* Take the best-scoring scenarios (top decile by value under default weights) and, for every factor-state, compare its probability-share **inside** that hopeful set to its baseline share. A high "lift" means "hopeful worlds almost always have this — steer toward it."
 
-The hopeful decile carries only **23.0%** of the probability mass (hope is not the median future here). Within it, the biggest lifts:
+The hopeful decile carries only **28.3%** of the probability mass (hope is not the median future here). Within it, the biggest lifts:
 
 | Factor state | share in hopeful worlds | baseline share | lift |
 |---|---:|---:|---:|
-| Offense/defense balance at ASI scale = Defense-dominant | 16.1% | 10.0% | 1.61× |
-| Deceptive alignment = Faithful | 99.7% | 62.5% | 1.60× |
-| Takeoff speed = Slow | 21.1% | 14.8% | 1.42× |
-| Alignment solved & deployed in time = Yes | 99.9% | 71.9% | 1.39× |
-| Alignment tractability (in principle) = Hard | 75.3% | 61.2% | 1.23× |
-| Orthogonality Thesis = Holds | 98.8% | 85.7% | 1.15× |
-| Power concentration = Concentrated | 97.0% | 84.6% | 1.15× |
-| Control solved & deployed = Yes | 59.2% | 52.4% | 1.13× |
+| Offense/defense balance at ASI scale = Defense-dominant | 16.0% | 10.0% | 1.60× |
+| Alignment solved & deployed in time = Yes | 99.9% | 65.4% | 1.53× |
+| Takeoff speed = Slow | 21.0% | 14.4% | 1.46× |
+| Deceptive alignment = Faithful | 99.9% | 77.0% | 1.30× |
+| Alignment tractability (in principle) = Hard | 75.3% | 61.3% | 1.23× |
+| Orthogonality Thesis = Holds | 98.9% | 84.3% | 1.17× |
+| Power concentration = Concentrated | 97.1% | 84.7% | 1.15× |
+| Control solved & deployed = Yes | 59.2% | 52.2% | 1.13× |
 
 And the mirror image — the factor-states that most distinguish the *worst* decile:
 
 | Factor state | share in worst worlds | baseline share | lift |
 |---|---:|---:|---:|
-| Deceptive alignment = Deceptive | 100.0% | 37.5% | 2.67× |
-| Power concentration = Diffuse | 34.6% | 15.4% | 2.25× |
-| Alignment tractability (in principle) = Near-impossible | 42.4% | 26.7% | 1.59× |
-| Alignment solved & deployed in time = No | 42.0% | 28.1% | 1.50× |
-| Coordination regime = None | 22.8% | 15.4% | 1.48× |
-| Takeoff speed = Fast | 15.8% | 11.0% | 1.44× |
-| Orthogonality Thesis = Holds | 100.0% | 85.7% | 1.17× |
-| Control solved & deployed = Yes | 60.5% | 52.4% | 1.15× |
+| Deceptive alignment = Deceptive | 100.0% | 23.0% | 4.36× |
+| Alignment solved & deployed in time = No | 70.7% | 34.6% | 2.04× |
+| Power concentration = Diffuse | 24.2% | 15.3% | 1.58× |
+| Control solved & deployed = Yes | 80.0% | 52.2% | 1.53× |
+| Alignment tractability (in principle) = Near-impossible | 36.3% | 26.3% | 1.38× |
+| Coordination regime = None | 20.9% | 16.1% | 1.30× |
+| Takeoff speed = Fast | 15.0% | 11.6% | 1.30× |
+| Orthogonality Thesis = Holds | 100.0% | 84.3% | 1.19× |
 
 ---
 
@@ -133,18 +133,18 @@ The sensitivity tornado swings each factor across its states. For **objective** 
 
 | Factor | kind | EV swing | best state | worst state |
 |---|---|---:|---|---|
-| Deceptive alignment | objective | 1.197 | Faithful | Deceptive |
-| Orthogonality Thesis | objective | 0.690 | Fails | Holds |
-| Alignment solved & deployed in time | influenceable | 0.579 | Yes | No |
-| Alignment tractability (in principle) | objective | 0.247 | Easy | Near-impossible |
-| Takeoff speed | objective | 0.213 | Slow | Fast |
-| Coordination regime | influenceable | 0.156 | Regime | None |
-| Control solved & deployed | influenceable | 0.143 | Yes | No |
-| Power concentration | influenceable | 0.130 | Concentrated | Diffuse |
-| Offense/defense balance at ASI scale | objective | 0.111 | Defense-dominant | Offense-dominant |
+| Deceptive alignment | objective | 1.211 | Faithful | Deceptive |
+| Alignment solved & deployed in time | influenceable | 0.898 | Yes | No |
+| Orthogonality Thesis | objective | 0.496 | Fails | Holds |
+| Takeoff speed | objective | 0.310 | Slow | Fast |
+| Coordination regime | influenceable | 0.222 | Regime | None |
+| Alignment tractability (in principle) | objective | 0.210 | Easy | Near-impossible |
+| Control solved & deployed | influenceable | 0.173 | Yes | No |
+| Power concentration | influenceable | 0.139 | Concentrated | Diffuse |
+| Offense/defense balance at ASI scale | objective | 0.120 | Defense-dominant | Offense-dominant |
 
-The highest-VoI *objective* question is **Deceptive alignment** (swing 1.197) — worth more to *resolve* than most things are to *act on*.
-The highest-leverage *influenceable* factor is **Alignment solved & deployed in time** (swing 0.579).
+The highest-VoI *objective* question is **Deceptive alignment** (swing 1.211) — worth more to *resolve* than most things are to *act on*.
+The highest-leverage *influenceable* factor is **Alignment solved & deployed in time** (swing 0.898).
 
 ---
 
@@ -152,7 +152,7 @@ The highest-leverage *influenceable* factor is **Alignment solved & deployed in 
 
 Does the best action stay best after you've already taken it, or do the levers complement each other? Apply the top action, then re-rank the remaining ones from that new baseline.
 
-After **Fund technical alignment** (which alone gains +0.074), the next-best lever is **Compute-governance / coordination regime** (+0.024). Compare its *standalone* gain of +0.028 — the difference is how much the two levers overlap vs. complement.
+After **Fund technical alignment** (which alone gains +0.134), the next-best lever is **Compute-governance / coordination regime** (+0.032). Compare its *standalone* gain of +0.038 — the difference is how much the two levers overlap vs. complement.
 
 ---
 
@@ -164,10 +164,10 @@ First, the same factor measured on each value dimension alone (swing, baseline b
 
 | Measured on | Power-concentration swing | its rank among all factors |
 |---|---:|---:|
-| Weighted EV (default) | 0.130 | #8 of 9 |
-| Survival only | 0.181 | #7 of 9 |
-| Agency only | 0.324 | #5 of 9 |
-| Suffering only | 0.304 | #4 of 9 |
+| Weighted EV (default) | 0.139 | #8 of 9 |
+| Survival only | 0.211 | #8 of 9 |
+| Agency only | 0.321 | #4 of 9 |
+| Suffering only | 0.285 | #4 of 9 |
 
 On self-determination it is a top-tier lever; on survival it is nearly irrelevant. A survival-weighted scalar buries it. **If you care about agency, power concentration is one of the most important things on the board — and no current action targets it.**
 
@@ -175,12 +175,12 @@ Second, the concentrated−diffuse gap *conditional* on the world you're in (nor
 
 | Condition | Δ default weights | Δ agency-only |
 |---|---:|---:|
-| marginal (no condition) | +0.130 | −0.324 |
-| takeoff = slow | +0.163 | −0.309 |
-| coordination = regime | +0.132 | −0.309 |
-| a survivable world (aligned in time) | +0.156 | −0.356 |
+| marginal (no condition) | +0.139 | −0.321 |
+| takeoff = slow | +0.183 | −0.297 |
+| coordination = regime | +0.139 | −0.309 |
+| a survivable world (aligned in time) | +0.186 | −0.358 |
 | doom corner | +0.022 | −0.001 |
-| aligned & slow & governed | +0.175 | −0.313 |
+| aligned & slow & governed | +0.201 | −0.311 |
 
 Concentration is near-moot in doom (the takeover moots it) but swings hard in survivable worlds, and on agency it is decisively bad *everywhere the world is live*. Note too the **concentration × coordination interaction** now in the model: a governance regime *checks* concentrated power, so the agency gap shrinks under `coordination = regime` — governance changes what concentration *means*, not just how likely it is.
 

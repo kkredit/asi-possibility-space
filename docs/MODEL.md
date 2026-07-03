@@ -172,30 +172,37 @@ P(s) = ∏_f  P(s_f | parents(f))
 argument that swaps the joint over to it. The implemented graph:
 
 ```
-  roots (priors from your sliders): orthogonality  offenseDefense  takeoff   coordination
-                                          │                          │  │          │
-                                          ▼              ┌───────────┘  │          │
-                                     tractability ───┐   │              ▼          │
-                                          │          │   ├──► powerConcentration ◄──┤
-                                          │          ▼   ▼                          │
-                                          └────► alignmentInTime ◄── coordination   │
-                                                        controlDeployed ◄── takeoff ┘
+  roots (priors from your sliders): orthogonality  offenseDefense  takeoff   coordination   deception
+                                          │                          │  │          │            │
+                                          ▼              ┌───────────┘  │          │            │
+                                     tractability ───┐   │              ▼          │            │
+                                          │          │   ├──► powerConcentration ◄──┤            │
+                                          │          ▼   ▼                          │            │
+                                          └────► alignmentInTime ◄── coordination ──┘◄───────────┘
+                                                        controlDeployed ◄── takeoff
 ```
 
 i.e. **takeoff** drives power concentration, alignment-in-time, and control-deployed;
 **coordination** also shapes power concentration (a governance regime concentrates the
 governable frontier) and buys time for alignment/control; **orthogonality** drives
-tractability, which also gates alignment-in-time. The roots (orthogonality, offense/
-defense, takeoff, coordination, deception) read their priors **live from the sliders**;
-the child factors are set by CPTs conditioned on their parents. The CPTs mirror the
-couplings (e.g. `P(concentrated | fast) = 0.9`).
+tractability, which also gates alignment-in-time; and **deception** gates
+alignment-in-time too — deceptive alignment is a *subclass of unsolved alignment* (a
+system that fakes its evaluations IS an alignment failure), so a deceptive default
+slashes the odds the race was genuinely won. (Control-deployed is deliberately NOT
+gated by deception: control is designed for untrusted systems, so deception doesn't
+make *deploying* it less likely — it voids its *effectiveness*, which the value
+surface prices in.) The roots (orthogonality, offense/defense, takeoff, coordination,
+deception) read their priors **live from the sliders**; the child factors are set by
+CPTs conditioned on their parents. The CPTs mirror the couplings (e.g.
+`P(concentrated | fast) = 0.9`, and the `deceptive_underminesAlignment` coupling is
+the independence-model rendering of the deception→alignment edge).
 
 **It validates as a faithful refinement, not a different universe.** The net's joint
 sums to 1; its root marginals reproduce the sliders exactly; its child marginals are
 now *derived* rather than read from the sliders (tractability skews easier because
-orthogonality-fails implies easy). At baseline beliefs the headline EV is **−0.082**
-under the net vs. **0.003** under independence×couplings — an explainable shift: the
-net's CPTs imply longer odds of alignment-in-time (≈0.47) than the baseline slider
+orthogonality-fails implies easy). At baseline beliefs the headline EV is **−0.054**
+under the net vs. **0.174** under independence×couplings — an explainable shift: the
+net's CPTs imply longer odds of alignment-in-time (≈0.42) than the baseline slider
 asserts (0.65), so more mass lands in the bad corners.
 `validateBayesNet` checks acyclicity and CPT completeness/normalisation;
 [`bayesnet.test.ts`](../src/engine/bayesnet.test.ts) pins all of this.

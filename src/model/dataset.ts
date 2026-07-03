@@ -889,6 +889,23 @@ const couplings: KnownCoupling[] = [
     when: [{ factor: 'orthogonality', state: 'fails' }, { factor: 'deception', state: 'deceptive' }],
     multiplier: 0.5,
   },
+
+  // --- Deceptive alignment ↔ alignment solved in time --------------------------
+  // Deceptive alignment is a SUBCLASS of unsolved alignment: a system that fakes its
+  // evaluations IS an alignment failure. So "genuinely solved & deployed in time" and
+  // "deception is the default" mostly exclude each other; without this overlap the two
+  // failure modes double-count (the deceptive share of "aligned" worlds collapses to
+  // ≈ doom on top of the stated odds of not solving alignment at all). Control is
+  // deliberately NOT suppressed the same way: control is designed for untrusted
+  // systems, so deception doesn't make DEPLOYING it less likely — it voids its
+  // effectiveness, which the value surface (expandDeception) already prices in.
+  {
+    id: 'deceptive_underminesAlignment',
+    description:
+      'Deceptive alignment IS unsolved alignment ⇒ genuinely fielding aligned ASI while deception is the default is unlikely.',
+    when: [{ factor: 'deception', state: 'deceptive' }, { factor: 'alignmentInTime', state: 'yes' }],
+    multiplier: 0.3,
+  },
 ];
 
 // ============================================================================
@@ -919,7 +936,7 @@ const controlBaseYes: Record<TakeoffState, number> = { fast: 0.3, medium: 0.5, s
 
 // Fold a coordination modifier into a binary "yes/no" CPT: a regime scales the odds
 // of "yes" up, no coordination scales them down. The parent key gains a trailing
-// `|regime` / `|none` segment (coordination is the last parent).
+// `|regime` / `|none` segment.
 const clampP = (p: number): number => Math.max(0.02, Math.min(0.98, p));
 function withCoordination<K extends string>(
   baseYes: Record<K, number>,
@@ -929,6 +946,24 @@ function withCoordination<K extends string>(
     for (const coord of ['regime', 'none'] as const) {
       const p = clampP(baseYes[base] * (coord === 'regime' ? 1.5 : 0.75));
       out[`${base}|${coord}`] = { yes: p, no: 1 - p };
+    }
+  }
+  return out;
+}
+
+// Fold the deception modifier into the alignment CPT: deceptive alignment is a
+// subclass of UNSOLVED alignment (a system that fakes its evaluations is an
+// alignment failure), so a deceptive default slashes the odds that alignment was
+// GENUINELY solved & deployed; a faithful default makes the verified "yes" a bit
+// more credible. The parent key gains a trailing `|deceptive` / `|faithful`.
+function withDeception<K extends string>(
+  cpt: Record<K, Record<'yes' | 'no', number>>,
+): Record<`${K}|${StateOf<'deception'>}`, Record<'yes' | 'no', number>> {
+  const out = {} as Record<`${K}|${StateOf<'deception'>}`, Record<'yes' | 'no', number>>;
+  for (const key of Object.keys(cpt) as K[]) {
+    for (const dec of ['deceptive', 'faithful'] as const) {
+      const p = clampP(cpt[key].yes * (dec === 'deceptive' ? 0.4 : 1.2));
+      out[`${key}|${dec}`] = { yes: p, no: 1 - p };
     }
   }
   return out;
@@ -982,11 +1017,11 @@ const bayesNodes: Record<KnownFactorId, KnownBayesNode> = {
     cpt: concentrationCpt(concentratedBase),
   },
 
-  // --- alignmentInTime | (takeoff, tractability, coordination) --------------
+  // --- alignmentInTime | (takeoff, tractability, coordination, deception) ---
   alignmentInTime: {
-    parents: ['takeoff', 'tractability', 'coordination'],
-    note: 'A race against the calendar (takeoff) gated by problem difficulty (tractability); a coordination regime buys time and standards, raising the odds.',
-    cpt: withCoordination(alignBaseYes),
+    parents: ['takeoff', 'tractability', 'coordination', 'deception'],
+    note: 'A race against the calendar (takeoff) gated by problem difficulty (tractability); a coordination regime buys time and standards, raising the odds. Deceptive alignment is itself an unsolved-alignment failure mode, so it slashes the odds the race was GENUINELY won.',
+    cpt: withDeception(withCoordination(alignBaseYes)),
   },
 
   // --- controlDeployed | (takeoff, coordination) ----------------------------
@@ -999,7 +1034,7 @@ const bayesNodes: Record<KnownFactorId, KnownBayesNode> = {
 
 const bayesNet: BayesNet = {
   description:
-    'DAG: objective facts, takeoff, coordination, and deceptive alignment are roots (priors from your sliders); tractability depends on orthogonality; power concentration depends on takeoff and coordination (a governance regime concentrates the governable frontier); and the “solved in time” factors depend on takeoff, tractability, and whether a coordination regime is in place. Deception is the lever that decides whether a deployed control regime can actually be trusted.',
+    'DAG: objective facts, takeoff, coordination, and deceptive alignment are roots (priors from your sliders); tractability depends on orthogonality; power concentration depends on takeoff and coordination (a governance regime concentrates the governable frontier); and the “solved in time” factors depend on takeoff, tractability, and whether a coordination regime is in place. Deception additionally gates alignment-in-time — deceptive alignment IS unsolved alignment, so a deceptive default makes a genuine solve much less likely — and decides whether a deployed control regime can actually be trusted.',
   nodes: (Object.keys(bayesNodes) as KnownFactorId[]).map((factor) => ({ factor, ...bayesNodes[factor] })),
 };
 
