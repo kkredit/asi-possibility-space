@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Box, FormControl, MenuItem, Select, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { dataset } from '@model/dataset';
 import type { Credences, Evaluator, FactorId, StateId, SubCredences, ValueVector } from '@model/types';
@@ -70,9 +70,18 @@ export function ActionsTab({ credences, subCredences, weights, evaluator, pins, 
       ? sweep.state
       : sweepFactor.states[0].id;
   const sweepStateLabel = sweepFactor.states.find((s) => s.id === sweepStateId)?.label ?? sweepStateId;
+  // The 21-point sweep re-derives the objective-world grid per point — by far the
+  // tab's most expensive block. Compute it after first paint and at deferred
+  // priority so switching to this tab and dragging sliders stay responsive.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const deferredCredences = useDeferredValue(credences);
   const threshold = useMemo(
-    () => actionBeliefThreshold(dataset, credences, weights, evaluator, action, sweepFactorId, sweepStateId, pins, metric, subCredences),
-    [credences, weights, evaluator, action, sweepFactorId, sweepStateId, pins, metric, subCredences],
+    () =>
+      mounted
+        ? actionBeliefThreshold(dataset, deferredCredences, weights, evaluator, action, sweepFactorId, sweepStateId, pins, metric, subCredences)
+        : null,
+    [mounted, deferredCredences, weights, evaluator, action, sweepFactorId, sweepStateId, pins, metric, subCredences],
   );
 
   const stateSelectSx = { fontFamily: fonts.display, fontSize: '0.84rem' };

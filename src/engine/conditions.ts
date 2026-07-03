@@ -113,12 +113,18 @@ function groupByRest(
 ): RestGroup[] {
   const scenarios = analyze(dataset, credences, weights, evaluator, given, jointProbability).scenarios;
   const map = new Map<string, { rest: Record<FactorId, StateId>; prob: number; a?: number; b?: number }>();
+  // Rest key = the scenario's (memoized) key minus the decision factor's segment —
+  // avoids building + sorting a fresh rest object per scenario (the sweep calls
+  // this 51×, so that's ~180k spared object churns per sweep).
+  const segment = new RegExp(`(^|\\|)${decision.factor}:[^|]*`);
   for (const s of scenarios) {
-    const rest = { ...s.scenario };
-    delete rest[decision.factor];
-    const key = scenarioKey(rest);
+    const key = scenarioKey(s.scenario).replace(segment, '$1').replace(/^\|/, '').replace(/\|\|/, '|');
     let g = map.get(key);
-    if (!g) map.set(key, (g = { rest, prob: 0 }));
+    if (!g) {
+      const rest = { ...s.scenario };
+      delete rest[decision.factor];
+      map.set(key, (g = { rest, prob: 0 }));
+    }
     g.prob += s.probability;
     if (s.scenario[decision.factor] === decision.toward) g.a = s.scalar;
     if (s.scenario[decision.factor] === decision.baseline) g.b = s.scalar;
@@ -436,7 +442,53 @@ function conditionFactorIds(dataset: Dataset, given: Pins): FactorId[] {
  * action's margin over the best alternative. The shared primitive behind every
  * action-conditions read-out.
  */
+// Single-entry memo: within one render the conditions view, its two-way grid and
+// the threshold sweep all partition the SAME objective-world space (the per-world
+// gains are action-independent too, so the same worlds serve every action at the
+// same beliefs). Keyed by reference identity of the belief inputs + the given pins.
+let worldsMemo: {
+  dataset: Dataset;
+  credences: Credences;
+  weights: ValueVector;
+  evaluator: Evaluator;
+  action: Action;
+  givenKey: string;
+  subCredences?: SubCredences;
+  value: { worlds: ActionWorld[]; condIds: FactorId[] };
+} | null = null;
+
 function actionWorlds(
+  dataset: Dataset,
+  credences: Credences,
+  weights: ValueVector,
+  evaluator: Evaluator,
+  action: Action,
+  given: Pins,
+  subCredences?: SubCredences,
+): { worlds: ActionWorld[]; condIds: FactorId[] } {
+  const givenKey = Object.keys(given)
+    .sort()
+    .map((f) => `${f}:${given[f]}`)
+    .join('|');
+  const m = worldsMemo;
+  if (
+    m &&
+    m.dataset === dataset &&
+    m.credences === credences &&
+    m.weights === weights &&
+    m.evaluator === evaluator &&
+    m.action === action &&
+    m.givenKey === givenKey &&
+    m.subCredences === subCredences
+  ) {
+    return m.value;
+  }
+  const value = computeActionWorlds(dataset, credences, weights, evaluator, action, given, subCredences);
+  worldsMemo = { dataset, credences, weights, evaluator, action, givenKey, subCredences, value };
+  return value;
+}
+
+function computeActionWorlds(
   dataset: Dataset,
   credences: Credences,
   weights: ValueVector,

@@ -41,49 +41,53 @@ export function reconcileJoint(
   tol = 1e-12,
 ): ReconciledJoint {
   const scenarios = enumerateScenarios(factors);
-  const items = scenarios.map((s) => ({ s, k: scenarioKey(s) }));
+  const n = scenarios.length;
 
   // Base joint from the net (associations + reference root priors), normalized.
-  const prob = new Map<string, number>();
+  // Typed arrays + precomputed state indices: IPF is pure array arithmetic.
+  const p = new Float64Array(n);
   let total = 0;
-  for (const { s, k } of items) {
-    const p = bayesNetProbability(net, s, referencePriors);
-    prob.set(k, p);
-    total += p;
+  for (let i = 0; i < n; i++) {
+    p[i] = bayesNetProbability(net, scenarios[i], referencePriors);
+    total += p[i];
   }
-  if (total > 0) for (const { k } of items) prob.set(k, prob.get(k)! / total);
+  if (total > 0) for (let i = 0; i < n; i++) p[i] /= total;
 
   const targetFactors = Object.keys(targets).filter(
     (f) => targets[f] && Object.keys(targets[f]).length > 0,
   );
 
+  // Per target factor: each scenario's state index + the target per state.
+  const layout = targetFactors.map((f) => {
+    const factor = factors.find((x) => x.id === f)!;
+    const stateIds = factor.states.map((st) => st.id);
+    const pos = new Map(stateIds.map((sid, i) => [sid, i]));
+    const idx = new Uint8Array(n);
+    for (let i = 0; i < n; i++) idx[i] = pos.get(scenarios[i][f]) ?? 0;
+    const target = stateIds.map((sid) => targets[f][sid] ?? 0);
+    return { idx, target, k: stateIds.length };
+  });
+
   let converged = true;
-  if (targetFactors.length > 0) {
+  if (layout.length > 0) {
     converged = false;
+    const cur = new Float64Array(4); // ≤ 3 states per factor today; 4 is headroom
+    const scale = new Float64Array(4);
     for (let iter = 0; iter < maxIters; iter++) {
       let maxDelta = 0;
-      for (const f of targetFactors) {
-        // Current marginal of f under the working joint.
-        const cur: Record<string, number> = {};
-        for (const { s, k } of items) {
-          const st = s[f];
-          cur[st] = (cur[st] ?? 0) + prob.get(k)!;
+      for (const { idx, target, k } of layout) {
+        cur.fill(0, 0, k);
+        for (let i = 0; i < n; i++) cur[idx[i]] += p[i];
+        for (let st = 0; st < k; st++) {
+          maxDelta = Math.max(maxDelta, Math.abs(target[st] - cur[st]));
+          scale[st] = cur[st] > 0 ? target[st] / cur[st] : 0;
         }
-        // Track how far this factor's marginal is from its target, then rescale.
-        for (const st of Object.keys(cur)) {
-          maxDelta = Math.max(maxDelta, Math.abs((targets[f][st] ?? 0) - cur[st]));
-        }
-        for (const { s, k } of items) {
-          const st = s[f];
-          const c = cur[st];
-          const scale = c > 0 ? (targets[f][st] ?? 0) / c : 0;
-          prob.set(k, prob.get(k)! * scale);
-        }
+        for (let i = 0; i < n; i++) p[i] *= scale[idx[i]];
       }
       // Guard renormalization (each factor rescale preserves total ≈ 1, but drift).
       let t = 0;
-      for (const v of prob.values()) t += v;
-      if (t > 0) for (const { k } of items) prob.set(k, prob.get(k)! / t);
+      for (let i = 0; i < n; i++) t += p[i];
+      if (t > 0) for (let i = 0; i < n; i++) p[i] /= t;
       if (maxDelta < tol) {
         converged = true;
         break;
@@ -91,15 +95,18 @@ export function reconcileJoint(
     }
   }
 
+  // Keyed map for the probability() accessor (scenarioKey is memoized per object).
+  const prob = new Map<string, number>();
+  for (let i = 0; i < n; i++) prob.set(scenarioKey(scenarios[i]), p[i]);
+
   // Implied marginals.
   const marginals: Marginals = {};
   for (const f of factors) {
     marginals[f.id] = {};
     for (const st of f.states) marginals[f.id][st.id] = 0;
   }
-  for (const { s, k } of items) {
-    const p = prob.get(k)!;
-    for (const f of factors) marginals[f.id][s[f.id]] += p;
+  for (let i = 0; i < n; i++) {
+    for (const f of factors) marginals[f.id][scenarios[i][f.id]] += p[i];
   }
 
   return {

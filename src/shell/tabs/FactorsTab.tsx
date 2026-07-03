@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Box, FormControl, MenuItem, Select, Stack, Typography } from '@mui/material';
 import { dataset } from '@model/dataset';
 import type { Credences, Evaluator, FactorId, Scenario, StateId, SubCredences, ValueDimensionId, ValueVector } from '@model/types';
@@ -97,12 +97,22 @@ export function FactorsTab({ credences, subCredences, weights, evaluator, pins, 
       ? sweep.state
       : sweepFactor.states[0].id;
   const sweepStateLabel = sweepFactor.states.find((s) => s.id === sweepStateId)?.label ?? sweepStateId;
+  // The 51-point sweep is the tab's most expensive block: compute it after first
+  // paint (mounted) and at deferred priority, so tab switches and slider drags
+  // stay responsive while the sweep fills in.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const deferredCredences = useDeferredValue(credences);
   const threshold = useMemo(
-    () => beliefThreshold(dataset, credences, weights, evaluator, decision, sweepFactorId, sweepStateId, pins),
-    [credences, weights, evaluator, decision, sweepFactorId, sweepStateId, pins],
+    () =>
+      mounted
+        ? beliefThreshold(dataset, deferredCredences, weights, evaluator, decision, sweepFactorId, sweepStateId, pins)
+        : null,
+    [mounted, deferredCredences, weights, evaluator, decision, sweepFactorId, sweepStateId, pins],
   );
 
   const stateSelectSx = { fontFamily: fonts.display, fontSize: '0.84rem' };
+
 
   return (
     <>

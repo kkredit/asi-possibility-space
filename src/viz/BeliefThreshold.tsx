@@ -3,7 +3,8 @@ import type { BeliefThreshold as BeliefThresholdData } from '@engine/conditions'
 import { c, fonts, valueColor } from '@shell/theme';
 
 interface Props {
-  data: BeliefThresholdData;
+  /** Null while the sweep is being computed (it's deferred off the paint path). */
+  data: BeliefThresholdData | null;
   factorLabel: string;
   stateLabel: string;
 }
@@ -13,6 +14,13 @@ interface Props {
  * factor-state sweeps 0 → 1, with the break-even credence(s) where the verdict flips.
  */
 export function BeliefThreshold({ data, factorLabel, stateLabel }: Props) {
+  if (!data) {
+    return (
+      <Typography variant="caption" sx={{ color: c.faint, display: 'block', py: 3, textAlign: 'center' }}>
+        computing the sweep…
+      </Typography>
+    );
+  }
   const width = 520;
   const height = 168;
   const pad = { top: 14, right: 16, bottom: 30, left: 16 };

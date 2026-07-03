@@ -39,9 +39,19 @@ function indexFor(dataset: Dataset): CachedIndex {
   return cache.index;
 }
 
+// Per-scenario memo (null = looked up, not authored). Effective because the
+// enumeration cache shares scenario objects across calls.
+const outcomeCache = new WeakMap<Dataset, WeakMap<Scenario, Outcome | null>>();
+
 function lookup(scenario: Scenario, dataset: Dataset): Outcome | undefined {
+  let perScenario = outcomeCache.get(dataset);
+  if (!perScenario) outcomeCache.set(dataset, (perScenario = new WeakMap()));
+  const hit = perScenario.get(scenario);
+  if (hit !== undefined) return hit ?? undefined;
   const index = indexFor(dataset);
-  return index.outcomes.get(scenarioKey(project(scenario, index.factorIds)));
+  const outcome = index.outcomes.get(scenarioKey(project(scenario, index.factorIds)));
+  perScenario.set(scenario, outcome ?? null);
+  return outcome;
 }
 
 /** True when a scenario has an authored cell (vs. linear fallback). */

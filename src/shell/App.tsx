@@ -117,7 +117,10 @@ export function App() {
     () => analyze(dataset, credences, weights, evaluator, pins, jointProbability),
     [credences, weights, evaluator, pins, jointProbability],
   );
-  const bins = useMemo(() => distribution(analysis.scenarios), [analysis]);
+  // Tab-gated memos: only the active tab's expensive derived data is computed, so
+  // dragging a belief slider re-runs the headline analysis plus ONE tab's work —
+  // not the ranking + scatter + ladder for tabs that aren't visible.
+  const bins = useMemo(() => (tab === 0 ? distribution(analysis.scenarios) : null), [analysis, tab]);
   // Modeled p(doom): probability mass on extinction-level outcomes (survival < −0.5).
   // A different summary than EV — the extinction tail, not a cross-dimension average.
   const pDoom = useMemo(() => doomMass(analysis.scenarios), [analysis]);
@@ -127,6 +130,7 @@ export function App() {
   // Standalone (linear) value pull of each factor-state, for the distribution
   // tooltip's valence glyphs. Recomputed when weights change.
   const stateValence = useMemo(() => {
+    if (tab !== 0) return undefined;
     const m: Record<string, Record<string, number>> = {};
     for (const f of dataset.factors) {
       m[f.id] = {};
@@ -136,8 +140,9 @@ export function App() {
       }
     }
     return m;
-  }, [weights]);
+  }, [weights, tab]);
   const actions = useMemo(() => {
+    if (tab !== 1) return null;
     if (!netMode || !dataset.bayesNet) return rankActions(dataset, credences, weights, evaluator, pins, subCredences);
     // Net mode: apply the action to the credence marginals (through the sub-layer
     // when it's active), then re-rake the net's correlation structure to the
@@ -152,26 +157,29 @@ export function App() {
       })
       .sort((a, b) => b.evGain - a.evGain);
     return { baselineEv, ranked };
-  }, [netMode, credences, weights, evaluator, pins, analysis, subCredences]);
+  }, [tab, netMode, credences, weights, evaluator, pins, analysis, subCredences]);
   // The scatter plots a comparison model (x) against the hand-reasoned surface (y).
   // Comparing cached-vs-cached is a useless diagonal, so when cached is selected we
   // fall back to the fitted additive model — the honest null model.
   const compareEvaluator = evaluator.id === cachedEvaluator.id ? fittedLinearEvaluator : evaluator;
-  const diffPoints = useMemo<DiffPoint[]>(
+  const diffPoints = useMemo<DiffPoint[] | null>(
     () =>
-      analysis.scenarios.map((s) => ({
+      tab !== 4
+        ? null
+        : analysis.scenarios.map((s) => ({
         linear: scalarize(compareEvaluator.evaluate(s.scenario, dataset)!.value, weights),
         cached: scalarize(cachedEvaluator.evaluate(s.scenario, dataset)!.value, weights),
         probability: s.probability,
-        reasoned: s.reasoned,
-      })),
-    [analysis, weights, compareEvaluator],
+            reasoned: s.reasoned,
+          })),
+    [analysis, weights, compareEvaluator, tab],
   );
 
   // The model ladder: every value model's RMS divergence from the cached surface,
   // worst fit first. Cached is the zero reference. Recomputed when weights change
   // (the scalar RMS depends on them; the vector RMS doesn't).
-  const ladder = useMemo<LadderRow[]>(() => {
+  const ladder = useMemo<LadderRow[] | null>(() => {
+    if (tab !== 4) return null;
     const NOTES: Record<string, string> = {
       cached: 'The hand-reasoned surface itself — the reference every model is measured against.',
       fittedPairwise: 'Every two-way interaction, fit by least squares. Captures pairwise structure but still misses the higher-order régime gating — so it now trails the archetype despite far more parameters.',
@@ -190,7 +198,7 @@ export function App() {
         };
       })
       .sort((a, b) => b.rms - a.rms);
-  }, [weights]);
+  }, [weights, tab]);
 
   return (
     <Box sx={{ minHeight: '100vh' }}>
@@ -228,7 +236,7 @@ export function App() {
             {tab === 0 && (
               <>
                 <Panel>
-                  <EVDistribution bins={bins} ev={analysis.ev} factors={dataset.factors} valence={stateValence} />
+                  <EVDistribution bins={bins!} ev={analysis.ev} factors={dataset.factors} valence={stateValence} />
                 </Panel>
                 <Panel>
                   <ParallelCoordinates scenarios={analysis.scenarios} factors={dataset.factors} />
@@ -243,7 +251,7 @@ export function App() {
                 weights={weights}
                 evaluator={evaluator}
                 pins={pins}
-                ranking={actions}
+                ranking={actions!}
               />
             )}
 
@@ -268,7 +276,7 @@ export function App() {
               <>
                 <Panel>
                   <ModelLadder
-                    rows={ladder}
+                    rows={ladder!}
                     info={
                       <>
                         Each model is fit to (or hand-set against) the same hand-reasoned cells. The drop
@@ -282,7 +290,7 @@ export function App() {
                 </Panel>
                 <Panel>
                   <EvaluatorDiff
-                    points={diffPoints}
+                    points={diffPoints!}
                     model={compareEvaluator.label}
                     xLabel={`${compareEvaluator.label} value →`}
                     info={
