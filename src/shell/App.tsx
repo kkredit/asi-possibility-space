@@ -366,15 +366,6 @@ export function App() {
               </>
             )}
 
-            <Typography sx={{ mt: 1, color: c.faint, fontSize: '0.72rem', fontFamily: fonts.body, display: 'inline-flex', alignItems: 'center' }}>
-              Editable model
-              <InfoTip>
-                Every factor, probability, outcome and weight is authored content — a considered
-                estimate, not ground truth. Edit{' '}
-                <Box component="code" sx={{ fontFamily: fonts.mono, color: c.bone }}>src/model/dataset.ts</Box> to
-                refine it; see <Box component="code" sx={{ fontFamily: fonts.mono, color: c.bone }}>docs/DESIGN.md</Box> for the design decisions behind it.
-              </InfoTip>
-            </Typography>
           </Box>
         </Box>
       </Container>
