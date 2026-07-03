@@ -27,12 +27,14 @@ import type { KnownCredences, KnownFactorId, KnownSubCredences, KnownSubfactorId
  * Odds-scale granularity: probabilities near 0/1 are stated to THREE decimals for
  * the extremists (Yampolskiy, Yudkowsky), because on the odds scale 0.99 vs 0.995
  * vs 0.999 are different claims (100:1 / 200:1 / 1000:1) and a 0.01 floor on any
- * survival route caps implied doom at ~100:1 no matter what else is set. With
- * these, Yampolskiy's model-implied doom is ~99.7% (net) / ~99.96% (independence)
- * — hundreds-to-thousands to one. The remaining distance to his professed
- * 99.999999% is the SHARED model's floor, not his: the benign-attractor credence
- * he can't push below 0.002 here, and the Bayes-net raking that redistributes a
- * little mass into correlated lucky corners.
+ * survival route caps implied doom at ~100:1 no matter what else is set. Three
+ * decimals is a deliberate SATISFICING stop: professed numbers like Yampolskiy's
+ * "99.999999%" are read as directional rhetoric, not literal credences, and a
+ * 1,728-cell shared-value model cannot meaningfully resolve millionths anyway.
+ * With these, his model-implied doom is ~99.7% (net) / ~99.96% (independence) —
+ * hundreds-to-thousands to one against, which preserves his ordinal extremity
+ * (far beyond every other preset) without pretending to precision the model
+ * doesn't have.
  *
  * `subCredences` (the alignment deep-dive: legibility, value spec, corrigibility,
  * oversight scaling + the four research-area maturity forecasts) come from a
