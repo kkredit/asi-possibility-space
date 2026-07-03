@@ -309,7 +309,7 @@ export const presets: Preset[] = [
   },
 
   {
-    id: 'hassabis',
+    id: 'deepmind',
     name: 'Google DeepMind',
     category: 'lab',
     role: 'Google DeepMind · Demis Hassabis (CEO)',

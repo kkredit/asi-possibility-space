@@ -63,7 +63,7 @@ const ESTEEM_ORDER = [
   // people
   'hinton', 'bengio', 'lecun', 'sutskever', 'yudkowsky', 'christiano', 'andreessen', 'acx', 'kokotajlo', 'yampolskiy', 'lifland',
   // labs
-  'openai', 'hassabis', 'anthropic', 'meta', 'xai',
+  'openai', 'deepmind', 'anthropic', 'meta', 'xai',
 ];
 const esteemRank = (id: string) => {
   const i = ESTEEM_ORDER.indexOf(id);
