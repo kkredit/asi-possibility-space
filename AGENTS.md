@@ -71,11 +71,18 @@ whatever is there. To refine the model, you almost never touch `engine/` or
 
 The shapes you'll edit are all in [`src/model/types.ts`](src/model/types.ts)
 (content-agnostic vocabulary), and the **canonical factor/state ids** live in
-[`src/model/ids.ts`](src/model/ids.ts) (`FACTOR_STATES`). The content is typed
-against those ids, so adding a factor or state in `ids.ts` ripples as **compile
-errors** through everything that must keep up (factor defs, credences, linear
-contributions, couplings, Bayes-net nodes, backgrounds, every preset) — follow
-the errors and you can't forget a touchpoint.
+[`src/model/ids.ts`](src/model/ids.ts) (`FACTOR_STATES`, and `SUBFACTOR_STATES`
+for the alignment deep-dive). The content is typed against those ids, so adding a
+factor, subfactor, or state in `ids.ts` ripples as **compile errors** through
+everything that must keep up (factor defs, credences, linear contributions,
+couplings, Bayes-net nodes, backgrounds, every preset) — follow the errors and
+you can't forget a touchpoint.
+
+The **alignment sub-layer** (subfactor definitions, the difficulty CPT, the gated
+odds, baseline sub-credences) lives in [`src/model/alignment.ts`](src/model/alignment.ts);
+its engine is [`src/engine/derive.ts`](src/engine/derive.ts). Subfactors are
+belief-layer citizens that DERIVE tractability and alignment-in-time — they never
+multiply the scenario space (docs/MODEL.md §6).
 
 ### Add or edit a factor
 

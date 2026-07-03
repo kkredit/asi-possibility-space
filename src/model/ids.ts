@@ -41,3 +41,33 @@ export type KnownCredences = { [F in KnownFactorId]: Record<StateOf<F>, number> 
 export type KnownLinearContributions = {
   [F in KnownFactorId]: { [S in StateOf<F>]: Partial<ValueVector> };
 };
+
+/**
+ * The alignment SUB-LAYER id vocabulary. Subfactors are belief-layer citizens
+ * (sliders, presets, backgrounds, actions, tornado rows) that DERIVE the two
+ * parent factors' credences — they do not multiply the 1,728-scenario space.
+ * Objective subfactors decompose "how hard is alignment" (→ tractability);
+ * influenceable research areas decompose "do we land it in time"
+ * (→ alignmentInTime), each gated by its objective twin.
+ */
+export const SUBFACTOR_STATES = {
+  // objective: the problem
+  interpLegibility: ['legible', 'partially', 'opaque'],
+  valueSpec: ['learnable', 'brittle'],
+  corrigibility: ['broadBasin', 'narrow', 'antiNatural'],
+  oversightScaling: ['scales', 'fails'],
+  // influenceable: the effort (state = maturity at ASI onset)
+  interpResearch: ['mature', 'partial', 'nascent'],
+  oversightResearch: ['mature', 'partial', 'nascent'],
+  theoryResearch: ['mature', 'partial', 'nascent'],
+  evalsResearch: ['mature', 'partial', 'nascent'],
+} as const;
+
+export type KnownSubfactorId = keyof typeof SUBFACTOR_STATES;
+export type SubStateOf<S extends KnownSubfactorId> = (typeof SUBFACTOR_STATES)[S][number];
+
+/** All known subfactor ids, in canonical (display) order. */
+export const SUBFACTOR_IDS = Object.keys(SUBFACTOR_STATES) as KnownSubfactorId[];
+
+/** Content-typed sub-credences: every subfactor, every state, no strays. */
+export type KnownSubCredences = { [S in KnownSubfactorId]: Record<SubStateOf<S>, number> };

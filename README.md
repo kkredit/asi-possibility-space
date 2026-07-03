@@ -24,7 +24,10 @@ pnpm build      # static bundle in dist/ (GitHub Pages ready)
   (objective / contingent / influenceable, a spectrum of how much leverage we have). For
   non-objective factors the slider is a forecast of the state *at ASI onset*; for objective ones it's
   your confidence a timeless property holds. Pin any factor to collapse it. Adjust the value-dimension
-  weights. Switch the active evaluator.
+  weights. Switch the active evaluator. Two factors carry an **alignment deep dive**: expandable
+  subfactor sliders (interpretability legibility, value specification, corrigibility, oversight
+  scalability + four research-area forecasts) that *derive* tractability and alignment-in-time —
+  each with its own "read more" page.
 - **Landscape** — the outcome distribution (probability mass over the value axis) and a
   parallel-coordinates view of the whole N-dimensional scenario space.
 - **Where to act** — actions ranked by EV gain (the max-EV action), and a sensitivity tornado

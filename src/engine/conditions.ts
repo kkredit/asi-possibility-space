@@ -8,10 +8,11 @@ import type {
   FactorKind,
   Scenario,
   StateId,
+  SubCredences,
   ValueVector,
 } from '@model/types';
 import { analyze } from '@engine/analyze';
-import { applyAction, withMarginal } from '@engine/actions';
+import { shiftedCredences, withMarginal } from '@engine/actions';
 import { scenarioKey, type Pins } from '@engine/scenarios';
 
 /**
@@ -442,6 +443,7 @@ function actionWorlds(
   evaluator: Evaluator,
   action: Action,
   given: Pins,
+  subCredences?: SubCredences,
 ): { worlds: ActionWorld[]; condIds: FactorId[] } {
   const condIds = conditionFactorIds(dataset, given);
   const scenarios = analyze(dataset, credences, weights, evaluator, given).scenarios;
@@ -456,7 +458,7 @@ function actionWorlds(
       pinsByKey[key] = p;
     }
   }
-  const shifted = dataset.actions.map((a) => ({ id: a.id, credences: applyAction(credences, a) }));
+  const shifted = dataset.actions.map((a) => ({ id: a.id, credences: shiftedCredences(dataset, credences, a, subCredences) }));
   const worlds: ActionWorld[] = [];
   for (const key of Object.keys(probByKey)) {
     const pins = pinsByKey[key];
@@ -519,8 +521,9 @@ export function actionConditions(
   action: Action,
   given: Pins = {},
   metric: ActionMetric = 'margin',
+  subCredences?: SubCredences,
 ): ActionConditions {
-  const { worlds, condIds } = actionWorlds(dataset, credences, weights, evaluator, action, given);
+  const { worlds, condIds } = actionWorlds(dataset, credences, weights, evaluator, action, given, subCredences);
   const totP = worlds.reduce((a, w) => a + w.prob, 0) || 1;
   const meanMargin = worlds.reduce((a, w) => a + w.prob * w.margin, 0) / totP;
   const meanGain = worlds.reduce((a, w) => a + w.prob * w.gain, 0) / totP;
@@ -553,8 +556,9 @@ function actionMean(
   action: Action,
   given: Pins,
   metric: ActionMetric,
+  subCredences?: SubCredences,
 ): number {
-  const { worlds } = actionWorlds(dataset, credences, weights, evaluator, action, given);
+  const { worlds } = actionWorlds(dataset, credences, weights, evaluator, action, given, subCredences);
   return meanMetric(worlds, metric);
 }
 
@@ -569,11 +573,12 @@ export function actionContrastGrid(
   f2Id: FactorId,
   given: Pins = {},
   metric: ActionMetric = 'margin',
+  subCredences?: SubCredences,
 ): ContrastGrid | null {
   const f1 = dataset.factors.find((f) => f.id === f1Id);
   const f2 = dataset.factors.find((f) => f.id === f2Id);
   if (!f1 || !f2 || f1.id === f2.id) return null;
-  const { worlds, condIds } = actionWorlds(dataset, credences, weights, evaluator, action, given);
+  const { worlds, condIds } = actionWorlds(dataset, credences, weights, evaluator, action, given, subCredences);
   if (!condIds.includes(f1Id) || !condIds.includes(f2Id)) return null;
   return buildGrid(f1, f2, (s1, s2) =>
     meanMetric(worlds.filter((w) => w.pins[f1.id] === s1 && w.pins[f2.id] === s2), metric),
@@ -591,6 +596,7 @@ export function actionBeliefThreshold(
   sweepState: StateId,
   given: Pins = {},
   metric: ActionMetric = 'margin',
+  subCredences?: SubCredences,
 ): BeliefThreshold {
   const steps = 20;
   const dist = credences[sweepFactor] ?? {};
@@ -598,13 +604,13 @@ export function actionBeliefThreshold(
   for (let i = 0; i <= steps; i++) {
     const p = i / steps;
     const cred: Credences = { ...credences, [sweepFactor]: withMarginal(dist, sweepState, p) };
-    points.push({ p, netDelta: actionMean(dataset, cred, weights, evaluator, action, given, metric) });
+    points.push({ p, netDelta: actionMean(dataset, cred, weights, evaluator, action, given, metric, subCredences) });
   }
   return {
     sweepFactor,
     sweepState,
     currentP: dist[sweepState] ?? 0,
-    netDeltaAtCurrent: actionMean(dataset, credences, weights, evaluator, action, given, metric),
+    netDeltaAtCurrent: actionMean(dataset, credences, weights, evaluator, action, given, metric, subCredences),
     points,
     crossings: findCrossings(points),
   };

@@ -1,15 +1,23 @@
 import { create } from 'zustand';
-import type { Credences, FactorId, Scenario, StateId, ValueDimensionId, ValueVector } from '@model/types';
+import type { Credences, FactorId, Scenario, StateId, SubCredences, SubfactorId, ValueDimensionId, ValueVector } from '@model/types';
 import { dataset } from '@model/dataset';
 import { presets } from '@model/presets';
 import type { Pins } from '@engine/scenarios';
 import { withMarginal } from '@engine/actions';
+import { deriveCredences } from '@engine/derive';
 import { reconcileJoint } from '@engine/softevidence';
 
 export type ProbabilityModel = 'independence' | 'bayesNet';
+/** Whether the alignment deep-dive derives its parent factors ('derived') or the
+ *  parent sliders are set directly ('direct', the sub-layer detached). */
+export type AlignmentMode = 'derived' | 'direct';
 
 export interface BeliefState {
   credences: Credences;
+  /** Beliefs over the alignment deep-dive subfactors. */
+  subCredences: SubCredences;
+  /** Derive the parents from the deep dive, or set them directly. */
+  alignmentMode: AlignmentMode;
   weights: ValueVector;
   evaluatorId: string;
   pins: Pins;
@@ -23,6 +31,8 @@ export interface BeliefState {
   bayesProbability: ((s: Scenario) => number) | null;
 
   setCredence: (factor: FactorId, state: StateId, value: number) => void;
+  setSubCredence: (subfactor: SubfactorId, state: StateId, value: number) => void;
+  setAlignmentMode: (mode: AlignmentMode) => void;
   setWeight: (dim: ValueDimensionId, value: number) => void;
   setEvaluator: (id: string) => void;
   setPin: (factor: FactorId, state: StateId | null) => void;
@@ -63,6 +73,10 @@ function presetCredencesWeights(id: string) {
     // Factors a preset doesn't state (e.g. a newer factor like coordination) fall
     // back to the dataset baseline, so every factor always has a full distribution.
     credences: { ...structuredClone(dataset.baselineCredences), ...structuredClone(preset.credences) },
+    subCredences: {
+      ...structuredClone(dataset.subBaseline ?? {}),
+      ...structuredClone(preset.subCredences ?? {}),
+    } as SubCredences,
     weights: preset.weights ? { ...preset.weights } : { ...dataset.defaultWeights },
   };
 }
@@ -84,11 +98,19 @@ function netJoint(credences: Credences): ((s: Scenario) => number) | null {
 function baselineState() {
   // The Bayes net is the default probability model: it's the principled joint (factors
   // co-occur), and independence×couplings is the opt-out. Falls back to independence
-  // only if the dataset ships no net.
-  const credences = structuredClone(dataset.baselineCredences);
+  // only if the dataset ships no net. The alignment deep-dive defaults to deriving its
+  // parents (tractability, alignment-in-time) from the sub-baseline.
+  const subCredences = structuredClone(dataset.subBaseline ?? {}) as SubCredences;
+  const alignmentMode: AlignmentMode = dataset.derivations?.length ? 'derived' : 'direct';
+  const credences =
+    alignmentMode === 'derived'
+      ? deriveCredences(dataset, structuredClone(dataset.baselineCredences), subCredences)
+      : structuredClone(dataset.baselineCredences);
   const probabilityModel: ProbabilityModel = dataset.bayesNet ? 'bayesNet' : 'independence';
   return {
     credences,
+    subCredences,
+    alignmentMode,
     weights: { ...dataset.defaultWeights },
     evaluatorId: 'cached',
     pins: {} as Pins,
@@ -103,11 +125,14 @@ function initialState() {
   const urlId = readUrlPresetId();
   const state = baselineState();
   if (!urlId) return state;
-  const { credences, weights } = presetCredencesWeights(urlId);
+  const { credences: stated, subCredences, weights } = presetCredencesWeights(urlId);
+  const credences =
+    state.alignmentMode === 'derived' ? deriveCredences(dataset, stated, subCredences) : stated;
   return {
     ...state,
     activePresetId: urlId,
     credences,
+    subCredences,
     weights,
     // Re-rake the Bayes-net joint to the preset's marginals — leaving the baseline
     // joint here would render a shared preset link with the wrong EV/p(doom).
@@ -136,6 +161,33 @@ export const useBeliefs = create<BeliefState>((set) => ({
       return { activePresetId: null, weights: { ...s.weights, [dim]: Math.max(0, value) } };
     }),
 
+  setSubCredence: (subfactor, state, value) =>
+    set((s) => {
+      if (s.activePresetId) writeUrlPresetId(null);
+      const subCredences = { ...s.subCredences, [subfactor]: withMarginal(s.subCredences[subfactor], state, value) };
+      const credences =
+        s.alignmentMode === 'derived' ? deriveCredences(dataset, s.credences, subCredences) : s.credences;
+      return {
+        activePresetId: null,
+        subCredences,
+        credences,
+        bayesProbability: s.probabilityModel === 'bayesNet' ? netJoint(credences) : null,
+      };
+    }),
+
+  setAlignmentMode: (mode) =>
+    set((s) => {
+      // Switching to derived re-derives the parents from the current sub-beliefs;
+      // switching to direct keeps the current (derived) values as the starting point.
+      const credences =
+        mode === 'derived' ? deriveCredences(dataset, s.credences, s.subCredences) : s.credences;
+      return {
+        alignmentMode: mode,
+        credences,
+        bayesProbability: s.probabilityModel === 'bayesNet' ? netJoint(credences) : null,
+      };
+    }),
+
   setEvaluator: (id) => set({ evaluatorId: id }),
 
   setPin: (factor, state) =>
@@ -149,13 +201,18 @@ export const useBeliefs = create<BeliefState>((set) => ({
   applyPreset: (id) => {
     if (!presets.some((p) => p.id === id)) return;
     writeUrlPresetId(id);
-    const { credences, weights } = presetCredencesWeights(id);
-    set((s) => ({
-      activePresetId: id,
-      credences,
-      weights,
-      bayesProbability: s.probabilityModel === 'bayesNet' ? netJoint(credences) : null,
-    }));
+    const { credences: stated, subCredences, weights } = presetCredencesWeights(id);
+    set((s) => {
+      const credences =
+        s.alignmentMode === 'derived' ? deriveCredences(dataset, stated, subCredences) : stated;
+      return {
+        activePresetId: id,
+        credences,
+        subCredences,
+        weights,
+        bayesProbability: s.probabilityModel === 'bayesNet' ? netJoint(credences) : null,
+      };
+    });
   },
 
   setProbabilityModel: (model) =>

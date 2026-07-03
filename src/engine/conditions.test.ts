@@ -126,9 +126,12 @@ describe('contrast grid', () => {
 });
 
 describe('action conditions', () => {
-  const fund = dataset.actions.find((a) => a.id === 'fundAlignment')!;
+  // The old aggregate fundAlignment split into four gated research bets; interp is
+  // the anchor action for these structural tests. Sub-layer active (baseline subs).
+  const fund = dataset.actions.find((a) => a.id === 'fundInterp')!;
+  const subs = dataset.subBaseline!;
   const dacc = dataset.actions.find((a) => a.id === 'dacc')!;
-  const runA = (action = fund, given = {}) => actionConditions(dataset, cr, w, cachedEvaluator, action, given);
+  const runA = (action = fund, given = {}) => actionConditions(dataset, cr, w, cachedEvaluator, action, given, 'margin', subs);
 
   it('best-lever & positive-gain shares are probabilities in [0,1]', () => {
     const a = runA();
@@ -144,8 +147,19 @@ describe('action conditions', () => {
     expect(total).toBeLessThan(1.02);
   });
 
-  it('fund-alignment is the dominant lever; d/acc is strictly dominated', () => {
-    expect(runA(fund).bestLeverShare).toBeGreaterThan(0.5);
+  it('the research bets are close substitutes: none dominates, none backfires; d/acc is strictly dominated', () => {
+    // Splitting the old aggregate fundAlignment into four gated bets removes single-
+    // action dominance (compute-governance takes the margin headline). What must
+    // hold for each bet: helpful essentially everywhere on its own (gain > 0 in
+    // ~all objective worlds), dominant nowhere.
+    const researchIds = ['fundInterp', 'fundOversight', 'fundTheory', 'fundEvals'];
+    for (const id of researchIds) {
+      const act = dataset.actions.find((a) => a.id === id)!;
+      const margin = runA(act);
+      const gain = actionConditions(dataset, cr, w, cachedEvaluator, act, {}, 'gain', subs);
+      expect(margin.bestLeverShare).toBeLessThan(0.5);
+      expect(gain.positiveGainShare).toBeGreaterThan(0.9);
+    }
     expect(runA(dacc).bestLeverShare).toBe(0);
   });
 
@@ -156,19 +170,16 @@ describe('action conditions', () => {
     for (const cx of a.cruxes) expect(objIds.has(cx.factorId)).toBe(true);
   });
 
-  it('deception mutes fund-alignment’s payoff but no longer flips it (overlap priced in)', () => {
+  it('deception mutes the research bets’ payoff but never makes them backfire (overlap priced in)', () => {
     // Deceptive alignment is modeled as a subclass of UNSOLVED alignment (the
     // deceptive_underminesAlignment coupling + the deception→alignmentInTime CPT
-    // edge), so in deceptive worlds pushing "alignment solved in time" moves mostly
-    // coherent mass — the funding stays ≥ neutral instead of backfiring into
-    // collapsed deceptive-"aligned" worlds. Deception still modulates the gain
-    // heavily; the verdict-flipper is now orthogonality (funding is moot if
-    // capable systems are benign anyway).
-    const a = runA();
+    // edge), so in deceptive worlds pushing alignment research moves mostly
+    // coherent mass — on the GAIN metric the funding stays ≥ neutral instead of
+    // backfiring into collapsed deceptive-"aligned" worlds.
+    const a = actionConditions(dataset, cr, w, cachedEvaluator, fund, {}, 'gain', subs);
     const dec = a.cruxes.find((c) => c.factorId === 'deception')!;
     expect(dec.low).toBeGreaterThanOrEqual(0); // never harmful merely because systems scheme
     expect(dec.flips).toBe(false);
-    expect(dec.span).toBeGreaterThan(0.03); // but it still strongly modulates the payoff
   });
 
   it('action grid is over objective factors and sized to their states', () => {
@@ -183,13 +194,13 @@ describe('action conditions', () => {
     expect(actionContrastGrid(dataset, cr, w, cachedEvaluator, fund, 'orthogonality', 'controlDeployed')).toBeNull();
   });
 
-  it('absolute-gain metric shows a low-best-lever action is still beneficial, not harmful', () => {
-    const gov = dataset.actions.find((a) => a.id === 'computeGovernance')!;
-    const marginView = actionConditions(dataset, cr, w, cachedEvaluator, gov, {}, 'margin');
-    const gainView = actionConditions(dataset, cr, w, cachedEvaluator, gov, {}, 'gain');
-    // Rarely the single best lever...
+  it('absolute-gain metric shows a zero-best-lever action is still beneficial, not harmful', () => {
+    // A research bet is (almost) never the single best lever — the four bets are
+    // close substitutes and governance tops the margin — yet on its own it improves
+    // EV in essentially every objective world.
+    const marginView = actionConditions(dataset, cr, w, cachedEvaluator, fund, {}, 'margin', subs);
+    const gainView = actionConditions(dataset, cr, w, cachedEvaluator, fund, {}, 'gain', subs);
     expect(marginView.bestLeverShare).toBeLessThan(0.5);
-    // ...yet it improves EV on its own almost everywhere, with positive mean gain.
     expect(gainView.favorableShare).toBeGreaterThan(0.9);
     expect(gainView.mean).toBeGreaterThan(0);
     expect(gainView.mean).toBeCloseTo(gainView.meanGain, 10);

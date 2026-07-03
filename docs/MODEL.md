@@ -233,7 +233,69 @@ parent → child, nodes colored by kind with the dependency rationale on hover.
 
 ---
 
-## 6. Where the value of this framing lands
+## 6. The alignment sub-layer: a two-layer belief model
+
+"How hard is alignment?" and "do we solve it in time?" are too coarse to argue with
+productively, but promoting their internal structure to first-class factors would
+multiply the scenario space (~250k cells) past what the hand-reasoned surface and the
+Conditions tab can carry. The resolution is a **two-layer belief model**
+([`src/model/alignment.ts`](../src/model/alignment.ts), engine in
+[`derive.ts`](../src/engine/derive.ts)): eight **subfactors** live in the belief layer
+— full citizens with sliders, backgrounds, preset credences, actions and tornado rows
+— and **derive** the two parent factors' credences instead of entering the space.
+
+```
+OBJECTIVE (the problem)                    INFLUENCEABLE (the effort)
+  interpLegibility   ──────gates──────►  interpResearch
+  oversightScaling   ──────gates──────►  oversightResearch
+  corrigibility  ─┬─────────gates─────►  theoryResearch
+  valueSpec      ─┘
+  deception (main factor) ────gates───►  evalsResearch
+
+     │ difficulty CPT                        │ gated odds ×  ◄─── tractability
+     ▼                                       ▼                    (difficulty modifier)
+  P(tractability)                        P(alignmentInTime = yes)
+```
+
+Two derivations:
+
+- **`tractability`** — a difficulty CPT: each objective sub-state contributes
+  authored difficulty points; the total maps to a `{easy, hard, nearImpossible}`
+  distribution per combo (36 rows, generated, completeness-checked), marginalized
+  over your sub-credences.
+- **`alignmentInTime`** — gated odds: `odds(yes) = baseOdds × ∏ E[multiplier(area
+  maturity, gate state)] × E[difficulty modifier(tractability)]`. The multipliers
+  are the design's backbone: **a research bet pays off only in worlds where its
+  objective gate is open** (mature interpretability against opaque cognition is ≈
+  neutral; nascent theory in an anti-natural-corrigibility world is catastrophic).
+  The tractability modifier runs on the *already-derived* difficulty, so a doomer's
+  sub-beliefs flow through the problem into the race.
+
+Consequences:
+
+- The old aggregate `fundAlignment` action split into **four gated research bets**
+  (interp / oversight / theory / evals), so the Actions tab now answers *which
+  research direction is the best marginal buy given what you believe about the
+  problem*. At baseline, theory leads the four (corrigibility uncertainty is high),
+  compute-governance tops the overall margin, and every bet is gain-positive in
+  ~99% of objective worlds — none backfires.
+- Baseline sub-credences are calibrated so the derived parents reproduce the
+  long-standing baseline sliders (within a few points). Presets carry sourced
+  sub-credences (see the research pass documented in `presets.ts`); their derived
+  parents land near their stated top-level numbers, and the residual gaps are
+  informative — e.g. LeCun's stated easy-tractability optimism exceeds what his
+  specific positions on legibility/corrigibility support, and Hinton's stated
+  10–20% doom sits well above what his sub-positions imply. A test pins the
+  tolerance.
+- The parent sliders show the derived distribution while the deep dive is active
+  ("derive" toggle per group); detaching restores direct sliders, and the research
+  actions fall back to small direct nudges.
+- The probability models are unchanged: derived parents are ordinary marginals, so
+  couplings and the Bayes-net raking apply exactly as before.
+
+---
+
+## 7. Where the value of this framing lands
 
 The two-model split tells you which lever to pull when the EV "feels wrong":
 

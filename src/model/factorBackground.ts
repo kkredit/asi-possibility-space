@@ -1,5 +1,5 @@
 import type { FactorBackground } from '@model/types';
-import type { KnownFactorId } from '@model/ids';
+import type { KnownFactorId, KnownSubfactorId } from '@model/ids';
 
 /**
  * Scholarly background for each factor — the "learning launchpad."
@@ -173,6 +173,159 @@ export const factorBackgrounds: Record<KnownFactorId, FactorBackground> = {
       { kind: 'paper', label: 'Hubinger et al. — Risks from Learned Optimization (2019)', url: 'https://arxiv.org/abs/1906.01820', note: 'The foundational mesa-optimization / deceptive-alignment paper.' },
       { kind: 'paper', label: 'Carlsmith — Scheming AIs (2023)', url: 'https://arxiv.org/abs/2311.08379', note: 'A careful probability assessment of training-time scheming.' },
       { kind: 'paper', label: 'Hubinger et al. (Anthropic) — Sleeper Agents (2024)', url: 'https://arxiv.org/abs/2401.05566', note: 'Shows trained-in deception can survive safety training.' },
+    ],
+  },
+};
+
+
+/**
+ * Backgrounds for the alignment SUB-layer (the deep-dive under tractability and
+ * alignment-in-time) — same shape and curation rules as the factor backgrounds:
+ * a few paragraphs on the debate, the named positions, accessible-first reading.
+ * Record over KnownSubfactorId, so a subfactor added in ids.ts is a compile error
+ * here until its background is authored.
+ */
+export const subfactorBackgrounds: Record<KnownSubfactorId, FactorBackground> = {
+  interpLegibility: {
+    paragraphs: [
+      'Interpretability optimism rests on a bet about the territory: that the representations inside large networks decompose into meaningful, findable structure — features, circuits, reusable algorithms — rather than being irreducibly entangled. The circuits program (Olah et al.) made the case by exhibiting such structure in vision models; superposition explained why it is hard to see (many features share each neuron); and sparse-autoencoder work showed millions of interpretable features can be extracted from a frontier model. On this view, cognition is legible in principle and the remaining question is engineering effort.',
+      'The pessimistic view is that what has been decoded so far is the easy fringe: crisp, human-recognizable concepts, while the load-bearing cognition of a superhuman system — long-horizon motivation, situational awareness — may live in distributed, alien abstractions that no dictionary reaches. If so, interpretability can still help (steering, debugging, partial audits) while never delivering the thing safety needs most: a trustworthy read of what a decisively capable system actually wants. Where you land here caps the payoff of the entire interpretability research bet.',
+    ],
+    positions: [
+      { name: 'Legible', stance: 'Olah-style circuits optimism: structure is real and findable; audits can reach the cognition that matters.', state: 'legible' },
+      { name: 'Partial legibility', stance: 'Big useful islands (features, some circuits) in a sea of residual opacity; audits are helpful but not decisive.', state: 'partially' },
+      { name: 'Inscrutable', stance: 'Frontier cognition is alien at its core; interpretability inspects the mask, not the mind.', state: 'opaque' },
+    ],
+    references: [
+      { kind: 'podcast', label: '80,000 Hours — Chris Olah on what the hell is going on inside neural networks', url: 'https://80000hours.org/podcast/episodes/chris-olah-interpretability-research/', note: 'The research program and its bet, from its founder, accessibly.' },
+      { kind: 'post', label: 'Charbel-Raphaël — Against Almost Every Theory of Impact of Interpretability (2023)', url: 'https://www.lesswrong.com/posts/LNA8mubrByG7SFacm/against-almost-every-theory-of-impact-of-interpretability-1', note: 'The strongest public case for the skeptical state.' },
+      { kind: 'paper', label: 'Olah et al. — Zoom In: An Introduction to Circuits (2020)', url: 'https://distill.pub/2020/circuits/zoom-in/', note: 'The founding document of the circuits program.' },
+      { kind: 'paper', label: 'Elhage et al. — Toy Models of Superposition (2022)', url: 'https://transformer-circuits.pub/2022/toy_model/index.html', note: 'Why features hide: many concepts share each neuron.' },
+      { kind: 'paper', label: 'Templeton et al. — Scaling Monosemanticity (2024)', url: 'https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html', note: 'Millions of interpretable features extracted from a frontier model.' },
+    ],
+  },
+
+  valueSpec: {
+    paragraphs: [
+      'The classic difficulty argument: human values are complex (no compact utility function captures them) and fragile (getting most of it right and a little wrong can be catastrophic — a future with everything except, say, novelty or consciousness). Strong optimization amplifies specification error: a system maximizing a slightly-wrong target diverges from intent exactly where the optimization pressure is highest (Goodhart’s law, in its several distinct modes). If values are effectively unspecifiable, alignment must go through indirect routes — learn the target from behaviour, keep uncertainty about it, defer to humans — each with its own failure modes.',
+      'The optimistic update from the deep-learning era is that models learn rich human-value representations "for free" from natural-language training — GPT-class systems already distinguish kindness from cruelty in nuanced cases, suggesting the hard part is pointing at the representation rather than writing it down. Skeptics reply that representing values is not the same as being steered by them under distribution shift and optimization pressure; RLHF-style pointing is exactly the kind of proxy that Goodharts at the frontier.',
+    ],
+    positions: [
+      { name: 'Learnable target', stance: 'Value representations come along with capability; pointing at them well enough is feasible (assistance-game / CIRL framings help).', state: 'learnable' },
+      { name: 'Fragile under pressure', stance: 'Yudkowsky-line: complexity + fragility + Goodhart make any learned proxy diverge under strong optimization.', state: 'brittle' },
+    ],
+    references: [
+      { kind: 'post', label: 'Yudkowsky — Value is Fragile (2009)', url: 'https://www.lesswrong.com/posts/GNnHHmm8EzePmKzPk/value-is-fragile', note: 'The canonical statement of the fragility half.' },
+      { kind: 'book', label: 'Russell — Human Compatible (2019)', url: 'https://en.wikipedia.org/wiki/Human_Compatible', note: 'The assistance-game reframing: uncertainty about the objective as the safety mechanism.' },
+      { kind: 'paper', label: 'Manheim & Garrabrant — Categorizing Variants of Goodhart’s Law (2018)', url: 'https://arxiv.org/abs/1803.04585', note: 'The four distinct ways proxies break under optimization.' },
+      { kind: 'paper', label: 'Hadfield-Menell et al. — Cooperative Inverse Reinforcement Learning (2016)', url: 'https://arxiv.org/abs/1606.03137', note: 'The formal assistance-game model of learning what we want.' },
+    ],
+  },
+
+  corrigibility: {
+    paragraphs: [
+      'Corrigibility asks whether a powerful system will let you correct it: accept shutdown, accept goal-edits, avoid manipulating its overseers. The pessimistic result is that corrigibility looks anti-natural — almost any goal makes "avoid being switched off or rewritten" instrumentally convergent, and the MIRI corrigibility paper found no clean utility function that wants to be corrected without perverse incentives. On this view, approximate alignment decays: a nearly-right system defends its near-miss values.',
+      'Christiano’s opposing intuition is the broad basin: a system aligned enough to be honest and deferential helps you finish the job — corrigibility is attractor-stable because the overseer plus the system jointly correct residual errors, so "pretty good" alignment converges to full alignment rather than drifting away. Which picture is true may be the single biggest determinant of how precise our first solution has to be — i.e., of alignment difficulty itself. The off-switch-game result sits in between: correctability can be bought with uncertainty about the objective, but erodes as that uncertainty resolves.',
+    ],
+    positions: [
+      { name: 'Broad basin', stance: 'Christiano: corrigibility is attractor-stable; approximate alignment self-corrects.', state: 'broadBasin' },
+      { name: 'Narrow basin', stance: 'Self-correction exists but only from a precise start; sloppy starts drift.', state: 'narrow' },
+      { name: 'Anti-natural', stance: 'Soares/Yudkowsky: deference fights instrumental convergence; no known stable corrigible goal.', state: 'antiNatural' },
+    ],
+    references: [
+      { kind: 'post', label: 'Christiano — Where I agree and disagree with Eliezer (2022)', url: 'https://www.lesswrong.com/posts/CoZhXrhpQxpy9xw9y/where-i-agree-and-disagree-with-eliezer', note: 'States the broad-basin case in the middle of the sharpest public difficulty debate.' },
+      { kind: 'post', label: 'Christiano — Corrigibility (2017)', url: 'https://ai-alignment.com/corrigibility-3039e668638', note: 'The basin-of-attraction argument itself.' },
+      { kind: 'paper', label: 'Soares et al. — Corrigibility (2015)', url: 'https://intelligence.org/files/Corrigibility.pdf', note: 'The impossibility-flavored MIRI analysis: naive corrigible utility functions misbehave.' },
+      { kind: 'paper', label: 'Hadfield-Menell et al. — The Off-Switch Game (2016)', url: 'https://arxiv.org/abs/1611.08219', note: 'Correctability from objective uncertainty — and its limits.' },
+    ],
+  },
+
+  oversightScaling: {
+    paragraphs: [
+      'Every practical alignment scheme leans on a version of the same hope: verification is easier than generation, so a weaker, trusted judge can supervise a stronger, untrusted generator. Debate formalizes it as a game (two strong systems argue; a weak judge picks the winner); iterated amplification builds strong overseers out of weak ones; process supervision judges reasoning steps instead of outcomes; weak-to-strong generalization asks directly whether strong students trained on weak labels exceed their teachers in the intended direction.',
+      'Whether the verification gap actually persists at frontier scale is an objective question, not a research-effort question. If it holds, oversight is the workhorse route to alignment-in-time; if strong systems can systematically construct outputs whose flaws weak judges cannot find — persuasion beating verification — then oversight-based training amplifies exactly the wrong signal, and its apparent successes are the most dangerous kind of evidence. Early empirical results (debate helping on QA tasks, weak-to-strong recovering much of the gap) are encouraging but far from the adversarial, superhuman regime that matters.',
+    ],
+    positions: [
+      { name: 'Verification wins', stance: 'The generator-verifier gap persists; debate/W2S-style protocols keep weak judges sovereign.', state: 'scales' },
+      { name: 'Persuasion wins', stance: 'Superhuman systems find arguments whose flaws we cannot see; oversight becomes theater.', state: 'fails' },
+    ],
+    references: [
+      { kind: 'post', label: 'OpenAI — Weak-to-strong generalization (2023)', url: 'https://openai.com/index/weak-to-strong-generalization/', note: 'Accessible framing of the core empirical question.' },
+      { kind: 'paper', label: 'Irving, Christiano & Amodei — AI safety via debate (2018)', url: 'https://arxiv.org/abs/1805.00899', note: 'The debate game and the complexity-theoretic case for judge leverage.' },
+      { kind: 'paper', label: 'Christiano et al. — Supervising strong learners by amplifying weak experts (2018)', url: 'https://arxiv.org/abs/1810.08575', note: 'Iterated distillation & amplification.' },
+      { kind: 'paper', label: 'Burns et al. — Weak-to-Strong Generalization (2023)', url: 'https://arxiv.org/abs/2312.09390', note: 'The direct empirical test with GPT-2-supervising-GPT-4.' },
+    ],
+  },
+
+  interpResearch: {
+    paragraphs: [
+      'The research bet on reading minds: sparse autoencoders and feature dictionaries, circuit tracing, activation steering, internals-based lie detection, and "model biology" — understanding what a trained system is doing well enough to audit it before deployment. Progress has been fast (from toy vision circuits to millions of features in production-scale models in about four years), and the field has a clear engineering flavor: better dictionaries, better attribution, scaling the microscope.',
+      'Its payoff routes through the legibility question above. In a legible world, mature interpretability is the closest thing alignment has to a win condition: verify values directly, catch deception before deployment, debug training in flight. Against opaque cognition it still helps engineering but cannot carry safety’s core burden. Critics also warn of capability spillover (understanding models helps improve them) and of audits that certify the readable parts while the danger lives elsewhere.',
+    ],
+    positions: [
+      { name: 'Core bet', stance: 'Anthropic-style: interpretability is the most direct path to verified alignment; scale the microscope.' },
+      { name: 'Useful adjunct', stance: 'Helps debugging and steering; unlikely to reach load-bearing cognition in time.' },
+      { name: 'Misallocated', stance: 'Charbel-line skepticism: low safety-per-researcher-year versus control or evals.' },
+    ],
+    references: [
+      { kind: 'post', label: 'Anthropic — Mapping the Mind of a Large Language Model (2024)', url: 'https://www.anthropic.com/news/mapping-mind-language-model', note: 'The accessible tour of frontier-scale feature extraction.' },
+      { kind: 'post', label: 'Olah — Interpretability Dreams (2023)', url: 'https://transformer-circuits.pub/2023/interpretability-dreams/index.html', note: 'What mature success would look like, from the program’s architect.' },
+      { kind: 'post', label: 'Nanda — A Comprehensive Mechanistic Interpretability Explainer (2022)', url: 'https://www.neelnanda.io/mechanistic-interpretability/glossary', note: 'The field’s working vocabulary, hands-on.' },
+      { kind: 'paper', label: 'Templeton et al. — Scaling Monosemanticity (2024)', url: 'https://transformer-circuits.pub/2024/scaling-monosemanticity/index.html', note: 'State of the art of the scaling bet.' },
+    ],
+  },
+
+  oversightResearch: {
+    paragraphs: [
+      'The research program that industrializes the verification gap: debate protocols with trained judges, recursive reward modeling, process supervision ("grade the reasoning, not just the answer"), weak-to-strong training recipes, and the superalignment-style goal of using AI to help align AI. It is the most direct heir of RLHF — the question is whether its successors can keep human intent in charge as the systems being trained pass human level.',
+      'Maturity here means frontier training runs actually using these protocols end-to-end, not just papers: judge models with calibrated distrust, decomposition pipelines, verified process reward. Because the payoff is gated on oversight scaling in principle, this is the bet most exposed to the "confident theater" failure — a world with beautiful oversight pipelines whose judges are systematically fooled looks, from the inside, exactly like a world where oversight works.',
+    ],
+    positions: [
+      { name: 'Main engine', stance: 'OpenAI-superalignment-line: scalable oversight is how alignment actually ships at the frontier.' },
+      { name: 'One layer of swiss cheese', stance: 'Useful but must be paired with control/evals because its failure mode is silent.' },
+      { name: 'Wrong foundation', stance: 'If persuasion beats verification, better protocols amplify the wrong signal.' },
+    ],
+    references: [
+      { kind: 'podcast', label: '80,000 Hours — Jan Leike on superalignment (2023)', url: 'https://80000hours.org/podcast/episodes/jan-leike-superalignment/', note: 'The program’s goals and theory of change, first-hand.' },
+      { kind: 'paper', label: 'Lightman et al. — Let’s Verify Step by Step (2023)', url: 'https://arxiv.org/abs/2305.20050', note: 'Process supervision beating outcome supervision.' },
+      { kind: 'paper', label: 'Burns et al. — Weak-to-Strong Generalization (2023)', url: 'https://arxiv.org/abs/2312.09390', note: 'The empirical core of the weak-judge bet.' },
+      { kind: 'paper', label: 'Irving et al. — AI safety via debate (2018)', url: 'https://arxiv.org/abs/1805.00899', note: 'The founding protocol.' },
+    ],
+  },
+
+  theoryResearch: {
+    paragraphs: [
+      'The bet that alignment needs foundations, not just iteration: agent foundations (embedded agency, decision theory, logical uncertainty), formal accounts of corrigibility, eliciting latent knowledge, and provable-safety agendas that want mathematical guarantees rather than empirical reassurance. Its animating claim: patch-and-test works until the system is smart enough that the first real failure is the last, so someone had better understand what "aligned" even means precisely.',
+      'Theory matters most exactly where the empirical programs’ assumptions fail — if corrigibility is anti-natural and oversight can be fooled, only conceptual progress turns doom-by-default into a solvable problem. Its critics note three decades of hard problems with few load-bearing results and argue the frontier moved to empirical alignment for good reasons. Its defenders answer that nobody else is even trying to make the guarantees the stakes demand.',
+    ],
+    positions: [
+      { name: 'Necessary core', stance: 'MIRI-line: without theory, empirical alignment is confident guessing at the worst stakes.' },
+      { name: 'Insurance policy', stance: 'Low probability of decisive results, but uniquely valuable in the hardest worlds — fund it as a hedge.' },
+      { name: 'Degenerating program', stance: 'Decades of effort, little practical reach; marginal talent does more good elsewhere.' },
+    ],
+    references: [
+      { kind: 'post', label: 'ARC — Eliciting Latent Knowledge (2021)', url: 'https://www.lesswrong.com/posts/qHCDysDnvhteW7kRd/arc-s-first-technical-report-eliciting-latent-knowledge', note: 'The sharpest modern statement of a core theoretical problem.' },
+      { kind: 'paper', label: 'Demski & Garrabrant — Embedded Agency (2019)', url: 'https://arxiv.org/abs/1902.09469', note: 'The agent-foundations map: why standard decision theory breaks for embedded agents.' },
+      { kind: 'paper', label: 'Tegmark & Omohundro — Provably Safe Systems (2023)', url: 'https://arxiv.org/abs/2309.01933', note: 'The guarantees-first agenda, stated maximally.' },
+      { kind: 'paper', label: 'Soares et al. — Corrigibility (2015)', url: 'https://intelligence.org/files/Corrigibility.pdf', note: 'The kind of formal problem this area exists to crack.' },
+    ],
+  },
+
+  evalsResearch: {
+    paragraphs: [
+      'The science of catching misalignment before it matters: dangerous-capability evaluations, red-teaming, and model organisms — deliberately building small-scale schemers (sleeper agents, in-context schemers) to test whether our training and detection actually remove or reveal deception. It is the empirical wing of the deception question: rather than betting on whether scheming is the training default, measure it, provoke it in the lab, and build the detectors.',
+      'Its payoff is gated by the deception factor itself. In a faithful world evals are cheap insurance and capability bookkeeping. In a deceptive world they are the tripwire everything else depends on — control needs evals to know the leash is holding, oversight needs them to know judges are not being gamed, and governance needs them to know when to stop. The known hard problem: a smart-enough schemer sandbagging its own evaluation, which is why the field pairs behavioral evals with internals-based detection.',
+    ],
+    positions: [
+      { name: 'The tripwire', stance: 'Apollo/METR-line: eval science is the highest-leverage safety work because every other safeguard consumes its output.' },
+      { name: 'Necessary but gameable', stance: 'Sandbagging and situational awareness eventually beat behavioral evals; pair with interpretability.' },
+      { name: 'Capability theater', stance: 'Evals mostly legitimize deployment; the marginal safety comes from elsewhere.' },
+    ],
+    references: [
+      { kind: 'post', label: 'Hubinger — Model Organisms of Misalignment: The Case for a New Pillar of Alignment Research (2023)', url: 'https://www.lesswrong.com/posts/ChDH335ckdvpxXaXX/model-organisms-of-misalignment-the-case-for-a-new-pillar-of-1', note: 'The agenda-setting case for building schemers to study them.' },
+      { kind: 'paper', label: 'Hubinger et al. — Sleeper Agents (2024)', url: 'https://arxiv.org/abs/2401.05566', note: 'Trained-in deception surviving safety training — the founding model organism.' },
+      { kind: 'paper', label: 'Meinke et al. (Apollo) — Frontier Models are Capable of In-context Scheming (2024)', url: 'https://arxiv.org/abs/2412.04984', note: 'Frontier systems scheming in evaluations today.' },
+      { kind: 'paper', label: 'Shevlane et al. — Model evaluation for extreme risks (2023)', url: 'https://arxiv.org/abs/2305.15324', note: 'The dangerous-capability evals framework.' },
     ],
   },
 };

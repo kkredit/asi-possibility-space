@@ -57,6 +57,19 @@ The "measure by" selector on the *Factors* tornado surfaces this per dimension.
 
 ---
 
+## 1.5 The alignment sub-layer (added): decomposition without space cost
+
+The standing request to "model alignment in more detail" is now resolved by a
+**two-layer belief model** rather than new first-class factors: eight subfactors
+(4 objective — interpretability legibility, value specification, corrigibility
+basin, oversight scalability; 4 influenceable research areas — interp, scalable
+oversight, agent foundations, evals) live in the belief layer and **derive**
+`tractability` and `alignment-in-time` (docs/MODEL.md §6,
+[`src/model/alignment.ts`](../src/model/alignment.ts)). They carry sliders,
+backgrounds, preset credences, actions and tornado rows — everything a factor has —
+at **zero scenario-space cost**. This is now the default pattern for refining an
+existing factor; reserve first-class factors for genuinely new gates.
+
 ## 2. Candidate factors, ranked by expected usefulness
 
 Usefulness = (opens or modulates a gate) × (fills an under-represented kind) ×

@@ -3,7 +3,6 @@ import { Box, Container, Paper, Tab, Tabs, Typography } from '@mui/material';
 import { dataset } from '@model/dataset';
 import {
   analyze,
-  applyAction,
   cachedEvaluator,
   distribution,
   doomMass,
@@ -14,6 +13,7 @@ import {
   rankActions,
   reconcileJoint,
   scalarize,
+  shiftedCredences,
   zeroVector,
 } from '@engine/index';
 import { Controls } from '@shell/controls/Controls';
@@ -94,6 +94,10 @@ export function App() {
   const pins = useBeliefs((s) => s.pins);
   const probabilityModel = useBeliefs((s) => s.probabilityModel);
   const bayesProbability = useBeliefs((s) => s.bayesProbability);
+  const subCredencesState = useBeliefs((s) => s.subCredences);
+  const alignmentMode = useBeliefs((s) => s.alignmentMode);
+  // Sub-layer beliefs drive the research-area actions only while derived.
+  const subCredences = alignmentMode === 'derived' ? subCredencesState : undefined;
   const [tab, setTab] = useState(readUrlTab);
   const selectTab = (i: number) => {
     setTab(i);
@@ -130,20 +134,21 @@ export function App() {
     return m;
   }, [weights]);
   const actions = useMemo(() => {
-    if (!netMode || !dataset.bayesNet) return rankActions(dataset, credences, weights, evaluator, pins);
-    // Net mode: apply the action to the credence marginals, then re-rake the net's
-    // correlation structure to the shifted marginals so the effect propagates.
+    if (!netMode || !dataset.bayesNet) return rankActions(dataset, credences, weights, evaluator, pins, subCredences);
+    // Net mode: apply the action to the credence marginals (through the sub-layer
+    // when it's active), then re-rake the net's correlation structure to the
+    // shifted marginals so the effect propagates.
     const baselineEv = analysis.ev;
     const ranked = dataset.actions
       .map((action) => {
-        const shifted = applyAction(credences, action);
+        const shifted = shiftedCredences(dataset, credences, action, subCredences);
         const r = reconcileJoint(dataset.bayesNet!, dataset.factors, shifted, shifted);
         const res = analyze(dataset, credences, weights, evaluator, pins, r.probability);
         return { action, ev: res.ev, evGain: res.ev - baselineEv, evVector: res.evVector };
       })
       .sort((a, b) => b.evGain - a.evGain);
     return { baselineEv, ranked };
-  }, [netMode, credences, weights, evaluator, pins, analysis]);
+  }, [netMode, credences, weights, evaluator, pins, analysis, subCredences]);
   // The scatter plots a comparison model (x) against the hand-reasoned surface (y).
   // Comparing cached-vs-cached is a useless diagonal, so when cached is selected we
   // fall back to the fitted additive model — the honest null model.
@@ -229,6 +234,7 @@ export function App() {
 
             {tab === 1 && (
               <ActionsTab
+                subCredences={subCredences}
                 credences={credences}
                 weights={weights}
                 evaluator={evaluator}
@@ -239,6 +245,7 @@ export function App() {
 
             {tab === 2 && (
               <FactorsTab
+                subCredences={subCredences}
                 credences={credences}
                 weights={weights}
                 evaluator={evaluator}

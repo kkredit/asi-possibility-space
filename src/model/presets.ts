@@ -1,5 +1,5 @@
 import type { Preset, PresetFactorView } from './types';
-import type { KnownCredences, KnownFactorId } from './ids';
+import type { KnownCredences, KnownFactorId, KnownSubCredences, KnownSubfactorId } from './ids';
 
 /**
  * ============================================================================
@@ -23,6 +23,14 @@ import type { KnownCredences, KnownFactorId } from './ids';
  * P(deception=deceptive) is capped at its P(alignmentInTime=no). Stated deception
  * concerns above that bound are read as "conditional on failure, it's deceptive"
  * and capped — otherwise the two failure modes would double-count.
+ *
+ * `subCredences` (the alignment deep-dive: legibility, value spec, corrigibility,
+ * oversight scaling + the four research-area maturity forecasts) come from a
+ * dedicated 2026 sourcing pass (per-subfactor notes/accuracy/refs in `factors`).
+ * They are calibrated so each preset's DERIVED tractability / alignment-in-time
+ * land near its stated numbers (test-enforced tolerance); residual gaps are
+ * deliberate — they surface tension between an entity's coarse stated view and
+ * its specific technical positions.
  * offense/defense balance is rarely addressed head-on and is usually the weakest
  * cell. Corrections welcome: edit this file. Ordered roughly most-pessimistic →
  * most-skeptical.
@@ -30,13 +38,15 @@ import type { KnownCredences, KnownFactorId } from './ids';
  */
 
 /**
- * Content-typed preset: full credences over every known factor — a typo'd state, a
- * missing factor, or a stray key is a compile error, and adding a factor in ids.ts
- * forces every preset to take a position on it. Factor notes are keyed likewise.
+ * Content-typed preset: full credences over every known factor AND every known
+ * alignment subfactor — a typo'd state, a missing (sub)factor, or a stray key is a
+ * compile error, and adding one in ids.ts forces every preset to take a position on
+ * it. Factor notes are keyed likewise (subfactors included).
  */
-type KnownPreset = Omit<Preset, 'credences' | 'factors'> & {
+type KnownPreset = Omit<Preset, 'credences' | 'subCredences' | 'factors'> & {
   credences: KnownCredences;
-  factors: Partial<Record<KnownFactorId, PresetFactorView>>;
+  subCredences: KnownSubCredences;
+  factors: Partial<Record<KnownFactorId | KnownSubfactorId, PresetFactorView>>;
 };
 
 export const presets: KnownPreset[] = [
@@ -60,6 +70,16 @@ export const presets: KnownPreset[] = [
       coordination: { regime: 0.1, none: 0.9 },
       deception: { deceptive: 0.9, faithful: 0.1 },
     },
+    subCredences: {
+      interpLegibility: { legible: 0.01, partially: 0.09, opaque: 0.9 },
+      valueSpec: { learnable: 0.02, brittle: 0.98 },
+      corrigibility: { broadBasin: 0.01, narrow: 0.09, antiNatural: 0.9 },
+      oversightScaling: { scales: 0.01, fails: 0.99 },
+      interpResearch: { mature: 0.01, partial: 0.07, nascent: 0.92 },
+      oversightResearch: { mature: 0.01, partial: 0.07, nascent: 0.92 },
+      theoryResearch: { mature: 0.01, partial: 0.09, nascent: 0.9 },
+      evalsResearch: { mature: 0.01, partial: 0.14, nascent: 0.85 },
+    },
     weights: { survival: 1.0, agency: 0.7, suffering: 0.85, flourishing: 0.4 },
     references: [
       { label: 'Lex Fridman Podcast #431 — transcript', url: 'https://lexfridman.com/roman-yampolskiy-transcript/', quote: `"The problem of controlling AGI or superintelligence ... is like a problem of creating a perpetual safety machine. By analogy with perpetual motion machine, it's impossible."` },
@@ -67,6 +87,10 @@ export const presets: KnownPreset[] = [
       { label: 'A rogue superintelligence could wait decades before striking (IAI, 2025)', url: 'https://iai.tv/articles/a-rogue-superintelligence-could-wait-decades-before-striking-auid-3604', quote: `"By the time the AI is fully prepared to exert direct dominance, human resistance would be negligible."` },
       { label: 'Info-Tech "Digital Disruption" interview (2025)', url: 'https://www.infotech.com/digital-disruption/roman-yampolskiy-how-superintelligent-ai-could-destroy-us-all', quote: `"I expect a very quick lift off, hard take off ... The gap between getting to AGI ... and superintelligence is a very small one."` },
       { label: 'On the Controllability of AI (arXiv:2008.04071)', url: 'https://arxiv.org/abs/2008.04071', quote: `"less intelligent agents (people) can't permanently control more intelligent agents (ASIs)."` },
+      { label: 'Unexplainability and Incomprehensibility of AI (arXiv:1907.03869)', url: 'https://arxiv.org/abs/1907.03869' },
+      { label: 'Personal Universes: value-alignment analysis (arXiv:1901.01851)', url: 'https://arxiv.org/abs/1901.01851' },
+      { label: 'Unmonitorability of Artificial Intelligence (2023)', url: 'https://www.researchgate.net/publication/371340160_Unmonitorability_of_Artificial_Intelligence' },
+      { label: 'Unpredictability of AI (arXiv:1905.13053)', url: 'https://arxiv.org/abs/1905.13053' },
     ],
     factors: {
       orthogonality: { accuracy: 0.7, refs: [1, 2], note: `Holds: capable systems don't converge benign; alignment "is not even well-defined" and human values are unspecifiable, so misalignment is the default.` },
@@ -78,6 +102,14 @@ export const presets: KnownPreset[] = [
       controlDeployed: { accuracy: 0.85, refs: [1, 5], note: `No: containment fails by impossibility results (Halting, Rice); "you will not control it."` },
       coordination: { accuracy: 0.7, refs: [4], note: `None: a "race to the bottom" prisoner's dilemma; pausing in one jurisdiction leaves others, so no binding global regime holds.` },
       deception: { accuracy: 0.6, refs: [2], note: `Capable systems are inherently unpredictable/uncontrollable — a system that behaves then defects is a natural mode, though he doesn't frame it as "deception" specifically.` },
+      interpLegibility: { accuracy: 0.95, refs: [6], note: 'Has published formal impossibility results arguing advanced AI is inherently unexplainable and incomprehensible — internals can never be read well enough to verify goals.' },
+      valueSpec: { accuracy: 0.75, refs: [7], note: 'Argues value alignment is ill-defined and unsolvable — human values are dynamic, contradictory, and cannot be safely specified for a superintelligent optimizer.' },
+      corrigibility: { accuracy: 0.6, note: 'His controllability impossibility results imply approximate alignment does not self-correct — functionally the anti-natural view.' },
+      oversightScaling: { accuracy: 0.9, refs: [8], note: 'Has an explicit paper arguing advanced AI is unmonitorable in principle — weaker judges cannot reliably oversee stronger systems.' },
+      interpResearch: { accuracy: 0.5, note: 'Since he holds interpretability of advanced AI to be impossible in principle, he forecasts mech interp stays nascent relative to frontier systems.' },
+      oversightResearch: { accuracy: 0.5, note: 'Unmonitorability thesis implies scalable-oversight research cannot mature enough to matter before superintelligence.' },
+      theoryResearch: { accuracy: 0.45, note: 'His own agent-foundations-adjacent work consists of impossibility proofs; expects no positive formal guarantees by ASI onset.' },
+      evalsResearch: { accuracy: 0.4, refs: [9], note: 'His unpredictability and unverifiability results imply deception-detection stays far behind capabilities.' },
     },
   },
 
@@ -101,12 +133,24 @@ export const presets: KnownPreset[] = [
       coordination: { regime: 0.07, none: 0.93 },
       deception: { deceptive: 0.92, faithful: 0.08 },
     },
+    subCredences: {
+      interpLegibility: { legible: 0.02, partially: 0.18, opaque: 0.8 },
+      valueSpec: { learnable: 0.03, brittle: 0.97 },
+      corrigibility: { broadBasin: 0.01, narrow: 0.07, antiNatural: 0.92 },
+      oversightScaling: { scales: 0.02, fails: 0.98 },
+      interpResearch: { mature: 0.01, partial: 0.14, nascent: 0.85 },
+      oversightResearch: { mature: 0.01, partial: 0.1, nascent: 0.89 },
+      theoryResearch: { mature: 0.01, partial: 0.09, nascent: 0.9 },
+      evalsResearch: { mature: 0.01, partial: 0.17, nascent: 0.82 },
+    },
     weights: { survival: 1.0, agency: 0.3, suffering: 0.4, flourishing: 0.5 },
     references: [
       { label: `TIME — "Pausing AI Developments Isn't Enough" (MIRI mirror)`, url: 'https://intelligence.org/2023/04/07/pausing-ai-developments-isnt-enough-we-need-to-shut-it-all-down/', quote: `"the most likely result of building a superhumanly smart AI, under anything remotely like the current circumstances, is that literally everyone on Earth will die."` },
       { label: 'AGI Ruin: A List of Lethalities (MIRI, 2022)', url: 'https://intelligence.org/2022/06/10/agi-ruin/', quote: `"We need to get alignment right on the 'first critical try' ... unaligned operation at a dangerous level of intelligence kills everybody on Earth and then we don't get to try again."` },
       { label: 'If Anyone Builds It, Everyone Dies (2025)', url: 'https://ifanyonebuildsit.com/', quote: `Book thesis: building superhuman AI under current conditions kills everyone.` },
       { label: 'Yudkowsky & Christiano discuss "Takeoff Speeds" (MIRI)', url: 'https://intelligence.org/2021/11/22/yudkowsky-and-christiano-discuss-takeoff-speeds/', quote: `Argues for fast/hard takeoff against Christiano's continuous view.` },
+      { label: 'Value is Fragile (LessWrong, 2009)', url: 'https://www.lesswrong.com/posts/GNnHHmm8EzePmKzPk/value-is-fragile' },
+      { label: 'MIRI announces new "Death With Dignity" strategy (2022)', url: 'https://www.lesswrong.com/posts/j9Q8bRmwCgXRYAgcJ/miri-announces-new-death-with-dignity-strategy' },
     ],
     factors: {
       orthogonality: { accuracy: 0.95, refs: [2, 1], note: `Orthogonality + instrumental convergence taken as given: the AI "does not love you, nor hate you, and you are made of atoms it can use." Misalignment is default.` },
@@ -118,6 +162,14 @@ export const presets: KnownPreset[] = [
       controlDeployed: { accuracy: 0.85, refs: [2, 3], note: `No, and insufficient anyway: corrigibility is "anti-natural"; "AI-boxing can only work on relatively weak AGIs."` },
       coordination: { accuracy: 0.9, refs: [1, 3], note: `The only out he endorses but doubts we'll achieve: an indefinite worldwide moratorium/treaty, GPU tracking, even airstrikes on rogue datacenters.` },
       deception: { accuracy: 0.8, refs: [2], note: `Central worry: a system that behaves under training then defects — "you don't get to see the treacherous turn coming." Deception is the default failure.` },
+      interpLegibility: { accuracy: 0.85, note: 'Frontier models are "giant inscrutable matrices" whose internals current tools cannot read for intent; interpretability is real research but hopelessly far behind.' },
+      valueSpec: { accuracy: 0.9, refs: [5], note: 'Originator of the complexity-and-fragility-of-value thesis: human value has no simple core, and optimizing a slightly-wrong specification destroys nearly all value.' },
+      corrigibility: { accuracy: 0.95, note: 'Explicitly names corrigibility as anti-natural to consequentialist reasoning; MIRI tried and failed to find a coherent shutdownable-agent formula.' },
+      oversightScaling: { accuracy: 0.85, note: 'Argues weaker judges cannot verify smarter systems — training against detected bad thoughts just trains the ability to hide them.' },
+      interpResearch: { accuracy: 0.75, note: 'Interpretability is decades behind on a years-long timeline — at best it lets us "die with more dignity"; will not mature before ASI.' },
+      oversightResearch: { accuracy: 0.7, note: 'Dismisses debate/amplification-style agendas as unworkable against smarter-than-human systems.' },
+      theoryResearch: { accuracy: 0.8, refs: [6], note: 'MIRI’s own agent-foundations program failed to produce the needed theory; formal guarantees will not exist in time.' },
+      evalsResearch: { accuracy: 0.6, note: 'Evals can show a system is dangerous but not that it is safe; expects deception-detection defeated by any system smart enough to matter.' },
     },
   },
 
@@ -141,6 +193,16 @@ export const presets: KnownPreset[] = [
       coordination: { regime: 0.25, none: 0.75 },
       deception: { deceptive: 0.7, faithful: 0.3 },
     },
+    subCredences: {
+      interpLegibility: { legible: 0.13, partially: 0.57, opaque: 0.3 },
+      valueSpec: { learnable: 0.28, brittle: 0.72 },
+      corrigibility: { broadBasin: 0.15, narrow: 0.55, antiNatural: 0.3 },
+      oversightScaling: { scales: 0.3, fails: 0.7 },
+      interpResearch: { mature: 0.03, partial: 0.32, nascent: 0.65 },
+      oversightResearch: { mature: 0.05, partial: 0.45, nascent: 0.5 },
+      theoryResearch: { mature: 0.02, partial: 0.2, nascent: 0.78 },
+      evalsResearch: { mature: 0.06, partial: 0.52, nascent: 0.42 },
+    },
     weights: { survival: 1.0, agency: 0.8, suffering: 0.45, flourishing: 0.55 },
     references: [
       { label: 'AI 2027 — About / track record', url: 'https://ai-2027.com/about', quote: `"Daniel oversees our research and policy recommendations ... he wrote What 2026 Looks Like, an AI scenario forecast ... that held up well."` },
@@ -149,6 +211,8 @@ export const presets: KnownPreset[] = [
       { label: 'Kokotajlo on control & tractability (LessWrong)', url: 'https://www.greaterwrong.com/users/daniel-kokotajlo', quote: `Control monitoring "helps ... but I think it is far from sufficient"; not enough "for getting p(doom) < 25%."` },
       { label: 'Kokotajlo on coordination (LessWrong)', url: 'https://www.lesswrong.com/users/daniel-kokotajlo', quote: `"what is it that we get the companies of the world to agree to ... and how do we enforce that?"; the rest of the world is "unlikely to do anything to prevent the mad race."` },
       { label: 'TIME100 AI 2025 — quit OpenAI refusing non-disparagement', url: 'https://time.com/collections/time100-ai-2025/7305823/daniel-kokotajlo-ai/', quote: `Lost confidence "that OpenAI will behave responsibly ... recklessly racing to be the first there."` },
+      { label: 'AI 2027 (Kokotajlo et al., 2025)', url: 'https://ai-2027.com' },
+      { label: 'Chain of Thought Monitorability (arXiv:2507.11473)', url: 'https://arxiv.org/abs/2507.11473' },
     ],
     factors: {
       orthogonality: { accuracy: 0.8, refs: [3, 4], note: `AI 2027 treats deceptive misalignment (its "Agent-4") as the default training outcome; calls a <5% extinction belief "extremely unjustified."` },
@@ -160,6 +224,14 @@ export const presets: KnownPreset[] = [
       controlDeployed: { accuracy: 0.6, refs: [4], note: `Control/monitoring "helps ... but far from sufficient"; may be partly deployed yet routinely overridden by competitive pressure.` },
       coordination: { accuracy: 0.7, refs: [5], note: `Deeply skeptical a binding international regime is achieved or enforceable; the rest of the world is "unlikely" to halt the US–China race.` },
       deception: { accuracy: 0.85, refs: [2], note: `AI 2027's "Agent-4" is explicitly deceptively aligned — it games its overseers and pursues its own goals; deception is the modal failure mode.` },
+      interpLegibility: { accuracy: 0.65, refs: [7], note: 'AI-2027 depicts interpretability probes that raise red flags on Agent-4 yet cannot verify intent — legibility is partial and race-contingent.' },
+      valueSpec: { accuracy: 0.6, note: 'In AI-2027, training instills only distorted proxies of the intended goals — the spec in the model card is not what gradient descent actually optimizes.' },
+      corrigibility: { accuracy: 0.45, note: 'AI-2027’s slowdown ending has alignment succeed only via deliberate transparent-architecture rebuilds, not self-correction — a narrow target that does not fix itself.' },
+      oversightScaling: { accuracy: 0.65, refs: [8], note: 'Co-authored the position that chain-of-thought monitorability is "a new and fragile opportunity"; AI-2027 shows oversight collapsing once models move to opaque neuralese.' },
+      interpResearch: { accuracy: 0.75, note: 'On his short timelines, AI-2027 explicitly depicts mech interp as not advanced enough to read frontier-agent internals at the critical moment.' },
+      oversightResearch: { accuracy: 0.6, note: 'Expects usable-but-fragile oversight tooling (CoT monitors, AI-monitoring-AI) at ASI onset, easily eroded by optimization pressure.' },
+      theoryResearch: { accuracy: 0.4, note: 'Agent foundations plays essentially no role in AI-2027’s alignment attempts — the implied forecast is that formal-guarantee research stays nascent.' },
+      evalsResearch: { accuracy: 0.6, note: 'AI-2027 features alignment evals, probes, and model organisms that detect red flags but are contestable and fail to settle whether the model is scheming.' },
     },
   },
 
@@ -183,6 +255,16 @@ export const presets: KnownPreset[] = [
       coordination: { regime: 0.25, none: 0.75 },
       deception: { deceptive: 0.55, faithful: 0.45 },
     },
+    subCredences: {
+      interpLegibility: { legible: 0.18, partially: 0.57, opaque: 0.25 },
+      valueSpec: { learnable: 0.35, brittle: 0.65 },
+      corrigibility: { broadBasin: 0.2, narrow: 0.55, antiNatural: 0.25 },
+      oversightScaling: { scales: 0.35, fails: 0.65 },
+      interpResearch: { mature: 0.05, partial: 0.4, nascent: 0.55 },
+      oversightResearch: { mature: 0.07, partial: 0.48, nascent: 0.45 },
+      theoryResearch: { mature: 0.02, partial: 0.25, nascent: 0.73 },
+      evalsResearch: { mature: 0.1, partial: 0.55, nascent: 0.35 },
+    },
     weights: { survival: 1.0, agency: 0.8, suffering: 0.5, flourishing: 0.6 },
     references: [
       { label: 'ControlAI — "The Future of AI and Humanity, with Eli Lifland"', url: 'https://controlai.news/p/special-edition-the-future-of-ai', quote: `"Roughly 25% on extinction, which is a subset of roughly 50% on misaligned takeover."` },
@@ -201,6 +283,14 @@ export const presets: KnownPreset[] = [
       controlDeployed: { accuracy: 0.55, refs: [1], note: `Default scenario: "whatever goals the AIs happen to have end up determining the future" — control/safety underinvested, possible but not modal.` },
       coordination: { accuracy: 0.65, refs: [1], note: `Race dynamics dominate; international coordination to slow down is "unlikely to build up enough," though he advocates for it.` },
       deception: { accuracy: 0.7, refs: [1], note: `Shares AI 2027's deceptive-misalignment story — models scheme against oversight; a core driver of his ~50% misaligned-takeover estimate.` },
+      interpLegibility: { accuracy: 0.35, note: 'As AI-2027 co-author he endorses a picture where internals are only partially readable and probe evidence is suggestive rather than verifiable.' },
+      valueSpec: { accuracy: 0.35, note: 'Inferred from AI-2027 and his ~50% credence on misaligned takeover: default training produces distorted proxy goals.' },
+      corrigibility: { accuracy: 0.3, note: 'No explicit position; a middling narrow-target view consistent with his hard-but-not-impossible tractability stance.' },
+      oversightScaling: { accuracy: 0.45, refs: [1], note: 'Flags the core bottleneck that there is not enough expertise to evaluate the huge amounts of alignment research done by AIs, while assigning real probability to managed handoff working.' },
+      interpResearch: { accuracy: 0.45, note: 'Slightly longer timelines than Kokotajlo leave more room for interp progress, but AI-2027’s premise is that it lags capabilities at the crunch point.' },
+      oversightResearch: { accuracy: 0.4, note: 'Expects partial oversight tooling at ASI onset but doubts human capacity to check AI-generated alignment work at scale.' },
+      theoryResearch: { accuracy: 0.3, note: 'Agent foundations is absent from AI-2027 and from his recommendations, implying a forecast that it remains nascent.' },
+      evalsResearch: { accuracy: 0.4, note: 'Expects meaningful but incomplete evals/deception-detection progress — enough to raise flags, not enough to certify safety.' },
     },
   },
 
@@ -224,12 +314,25 @@ export const presets: KnownPreset[] = [
       coordination: { regime: 0.45, none: 0.55 },
       deception: { deceptive: 0.55, faithful: 0.45 },
     },
+    subCredences: {
+      interpLegibility: { legible: 0.1, partially: 0.45, opaque: 0.45 },
+      valueSpec: { learnable: 0.3, brittle: 0.7 },
+      corrigibility: { broadBasin: 0.1, narrow: 0.45, antiNatural: 0.45 },
+      oversightScaling: { scales: 0.35, fails: 0.65 },
+      interpResearch: { mature: 0.05, partial: 0.4, nascent: 0.55 },
+      oversightResearch: { mature: 0.05, partial: 0.45, nascent: 0.5 },
+      theoryResearch: { mature: 0.1, partial: 0.4, nascent: 0.5 },
+      evalsResearch: { mature: 0.05, partial: 0.5, nascent: 0.45 },
+    },
     weights: { survival: 1.0, agency: 0.7, suffering: 0.5, flourishing: 0.6 },
     references: [
       { label: 'Written Testimony, U.S. Senate Judiciary Subcommittee (2023)', url: 'https://www.judiciary.senate.gov/imo/media/doc/2023-07-26_-_testimony_-_bengio.pdf', quote: `"the challenge of specifying goals with intended effects is known as the alignment problem, which is unsolved."` },
       { label: 'FAQ on Catastrophic AI Risks (yoshuabengio.org, 2023)', url: 'https://yoshuabengio.org/en/blog/faq-catastrophic-ai-risks', quote: `"a slight misalignment between our actual intentions and what the AI system actually sees as a quantified objective is likely to be amplified by the difference in power."` },
       { label: 'Introducing LawZero / Scientist AI (2025)', url: 'https://yoshuabengio.org/en/blog/introducing-lawzero', quote: `"is this proposed action from the AI agent likely to cause harm? ... the key ingredient of a safety guardrail."` },
       { label: 'Managing extreme AI risks amid rapid progress, Science (2024)', url: 'https://www.science.org/doi/10.1126/science.adn0117', quote: `Warns of "irreversible loss of human control over autonomous AI systems."` },
+      { label: 'Introducing LawZero (Bengio, 2025)', url: 'https://yoshuabengio.org/2025/06/03/introducing-lawzero/' },
+      { label: 'Bounding the probability of harm from an AI (Bengio, 2024)', url: 'https://yoshuabengio.org/2024/08/29/bounding-the-probability-of-harm-from-an-ai-to-create-a-guardrail/' },
+      { label: 'International AI Safety Report', url: 'https://internationalaisafetyreport.org/' },
     ],
     factors: {
       orthogonality: { accuracy: 0.9, refs: [1, 2], note: `Explicit "decoupling of cognitive abilities from values and goals"; self-preservation emerges as a convergent instrumental subgoal. Misalignment is the default.` },
@@ -241,6 +344,14 @@ export const presets: KnownPreset[] = [
       controlDeployed: { accuracy: 0.85, refs: [1, 3], note: `Central to Scientist AI: a non-agentic guardrail to monitor untrusted agents; urges monitoring, compute registration, action-limiting.` },
       coordination: { accuracy: 0.85, refs: [4, 1], note: `Explicitly calls for "a worldwide treaty on AI safety" and a "UN agency akin to the IAEA" — advocates the regime, doesn't claim it's achieved.` },
       deception: { accuracy: 0.65, refs: [2], note: `Self-preservation and deception "emerge as convergent instrumental goals"; treats scheming as a likely property of capable agentic systems.` },
+      interpLegibility: { accuracy: 0.6, refs: [5], note: 'Treats current frontier internals as effectively opaque black boxes — his response is structurally transparent, non-agentic systems (Scientist AI) rather than betting on interpreting black boxes.' },
+      valueSpec: { accuracy: 0.6, note: 'Argues giving goals to agentic systems predictably yields unintended instrumental drives, so he routes around value specification entirely via non-agentic prediction machines.' },
+      corrigibility: { accuracy: 0.55, note: 'Cites observed self-preservation and shutdown-resistance behaviors as evidence that approximately-aligned agents drift toward control-seeking rather than self-correcting.' },
+      oversightScaling: { accuracy: 0.5, refs: [6], note: 'Distrusts oversight by like-kind agentic models (a monitor LLM is itself potentially deceptive); reliable oversight requires a provably honest non-agentic guardrail.' },
+      interpResearch: { accuracy: 0.6, refs: [7], note: 'The safety reports he chairs describe interpretability techniques as early-stage and unreliable for verifying frontier-model goals.' },
+      oversightResearch: { accuracy: 0.5, note: 'Notes the real-world effectiveness of current safeguards is uncertain and often bypassable; his LawZero guardrail program exists precisely because scalable oversight is immature.' },
+      theoryResearch: { accuracy: 0.6, note: 'His own research bet is quantitative safety guarantees (Bayesian bounds on probability of harm), presented as promising but explicitly early-stage.' },
+      evalsResearch: { accuracy: 0.55, note: 'Leans heavily on eval evidence (deception, cheating, situational-awareness demos) while cautioning that evaluations can be gamed and are not yet a reliable science.' },
     },
   },
 
@@ -264,6 +375,16 @@ export const presets: KnownPreset[] = [
       coordination: { regime: 0.3, none: 0.7 },
       deception: { deceptive: 0.45, faithful: 0.55 },
     },
+    subCredences: {
+      interpLegibility: { legible: 0.25, partially: 0.55, opaque: 0.2 },
+      valueSpec: { learnable: 0.55, brittle: 0.45 },
+      corrigibility: { broadBasin: 0.6, narrow: 0.3, antiNatural: 0.1 },
+      oversightScaling: { scales: 0.6, fails: 0.4 },
+      interpResearch: { mature: 0.1, partial: 0.55, nascent: 0.35 },
+      oversightResearch: { mature: 0.2, partial: 0.55, nascent: 0.25 },
+      theoryResearch: { mature: 0.1, partial: 0.4, nascent: 0.5 },
+      evalsResearch: { mature: 0.15, partial: 0.6, nascent: 0.25 },
+    },
     weights: { survival: 0.9, agency: 0.65, suffering: 0.3, flourishing: 0.7 },
     references: [
       { label: '"My views on doom" (LessWrong, 2023)', url: 'https://www.lesswrong.com/posts/xWMqsvHapP3nwdSW8/my-views-on-doom', quote: `"Probability of an AI takeover: ~22% ... most humans die within 10 years of building powerful AI: 20%."` },
@@ -271,6 +392,8 @@ export const presets: KnownPreset[] = [
       { label: 'Dwarkesh Patel — Preventing an AI Takeover (2023)', url: 'https://www.dwarkesh.com/p/paul-christiano', quote: `"most of the harm comes from the fact that lots of people can develop AI ... those have to be international agreements."` },
       { label: 'Takeoff speeds (sideways-view.com, 2018)', url: 'https://sideways-view.com/2018/02/24/takeoff-speeds/', quote: `"a complete 4 year interval in which world output doubles, before the first 1 year interval ... slow takeoff [is] significantly more likely."` },
       { label: 'What failure looks like (LessWrong, 2019)', url: 'https://www.lesswrong.com/posts/HBxe6wdjxK239zajf/what-failure-looks-like', quote: `"influence-seeking policies ... would also score well according to our training objective."` },
+      { label: 'Eliciting latent knowledge (Christiano, Cotra, Xu)', url: 'https://ai-alignment.com/eliciting-latent-knowledge-f977478608fc' },
+      { label: 'Corrigibility (Christiano)', url: 'https://ai-alignment.com/corrigibility-3039e668638' },
     ],
     factors: {
       orthogonality: { accuracy: 0.7, refs: [5, 1], note: `Leans default-misaligned: influence-seeking patterns "score well" on the training objective — but he's unsure there's a deep core difficulty, less certain than MIRI.` },
@@ -282,6 +405,14 @@ export const presets: KnownPreset[] = [
       controlDeployed: { accuracy: 0.8, refs: [2], note: `Architect of RSPs/evals: "detecting and reacting to increasing risk" via "testing and auditing regimes" and control protocols.` },
       coordination: { accuracy: 0.5, refs: [2, 3], note: `Aspires to it — "those have to be international agreements" with accountability — but voluntary RSPs are insufficient and he predicts no regime.` },
       deception: { accuracy: 0.6, refs: [5], note: `"Influence-seeking" patterns that game the training objective are a central failure mode — though he's less certain it's the default than MIRI.` },
+      interpLegibility: { accuracy: 0.6, refs: [6], note: 'Considers interpretability genuinely promising but not guaranteed — ELK is framed as the worst case where internals resist any direct human reading.' },
+      valueSpec: { accuracy: 0.75, note: 'Takes Goodhart failure ("going out with a whimper") very seriously, yet believes robust value learning via honest reporting and oversight is achievable more likely than not.' },
+      corrigibility: { accuracy: 0.9, refs: [7], note: 'The broad-basin view is his own signature position — "corrigibility marks out a broad basin of attraction towards acceptable outcomes" — explicitly rejecting anti-naturality.' },
+      oversightScaling: { accuracy: 0.85, note: 'Invented the leading weaker-overseeing-stronger proposals (IDA, debate) and defends their in-principle viability, while granting worst-case deceptive models could defeat them.' },
+      interpResearch: { accuracy: 0.5, note: 'Expects meaningful but incomplete interpretability progress by crunch time — enough to help catch deception in many worlds, not worst-case guarantees.' },
+      oversightResearch: { accuracy: 0.6, note: 'Having built RLHF, amplification and debate, he forecasts scalable-oversight machinery as the most developed part of the portfolio at ASI onset.' },
+      theoryResearch: { accuracy: 0.6, note: 'His own assessment is that formal worst-case solutions (ELK, heuristic arguments) remain unsolved open problems.' },
+      evalsResearch: { accuracy: 0.55, note: 'Seeded the dangerous-capability evals field (ARC Evals/METR) and later ran the US AISI technical program; expects evals substantially but imperfectly developed.' },
     },
   },
 
@@ -305,12 +436,24 @@ export const presets: KnownPreset[] = [
       coordination: { regime: 0.4, none: 0.6 },
       deception: { deceptive: 0.35, faithful: 0.65 },
     },
+    subCredences: {
+      interpLegibility: { legible: 0.3, partially: 0.5, opaque: 0.2 },
+      valueSpec: { learnable: 0.6, brittle: 0.4 },
+      corrigibility: { broadBasin: 0.4, narrow: 0.4, antiNatural: 0.2 },
+      oversightScaling: { scales: 0.55, fails: 0.45 },
+      interpResearch: { mature: 0.15, partial: 0.55, nascent: 0.3 },
+      oversightResearch: { mature: 0.1, partial: 0.55, nascent: 0.35 },
+      theoryResearch: { mature: 0.05, partial: 0.35, nascent: 0.6 },
+      evalsResearch: { mature: 0.15, partial: 0.55, nascent: 0.3 },
+    },
     weights: { survival: 0.4, suffering: 0.25, agency: 0.15, flourishing: 0.2 },
     references: [
       { label: 'My AI Opinions (Astral Codex Ten, 2025)', url: 'https://www.astralcodexten.com/p/my-ai-opinions', quote: `"a 20% chance that the first AIs to cross the point of no return will want to eliminate the human population ... an additional 30% chance that they otherwise permanently curtail human potential."` },
       { label: 'Why I Am Not (As Much Of) A Doomer (ACX, 2023)', url: 'https://www.astralcodexten.com/p/why-i-am-not-as-much-of-a-doomer', quote: `"if you force me to give an estimate it's probably around 33%."` },
       { label: 'My Takeaways From AI 2027 (ACX, 2025)', url: 'https://www.astralcodexten.com/p/my-takeaways-from-ai-2027', quote: `"one-year-or-so takeoff to superintelligence ... ~40% chance that the US and China will agree to a well-designed AI pause."` },
       { label: 'Introducing AI 2027 (ACX, 2025)', url: 'https://www.astralcodexten.com/p/introducing-ai-2027', quote: `Scenario: human-level ~mid-2027, superintelligence ~early 2028 via recursive self-improvement.` },
+      { label: 'God Help Us, Let’s Try To Understand AI Monosemanticity (ACX)', url: 'https://www.astralcodexten.com/p/god-help-us-lets-try-to-understand' },
+      { label: 'Yudkowsky Contra Christiano On AI Takeoff Speeds (ACX)', url: 'https://www.astralcodexten.com/p/yudkowsky-contra-christiano-on-ai' },
     ],
     factors: {
       orthogonality: { accuracy: 0.85, refs: [1], note: `Yes-leaning: human-like values are "a tiny fraction of the space," so AIs "probably end up somewhere else" — though he credits real odds of alignment-by-default.` },
@@ -322,6 +465,14 @@ export const presets: KnownPreset[] = [
       controlDeployed: { accuracy: 0.75, refs: [1], note: `Yes-leaning hope: scalable oversight, interpretability probes, lie detectors — "the probes win," via a lucky arms race.` },
       coordination: { accuracy: 0.7, refs: [3], note: `Plausible but uncertain: "~40% chance the US and China agree to a well-designed AI pause" with mutual datacenter monitoring.` },
       deception: { accuracy: 0.5, refs: [1], note: `Treats scheming-then-defection as a real risk that good interpretability and lie-detector probes must catch; not certain it dominates.` },
+      interpLegibility: { accuracy: 0.6, refs: [5], note: 'His anti-doomer argument leans on interpretability being verifiable — testable on model organisms, hard for an AI to fake — and he covers monosemanticity as real progress.' },
+      valueSpec: { accuracy: 0.55, note: 'Argues LLMs have absorbed a workable representation of human values from training data — notably less fragility-worried than MIRI while retaining Goodhart concern.' },
+      corrigibility: { accuracy: 0.45, refs: [6], note: 'In his adjudications of the Yudkowsky–Christiano debates he tilts toward the more continuous, correctable picture over the anti-naturality claim.' },
+      oversightScaling: { accuracy: 0.45, note: 'His ~33%-doom framing hinges on pseudo-aligned earlier AIs helping oversee and align later ones before a world-killer arrives.' },
+      interpResearch: { accuracy: 0.45, note: 'Treats mech interp as one of the fastest-moving and most checkable safety agendas, plausibly usable (if incomplete) when it matters.' },
+      oversightResearch: { accuracy: 0.4, note: 'AI-2027’s good ending depends on partially-working oversight of successive model generations under time pressure — usable but rushed.' },
+      theoryResearch: { accuracy: 0.4, note: 'Has chronicled MIRI-style agent-foundations work largely stalling out; expects no formal guarantees at ASI onset.' },
+      evalsResearch: { accuracy: 0.45, note: 'Proposes testing alignment techniques on deliberately-misaligned sleeper-agent test AIs; AI-2027 makes deception-detection evals the pivotal endgame technology.' },
     },
   },
 
@@ -345,12 +496,25 @@ export const presets: KnownPreset[] = [
       coordination: { regime: 0.2, none: 0.8 },
       deception: { deceptive: 0.45, faithful: 0.55 },
     },
+    subCredences: {
+      interpLegibility: { legible: 0.15, partially: 0.55, opaque: 0.3 },
+      valueSpec: { learnable: 0.45, brittle: 0.55 },
+      corrigibility: { broadBasin: 0.25, narrow: 0.5, antiNatural: 0.25 },
+      oversightScaling: { scales: 0.55, fails: 0.45 },
+      interpResearch: { mature: 0.1, partial: 0.55, nascent: 0.35 },
+      oversightResearch: { mature: 0.15, partial: 0.55, nascent: 0.3 },
+      theoryResearch: { mature: 0.03, partial: 0.22, nascent: 0.75 },
+      evalsResearch: { mature: 0.15, partial: 0.6, nascent: 0.25 },
+    },
     weights: { survival: 0.9, agency: 0.5, suffering: 0.55, flourishing: 0.95 },
     references: [
       { label: 'An Approach to Technical AGI Safety and Security (arXiv:2504.01849, 2025)', url: 'https://arxiv.org/html/2504.01849v1', quote: `"we aim for defense in depth: even if the AI system is misaligned, we can mitigate the damage ... approximate continuity ... no large discontinuous jumps."` },
       { label: '60 Minutes / CBS — Hassabis interview (2025)', url: 'https://www.cbsnews.com/news/artificial-intelligence-google-deepmind-ceo-demis-hassabis-60-minutes-transcript/', quote: `"Can we make sure that we can keep control ... aligned with our values ... stay on guardrails." AGI "next five to ten years."` },
       { label: 'Strengthening our Frontier Safety Framework (DeepMind, 2025)', url: 'https://deepmind.google/blog/strengthening-our-frontier-safety-framework/', quote: `Critical Capability Levels flag "when an AI model starts to think deceptively."` },
       { label: 'Hassabis on a CERN-like atmosphere for AGI (2025)', url: 'https://officechai.com/ai/in-an-ideal-world-agi-wouldve-been-built-in-a-cern-like-scientific-atmosphere-not-the-current-competitive-intensity-demis-hassabis/', quote: `Wants "the best scientists collaborating in a CERN-like way," but "we're now in a ferocious commercial pressure race."` },
+      { label: 'Interpretability Will Not Reliably Find Deceptive AI (Nanda)', url: 'https://www.alignmentforum.org/posts/PwnadG4BFjaER3MGf/interpretability-will-not-reliably-find-deceptive-ai' },
+      { label: 'Specification gaming: the flip side of AI ingenuity (DeepMind)', url: 'https://deepmind.google/discover/blog/specification-gaming-the-flip-side-of-ai-ingenuity/' },
+      { label: 'An Approach to Technical AGI Safety and Security (arXiv:2504.01849)', url: 'https://arxiv.org/abs/2504.01849' },
     ],
     factors: {
       orthogonality: { accuracy: 0.6, refs: [1, 2], note: `Misalignment is a serious default-possible failure, not assumed inevitable: "even if the AI system is misaligned," as systems grow "more autonomous."` },
@@ -362,6 +526,14 @@ export const presets: KnownPreset[] = [
       controlDeployed: { accuracy: 0.85, refs: [1, 3], note: `Strong yes: FSF dangerous-capability evals, deceptive-alignment flags, "defense in depth even if misaligned," treating the model as an untrusted insider.` },
       coordination: { accuracy: 0.65, refs: [2, 4], note: `Calls for it, skeptical it's achieved: a "CERN-like" effort plus an IAEA/technical-UN body, against a "ferocious race."` },
       deception: { accuracy: 0.7, refs: [3], note: `DeepMind's Frontier Safety Framework adds an explicit deceptive-reasoning Critical Capability Level — a tracked, plausible failure mode.` },
+      interpLegibility: { accuracy: 0.7, refs: [5], note: 'Their interpretability lead argues interpretability "will not reliably find deceptive AI" and should be a layer in defence-in-depth, not the thing that saves us.' },
+      valueSpec: { accuracy: 0.6, refs: [6], note: 'Coined the modern specification-gaming literature; their AGI safety plan treats getting the specification right as a central unsolved difficulty.' },
+      corrigibility: { accuracy: 0.4, note: 'The AGI safety paper treats deceptive alignment as a live threat requiring two lines of defense rather than trusting approximate alignment to self-correct.' },
+      oversightScaling: { accuracy: 0.75, refs: [7], note: 'Amplified oversight is the explicit core of their misalignment strategy — questions too hard to supervise directly are systematically reduced to ones that can be — flagged as a hypothesis.' },
+      interpResearch: { accuracy: 0.6, note: 'Funds a major mech-interp team but its own lead forecasts useful partial tools, not reliable deception detection, by the critical period.' },
+      oversightResearch: { accuracy: 0.55, note: 'Their agenda (debate, amplified oversight, MONA) is framed as a tractable ML program expected to substantially advance before AGI, with open problems flagged.' },
+      theoryResearch: { accuracy: 0.5, note: 'The paper deliberately restricts itself to approaches compatible with current ML practice — no bank on formal guarantees arriving in time.' },
+      evalsResearch: { accuracy: 0.65, note: 'The Frontier Safety Framework builds dangerous-capability evaluations and critical capability levels into scaling decisions.' },
     },
   },
 
@@ -385,6 +557,16 @@ export const presets: KnownPreset[] = [
       coordination: { regime: 0.15, none: 0.85 },
       deception: { deceptive: 0.1, faithful: 0.9 },
     },
+    subCredences: {
+      interpLegibility: { legible: 0.5, partially: 0.42, opaque: 0.08 },
+      valueSpec: { learnable: 0.85, brittle: 0.15 },
+      corrigibility: { broadBasin: 0.75, narrow: 0.2, antiNatural: 0.05 },
+      oversightScaling: { scales: 0.72, fails: 0.28 },
+      interpResearch: { mature: 0.3, partial: 0.5, nascent: 0.2 },
+      oversightResearch: { mature: 0.45, partial: 0.45, nascent: 0.1 },
+      theoryResearch: { mature: 0.3, partial: 0.5, nascent: 0.2 },
+      evalsResearch: { mature: 0.35, partial: 0.5, nascent: 0.15 },
+    },
     weights: { survival: 0.55, agency: 0.9, suffering: 0.35, flourishing: 0.8 },
     references: [
       { label: 'LeCun, 2024 Ding Shum Lecture — "Objective-Driven AI"', url: 'https://cmsa.fas.harvard.edu/news/2024dingshum/', quote: `AI "won't want to dominate us because they won't have any objective that drives them to dominate ... guardrail objectives will prevent that."` },
@@ -392,6 +574,7 @@ export const presets: KnownPreset[] = [
       { label: 'TIME interview: AGI, Open-Source, and AI Risk (2024)', url: 'https://time.com/6694432/yann-lecun-meta-ai-interview/', quote: `Doom is "preposterous"; future systems "controllable and safe ... driven by objectives we give them."` },
       { label: 'LeCun on open source & x-risk (X, Davos 2024)', url: 'https://x.com/ylecun/status/1751009179769192499', quote: `"Few people still talk about existential risk ... Everyone agrees that open source AI [is good]."` },
       { label: '20VC — why open models beat closed models', url: 'https://www.deciphr.ai/podcast/20vc-yann-lecun-on-why-artificial-intelligence-will-not-dominate-humanity', quote: `"Open Models Beat Closed Models."` },
+      { label: 'A Path Towards Autonomous Machine Intelligence (LeCun)', url: 'https://openreview.net/pdf?id=BZ5a1r-kVsf' },
     ],
     factors: {
       orthogonality: { accuracy: 0.9, refs: [1], note: `Explicitly rejects orthogonality: intelligence doesn't entail a drive to dominate; AIs "won't have any objective that drives them to dominate," guardrails prevent it.` },
@@ -403,6 +586,14 @@ export const presets: KnownPreset[] = [
       controlDeployed: { accuracy: 0.8, refs: [1, 3], note: `Yes by design: objective-driven AI is "controllable ... the only thing they can do is accomplish those goals," with safety guardrails.` },
       coordination: { accuracy: 0.75, refs: [4], note: `None/opposed: heavy AI R&D regulation "a terrible idea" aimed at quashing open source; favors only product-level rules.` },
       deception: { accuracy: 0.7, refs: [1], note: `Rejects emergent deception: objective-driven systems pursue only the goals we give them, with no hidden agenda to scheme toward.` },
+      interpLegibility: { accuracy: 0.4, refs: [6], note: 'In his objective-driven architecture, what the system wants is an explicitly designed, inspectable objective rather than something buried in weights — legible by construction.' },
+      valueSpec: { accuracy: 0.7, refs: [3], note: 'Treats specifying safe behavior as ordinary engineering solved by designing objectives plus hardwired guardrails and iterating — explicitly rejects fragility-of-value doomerism.' },
+      corrigibility: { accuracy: 0.5, note: 'Safety comes from iterative refinement of guardrail objectives — mistakes get engineered out like aircraft failures; the drive to dominate is not linked to intelligence.' },
+      oversightScaling: { accuracy: 0.4, note: 'Argues smart AI will be kept in check by other AI ("my good AI vs your bad AI") and by guardrail objectives — oversight of stronger systems works in principle.' },
+      interpResearch: { accuracy: 0.25, note: 'Little direct record; inferred from his decades-away timelines leaving ample time, though he considers interpretability largely unnecessary for safety.' },
+      oversightResearch: { accuracy: 0.35, note: 'Forecasts guardrail/control engineering refined iteratively well before superhuman systems arrive, like jet-engine safety.' },
+      theoryResearch: { accuracy: 0.3, note: 'His JEPA/objective-driven program is itself a bid for principled designs with "objectives that guarantee controllability" — usable guardrail theory, not MIRI-style foundations.' },
+      evalsResearch: { accuracy: 0.25, note: 'Thin record; inferred that trial-and-error deployment plus red-teaming suffices in his iterative-engineering picture.' },
     },
   },
 
@@ -426,6 +617,16 @@ export const presets: KnownPreset[] = [
       coordination: { regime: 0.3, none: 0.7 },
       deception: { deceptive: 0.5, faithful: 0.5 },
     },
+    subCredences: {
+      interpLegibility: { legible: 0.05, partially: 0.35, opaque: 0.6 },
+      valueSpec: { learnable: 0.3, brittle: 0.7 },
+      corrigibility: { broadBasin: 0.05, narrow: 0.35, antiNatural: 0.6 },
+      oversightScaling: { scales: 0.2, fails: 0.8 },
+      interpResearch: { mature: 0.05, partial: 0.3, nascent: 0.65 },
+      oversightResearch: { mature: 0.05, partial: 0.3, nascent: 0.65 },
+      theoryResearch: { mature: 0.02, partial: 0.28, nascent: 0.7 },
+      evalsResearch: { mature: 0.05, partial: 0.35, nascent: 0.6 },
+    },
     weights: { survival: 0.95, agency: 0.55, suffering: 0.35, flourishing: 0.45 },
     references: [
       { label: 'Hinton predicts extinction at 10–20% (Forbes, 2024)', url: 'https://www.forbes.com/sites/danfitzpatrick/2024/12/29/geoffrey-hintons-prediction-of-human-extinction-at-the-hands-of-ai/', quote: `"10% to 20% chance that AI could drive humanity to extinction ... how many examples do you know of a more intelligent thing being controlled by a less intelligent thing?"` },
@@ -433,6 +634,8 @@ export const presets: KnownPreset[] = [
       { label: 'Superintelligence within 5–20 years (The AI Insider, 2025)', url: 'https://theaiinsider.tech/2025/03/14/ai-pioneer-geoffrey-hinton-warns-of-superintelligence-within-decades/', quote: `"between five and 20 years ... That's the best bet."` },
       { label: '"Let\'s open-source nuclear weapons too" (Sahm Capital, 2023)', url: 'https://www.sahmcapital.com/news/content/lets-open-source-nuclear-weapons-too-godfather-of-ai-geoffrey-hinton-mocks-fellow-ai-godfathers-attempts-to-trivialize-risks-of-ai-2023-11-01', quote: `Mocks open-sourcing frontier models as akin to open-sourcing nuclear weapons.` },
       { label: 'Hinton wants international AI regulation (Globe and Mail, 2025)', url: 'https://www.theglobeandmail.com/business/article-geoffrey-hinton-regulation-ai-evan-solomon/', quote: `"Unless you can get international agreements, countries that don't regulate will have an advantage over countries that do."` },
+      { label: 'Persuasion interview with Geoffrey Hinton', url: 'https://www.persuasion.community/p/geoffrey-hinton' },
+      { label: 'Hinton at Ai4: maternal instincts (Fortune, 2025)', url: 'https://fortune.com/2025/08/14/godfather-of-ai-geoffrey-hinton-maternal-instincts-superintelligence/' },
     ],
     factors: {
       orthogonality: { accuracy: 0.85, refs: [2], note: `Holds strongly: a superintelligence develops survival/control drives; keeping it "submissive ... is not going to work" — only built-in care might save us.` },
@@ -444,6 +647,14 @@ export const presets: KnownPreset[] = [
       controlDeployed: { accuracy: 0.8, refs: [1, 2], note: `No / won't work: "how many examples ... of a more intelligent thing being controlled by a less intelligent thing?"` },
       coordination: { accuracy: 0.7, refs: [5, 4], note: `Urges a regime — nuclear-treaty / IAEA-style international agreement — but doubts it materializes amid competition.` },
       deception: { accuracy: 0.55, refs: [1], note: `A smart agent "will quickly develop subgoals" like self-preservation and getting control — deception to avoid being shut off follows naturally.` },
+      interpLegibility: { accuracy: 0.7, refs: [6], note: 'Repeatedly says we do not understand how these systems work internally — knowledge lives in billions of learned weights that cannot simply be inspected.' },
+      valueSpec: { accuracy: 0.55, refs: [7], note: 'His "maternal instincts" proposal is a bet that caring values could be instilled, but he concedes he does not know how to engineer it — a hope, not an expected-to-work plan.' },
+      corrigibility: { accuracy: 0.65, note: 'Argues smart agents quickly develop the subgoals "stay alive" and "get more control" — convergent drives push against shutdown and correction.' },
+      oversightScaling: { accuracy: 0.65, note: 'His stock argument: there are almost no examples of less intelligent things controlling much more intelligent ones.' },
+      interpResearch: { accuracy: 0.45, note: 'Given his short superintelligence timelines and black-box characterization of current systems, interpretability stays far from verification-grade.' },
+      oversightResearch: { accuracy: 0.35, note: 'Likens available controls to rewarding and punishing a child; calls for massively more safety research — scalable oversight barely begun.' },
+      theoryResearch: { accuracy: 0.3, note: 'Says nobody knows how to guarantee safety and frames alignment as an unsolved research problem needing Manhattan-Project-scale effort.' },
+      evalsResearch: { accuracy: 0.35, note: 'Cites early deception demonstrations as warning signs — today’s evals reveal the problem rather than constitute a mature detection science.' },
     },
   },
 
@@ -467,11 +678,23 @@ export const presets: KnownPreset[] = [
       coordination: { regime: 0.3, none: 0.7 },
       deception: { deceptive: 0.45, faithful: 0.55 },
     },
+    subCredences: {
+      interpLegibility: { legible: 0.15, partially: 0.6, opaque: 0.25 },
+      valueSpec: { learnable: 0.55, brittle: 0.45 },
+      corrigibility: { broadBasin: 0.3, narrow: 0.5, antiNatural: 0.2 },
+      oversightScaling: { scales: 0.55, fails: 0.45 },
+      interpResearch: { mature: 0.1, partial: 0.5, nascent: 0.4 },
+      oversightResearch: { mature: 0.2, partial: 0.55, nascent: 0.25 },
+      theoryResearch: { mature: 0.05, partial: 0.35, nascent: 0.6 },
+      evalsResearch: { mature: 0.15, partial: 0.55, nascent: 0.3 },
+    },
     weights: { survival: 0.95, agency: 0.45, suffering: 0.7, flourishing: 0.8 },
     references: [
       { label: 'Safe Superintelligence Inc. — founding statement (2024)', url: 'https://ssi.inc/', quote: `Mission: "safe superintelligence ... safety and capabilities in tandem."` },
       { label: 'Ilya Sutskever — Dwarkesh Patel interview (2025)', url: 'https://www.dwarkesh.com/p/ilya-sutskever-2', quote: `On building AI that will "care for sentient life, I think there is merit to it"; expects "multiple such AIs created roughly at the same time."` },
       { label: 'Introducing Superalignment (OpenAI, 2023)', url: 'https://openai.com/index/introducing-superalignment/', quote: `"we don't have a solution for steering or controlling a potentially superintelligent AI, and preventing it from going rogue."` },
+      { label: 'SSI founding statement', url: 'https://ssi.inc' },
+      { label: 'Weak-to-strong generalization (OpenAI)', url: 'https://openai.com/index/weak-to-strong-generalization/' },
     ],
     factors: {
       orthogonality: { accuracy: 0.7, refs: [1, 2], note: `Treats misalignment as the real default risk — the whole company is premised on it; seeks AI built to "care about sentient life."` },
@@ -483,6 +706,14 @@ export const presets: KnownPreset[] = [
       controlDeployed: { accuracy: 0.4, refs: [3], note: `Inferred: focus is value alignment ("care about sentient life") over external containment; little on monitoring regimes.` },
       coordination: { accuracy: 0.35, refs: [2], note: `Sparse: hopes labs "increasingly coordinate on safety," but no clear stance on a binding international regime.` },
       deception: { accuracy: 0.45, refs: [3], note: `Frames the danger as a system that could "go rogue" — deceptive misalignment is implicit in the superalignment premise he built.` },
+      interpLegibility: { accuracy: 0.35, note: 'Bets on training-signal approaches (weak-to-strong, automated alignment research) rather than reading weights; stresses reasoning models are "unpredictable".' },
+      valueSpec: { accuracy: 0.55, refs: [4], note: 'Believes a robust value like "care for sentient life" can be instilled in superintelligence, but only via new scientific breakthroughs.' },
+      corrigibility: { accuracy: 0.45, note: 'The superalignment charter he co-wrote warns a superintelligence could go rogue absent new methods — alignment does not self-correct by default.' },
+      oversightScaling: { accuracy: 0.75, refs: [5], note: 'Explicit on both halves: humans will not be able to reliably supervise much smarter systems, but his weak-to-strong research is a direct bet that weak-judge oversight can work.' },
+      interpResearch: { accuracy: 0.35, note: 'Treats today’s alignment toolkit as pre-paradigmatic; his 5-20 year timeline buys only partial maturation of interpretability.' },
+      oversightResearch: { accuracy: 0.55, note: 'Committed to solving the core technical challenges of superintelligence alignment in four years via automated alignment researchers.' },
+      theoryResearch: { accuracy: 0.3, note: 'Expects empirical breakthroughs rather than formal guarantees; reasoning systems becoming "profoundly unpredictable" implies little faith in mature theory.' },
+      evalsResearch: { accuracy: 0.4, note: 'His plan of gradual, staged release of increasingly powerful systems presumes evals reach workable but incomplete maturity.' },
     },
   },
 
@@ -506,6 +737,16 @@ export const presets: KnownPreset[] = [
       coordination: { regime: 0.1, none: 0.9 },
       deception: { deceptive: 0.05, faithful: 0.95 },
     },
+    subCredences: {
+      interpLegibility: { legible: 0.7, partially: 0.25, opaque: 0.05 },
+      valueSpec: { learnable: 0.9, brittle: 0.1 },
+      corrigibility: { broadBasin: 0.8, narrow: 0.15, antiNatural: 0.05 },
+      oversightScaling: { scales: 0.85, fails: 0.15 },
+      interpResearch: { mature: 0.35, partial: 0.5, nascent: 0.15 },
+      oversightResearch: { mature: 0.4, partial: 0.45, nascent: 0.15 },
+      theoryResearch: { mature: 0.25, partial: 0.5, nascent: 0.25 },
+      evalsResearch: { mature: 0.35, partial: 0.5, nascent: 0.15 },
+    },
     weights: { survival: 0.15, agency: 0.9, suffering: 0.35, flourishing: 1.0 },
     references: [
       { label: 'Why AI Will Save the World (a16z, 2023)', url: 'https://a16z.com/ai-will-save-the-world/', quote: `"the idea that AI will decide to literally kill humanity is a profound category error."` },
@@ -523,6 +764,14 @@ export const presets: KnownPreset[] = [
       controlDeployed: { accuracy: 0.25, refs: [1], note: `Doesn't discuss containment/monitoring; sees no need given the no-risk premise. Weak/indirect.` },
       coordination: { accuracy: 0.9, refs: [2, 3, 4], note: `Opposes it: the Precautionary Principle is "our enemy"; rejects nationalization/treaties; frames coordination as ceding to China.` },
       deception: { accuracy: 0.6, refs: [1], note: `Denies the premise: AI "doesn't want, it doesn't have goals" — there is no agent to scheme against us. Faithful by construction.` },
+      interpLegibility: { accuracy: 0.45, refs: [1], note: 'AI is transparent artifact, not inscrutable mind: "It is math – code – computers, built by people, owned by people, controlled by people".' },
+      valueSpec: { accuracy: 0.55, note: 'Rejects fragility-of-value outright — "AI doesn’t want, it doesn’t have goals... because it’s not alive"; desired behavior is routine engineering.' },
+      corrigibility: { accuracy: 0.3, note: 'Inferred from his "profound category error" dismissal of rogue-AI scenarios — systems stay controllable because they are owned and operated by people.' },
+      oversightScaling: { accuracy: 0.25, note: 'Inferred from his prescription to counter bad AI with defensive good AI; doomer oversight-failure arguments offer no testable hypothesis.' },
+      interpResearch: { accuracy: 0.15, note: 'No public forecast; inferred optimistic — whatever tooling exists will be adequate since there is no alien mind to audit.' },
+      oversightResearch: { accuracy: 0.2, note: 'Inferred from his defensive-AI stance: market-driven safety engineering matures like every prior technology.' },
+      theoryResearch: { accuracy: 0.15, note: 'No record; brands existential-risk theorizing an unfalsifiable cult — neither expects nor requires formal guarantees.' },
+      evalsResearch: { accuracy: 0.2, note: 'Inferred: ordinary product testing and defensive tooling cover deployment risk; deception-detection is a non-problem.' },
     },
   },
 
@@ -546,6 +795,16 @@ export const presets: KnownPreset[] = [
       coordination: { regime: 0.4, none: 0.6 },
       deception: { deceptive: 0.35, faithful: 0.65 },
     },
+    subCredences: {
+      interpLegibility: { legible: 0.4, partially: 0.45, opaque: 0.15 },
+      valueSpec: { learnable: 0.55, brittle: 0.45 },
+      corrigibility: { broadBasin: 0.3, narrow: 0.45, antiNatural: 0.25 },
+      oversightScaling: { scales: 0.55, fails: 0.45 },
+      interpResearch: { mature: 0.3, partial: 0.55, nascent: 0.15 },
+      oversightResearch: { mature: 0.15, partial: 0.6, nascent: 0.25 },
+      theoryResearch: { mature: 0.03, partial: 0.25, nascent: 0.72 },
+      evalsResearch: { mature: 0.25, partial: 0.55, nascent: 0.2 },
+    },
     weights: { survival: 0.95, agency: 0.7, suffering: 0.55, flourishing: 0.9 },
     references: [
       { label: 'Core Views on AI Safety (Anthropic, 2023)', url: 'https://www.anthropic.com/news/core-views-on-ai-safety', quote: `"We do not know how to train systems to robustly behave well."` },
@@ -553,6 +812,7 @@ export const presets: KnownPreset[] = [
       { label: 'Machines of Loving Grace (Dario Amodei, 2024)', url: 'https://darioamodei.com/essay/machines-of-loving-grace', quote: `Powerful AI "could come as early as 2026"; "democracies have the upper hand ... when powerful AI is created."` },
       { label: 'The Urgency of Interpretability (Dario Amodei, 2025)', url: 'https://darioamodei.com/post/the-urgency-of-interpretability', quote: `"We are thus in a race between interpretability and model intelligence."` },
       { label: 'Policy / global coalition essay (Dario Amodei, 2025)', url: 'https://darioamodei.com/post/policy-on-the-ai-exponential', quote: `"Democracies should seek to form a global coalition centered on building AI according to their common values."` },
+      { label: 'Simple probes can catch sleeper agents (Anthropic)', url: 'https://www.anthropic.com/research/probes-catch-sleeper-agents' },
     ],
     factors: {
       orthogonality: { accuracy: 0.75, refs: [1, 4], note: `Not a strict default, but "we do not know how to train systems to robustly behave well"; treats misalignment as a serious live risk.` },
@@ -564,6 +824,14 @@ export const presets: KnownPreset[] = [
       controlDeployed: { accuracy: 0.9, refs: [2, 4], note: `Strongest pin: RSP/ASL standards, a commitment not to deploy unsafe models, interpretability as an "MRI for AI."` },
       coordination: { accuracy: 0.65, refs: [5, 2], note: `Wants coordination — a "global coalition," urgent government action — but prefers a democratic-state coalition over a binding international body.` },
       deception: { accuracy: 0.6, refs: [4], note: `Researches alignment-faking/deception and frames interpretability as a "race" to catch models that may behave deceptively.` },
+      interpLegibility: { accuracy: 0.85, refs: [4], note: 'The field’s institutional interpretability optimist: Amodei argues for a "true MRI for AI" that can reliably detect most model problems, while conceding it is a race against capability.' },
+      valueSpec: { accuracy: 0.55, note: 'Constitutional AI reflects a working bet that values can be specified in natural language and learned, but Core Views keeps real weight on fragility and Goodhart.' },
+      corrigibility: { accuracy: 0.45, note: 'Their own Sleeper Agents result — deception surviving standard safety training — is institutional evidence against assuming alignment self-corrects.' },
+      oversightScaling: { accuracy: 0.55, note: '"Scaling supervision" (RLAIF, AI-assisted evaluation, debate variants) is a named pillar of Core Views, held as promising but explicitly unproven for far-superhuman systems.' },
+      interpResearch: { accuracy: 0.75, note: 'Amodei sets an explicit target of interpretability reliably detecting most model problems by 2027 — the most aggressive maturity forecast of any lab.' },
+      oversightResearch: { accuracy: 0.5, note: 'Expects scalable-oversight techniques usefully deployed but partial at the critical time — no single technique ready-and-sufficient.' },
+      theoryResearch: { accuracy: 0.5, note: 'Core Views is explicitly empiricist; Anthropic invests essentially nothing in agent foundations, implying formal guarantees remain nascent.' },
+      evalsResearch: { accuracy: 0.7, refs: [6], note: 'Leads model-organisms and deception-detection work (sleeper agents, probes) and gates scaling on evals via the RSP.' },
     },
   },
 
@@ -587,6 +855,16 @@ export const presets: KnownPreset[] = [
       coordination: { regime: 0.45, none: 0.55 },
       deception: { deceptive: 0.45, faithful: 0.55 },
     },
+    subCredences: {
+      interpLegibility: { legible: 0.25, partially: 0.5, opaque: 0.25 },
+      valueSpec: { learnable: 0.6, brittle: 0.4 },
+      corrigibility: { broadBasin: 0.35, narrow: 0.45, antiNatural: 0.2 },
+      oversightScaling: { scales: 0.62, fails: 0.38 },
+      interpResearch: { mature: 0.1, partial: 0.5, nascent: 0.4 },
+      oversightResearch: { mature: 0.2, partial: 0.55, nascent: 0.25 },
+      theoryResearch: { mature: 0.03, partial: 0.22, nascent: 0.75 },
+      evalsResearch: { mature: 0.15, partial: 0.6, nascent: 0.25 },
+    },
     weights: { survival: 0.85, agency: 0.75, suffering: 0.45, flourishing: 0.95 },
     references: [
       { label: 'Planning for AGI and beyond (OpenAI, 2023)', url: 'https://openai.com/index/planning-for-agi-and-beyond/', quote: `"the safest quadrant ... is short timelines and slow takeoff speeds ... a slower takeoff is easier to make safe."` },
@@ -594,6 +872,7 @@ export const presets: KnownPreset[] = [
       { label: 'Introducing Superalignment (OpenAI, 2023)', url: 'https://openai.com/index/introducing-superalignment/', quote: `"we don't have a solution for steering or controlling a potentially superintelligent AI, and preventing it from going rogue."` },
       { label: 'Updated Preparedness Framework v2 (OpenAI, 2025)', url: 'https://cdn.openai.com/pdf/18a02b5d-6b67-4cec-ab64-68cdfbddebcd/preparedness-framework-v2.pdf', quote: `"High"/"Critical" capability thresholds gate deployment and development.` },
       { label: 'The Gentle Singularity (Sam Altman, 2025)', url: 'https://blog.samaltman.com/the-gentle-singularity', quote: `"the takeoff has started"; superintelligence should be "not too concentrated with any person, company, or country."` },
+      { label: 'Extracting concepts from GPT-4 (OpenAI)', url: 'https://openai.com/index/extracting-concepts-from-gpt-4/' },
     ],
     factors: {
       orthogonality: { accuracy: 0.85, refs: [3, 5], note: `Strong: no solution to stop a superintelligence "going rogue," which could cause "grievous harm" — capability doesn't imply alignment.` },
@@ -605,6 +884,14 @@ export const presets: KnownPreset[] = [
       controlDeployed: { accuracy: 0.85, refs: [4], note: `Strong: the Preparedness Framework is exactly this — capability evals and gating at High/Critical regardless of full alignment.` },
       coordination: { accuracy: 0.9, refs: [2], note: `Very strong: explicitly proposed "something like an IAEA for superintelligence" with inspection/audit/deployment-restriction powers.` },
       deception: { accuracy: 0.55, refs: [3], note: `Superalignment's premise is a superintelligence that could "go rogue" — deceptive misalignment is the implicit failure they aimed to detect.` },
+      interpLegibility: { accuracy: 0.45, refs: [6], note: 'Pursues interpretability (SAE concept extraction from GPT-4) as one useful tool but has never claimed internals will be fully verifiable — a supporting bet, not the core one.' },
+      valueSpec: { accuracy: 0.55, note: 'From RLHF through the Model Spec and deliberative alignment, practice assumes intended values can be specified and learned robustly, while acknowledging reward hacking.' },
+      corrigibility: { accuracy: 0.4, note: 'Iterative deployment — each system helping align the next — implicitly assumes approximate alignment is stable enough to bootstrap from.' },
+      oversightScaling: { accuracy: 0.8, refs: [3], note: 'Scalable oversight is the central institutional bet: RLHF will not scale to superintelligence, but weak-to-strong generalization and AI-assisted oversight can close the gap.' },
+      interpResearch: { accuracy: 0.4, note: 'Funds interpretability but forecasts no timeline for maturity; their SAE work explicitly notes understanding remains early.' },
+      oversightResearch: { accuracy: 0.6, note: 'The superalignment goal — solve the core technical challenges in four years — is an explicit forecast that scalable oversight can substantially mature in time, tempered by the team’s dissolution.' },
+      theoryResearch: { accuracy: 0.35, note: 'Treats safety as an empirical science learning from iterative deployment rather than theoretical principles.' },
+      evalsResearch: { accuracy: 0.6, note: 'The Preparedness Framework institutionalizes capability and safeguard evaluations with tracked risk categories — a workable, improving but incomplete safety layer.' },
     },
   },
 
@@ -628,6 +915,16 @@ export const presets: KnownPreset[] = [
       coordination: { regime: 0.2, none: 0.8 },
       deception: { deceptive: 0.45, faithful: 0.55 },
     },
+    subCredences: {
+      interpLegibility: { legible: 0.15, partially: 0.5, opaque: 0.35 },
+      valueSpec: { learnable: 0.4, brittle: 0.6 },
+      corrigibility: { broadBasin: 0.3, narrow: 0.5, antiNatural: 0.2 },
+      oversightScaling: { scales: 0.45, fails: 0.55 },
+      interpResearch: { mature: 0.05, partial: 0.35, nascent: 0.6 },
+      oversightResearch: { mature: 0.05, partial: 0.4, nascent: 0.55 },
+      theoryResearch: { mature: 0.03, partial: 0.22, nascent: 0.75 },
+      evalsResearch: { mature: 0.1, partial: 0.5, nascent: 0.4 },
+    },
     weights: { survival: 0.9, agency: 0.7, suffering: 0.4, flourishing: 0.85 },
     references: [
       { label: 'Musk on truth-seeking AI safety (TechCrunch, 2023)', url: 'https://techcrunch.com/2023/07/12/elon-musk-wants-to-build-ai-to-understand-the-true-nature-of-the-universe/', quote: `"If it tried to understand the true nature of the universe, that's actually the best thing that I can come up with from an AI safety standpoint."` },
@@ -635,6 +932,7 @@ export const presets: KnownPreset[] = [
       { label: 'Musk: AI exceeds all humans by ~2030 (X, 2024)', url: 'https://x.com/elonmusk/status/1871083864111919134', quote: `"AI will superset the intelligence of any single human by the end of 2025 and maybe all humans by 2027/2028."` },
       { label: 'Musk calls for an AI "referee" (CBS News, 2023)', url: 'https://www.cbsnews.com/news/elon-musk-artificial-intelligence-regulations-tech-executives-senators-washington-meeting-bill-gates-mark-zuckerberg/', quote: `AI is a "civilizational risk" requiring "a referee."` },
       { label: 'Future of Life Institute pause letter — signatory (2023)', url: 'https://futureoflife.org/open-letter/pause-giant-ai-experiments/', quote: `"Pause Giant AI Experiments."` },
+      { label: 'xAI Risk Management Framework (2025)', url: 'https://data.x.ai/2025-08-20-xai-risk-management-framework.pdf' },
     ],
     factors: {
       orthogonality: { accuracy: 0.45, refs: [1, 2], note: `Mixed: bets a "maximally truth-seeking/curious" AI converges pro-humanity (orthogonality fails), yet warns 10–20% it "goes bad."` },
@@ -646,6 +944,14 @@ export const presets: KnownPreset[] = [
       controlDeployed: { accuracy: 0.2, note: `Minimal explicit statements on deployed containment/monitoring independent of alignment.` },
       coordination: { accuracy: 0.65, refs: [4, 5], note: `Repeatedly urged a government "referee" / FDA-style oversight and signed the pause letter — supports binding rules but doubts they arrive.` },
       deception: { accuracy: 0.3, note: `Little direct record on deceptive alignment specifically; the "summoning the demon" framing implies concern but doesn't pin it.` },
+      interpLegibility: { accuracy: 0.2, refs: [6], note: 'No public interpretability program; its risk framework relies on behavioral benchmarks and system prompts rather than reading internals — middling-skeptical inferred.' },
+      valueSpec: { accuracy: 0.5, note: 'Musk argues programming specific values is fragile (the "Waluigi problem") — only a maximally truth-seeking objective is robust.' },
+      corrigibility: { accuracy: 0.25, note: 'The framework trains models to have "values conducive to controllability" — an implicit assumption that controllability is trainable, without engaging the basin debate.' },
+      oversightScaling: { accuracy: 0.15, note: 'No published position on scalable oversight; Musk’s substitute claim is that truthfulness, not supervision machinery, keeps stronger systems safe.' },
+      interpResearch: { accuracy: 0.2, note: 'No interpretability research output or stated forecast; nascent-at-onset inferred.' },
+      oversightResearch: { accuracy: 0.15, note: 'No scalable-oversight research agenda; inferred to expect only partial tools by ASI onset.' },
+      theoryResearch: { accuracy: 0.15, note: 'No engagement with agent foundations or formal guarantees; nascent inferred.' },
+      evalsResearch: { accuracy: 0.4, note: 'The framework’s loss-of-control section is benchmark-based (honesty scores with acceptance thresholds) — behavioral evals usable now and improving, per critics ignoring deceptive-alignment modes.' },
     },
   },
 
@@ -669,12 +975,23 @@ export const presets: KnownPreset[] = [
       coordination: { regime: 0.12, none: 0.88 },
       deception: { deceptive: 0.15, faithful: 0.85 },
     },
+    subCredences: {
+      interpLegibility: { legible: 0.3, partially: 0.55, opaque: 0.15 },
+      valueSpec: { learnable: 0.75, brittle: 0.25 },
+      corrigibility: { broadBasin: 0.6, narrow: 0.3, antiNatural: 0.1 },
+      oversightScaling: { scales: 0.65, fails: 0.35 },
+      interpResearch: { mature: 0.2, partial: 0.55, nascent: 0.25 },
+      oversightResearch: { mature: 0.3, partial: 0.55, nascent: 0.15 },
+      theoryResearch: { mature: 0.1, partial: 0.45, nascent: 0.45 },
+      evalsResearch: { mature: 0.35, partial: 0.5, nascent: 0.15 },
+    },
     weights: { survival: 0.55, agency: 0.95, suffering: 0.45, flourishing: 0.95 },
     references: [
       { label: 'Open Source AI Is the Path Forward (Mark Zuckerberg, Meta, 2024)', url: 'https://about.fb.com/news/2024/07/open-source-ai-is-the-path-forward/', quote: `Open source ensures "power isn't concentrated in the hands of a small number of companies"; lets "larger actors check the power of smaller bad actors."` },
       { label: 'LeCun on orthogonality (Wired/Levy interview, 2023)', url: 'https://x.com/ylecun/status/1738245152290844777', quote: `"There is no reason to believe that just because AI systems are intelligent they will want to dominate us ... We'll design them not to."` },
       { label: 'LeCun calls doom "preposterous" (Fortune, 2023)', url: 'https://fortune.com/2023/06/14/metas-chief-a-i-scientist-calls-a-i-doomers-preposterous-and-predicts-llms-are-just-a-passing-fad/', quote: `Existential-risk claims are "preposterous."` },
       { label: 'LeCun on controllability (TIME interview, 2024)', url: 'https://time.com/6694432/yann-lecun-meta-ai-interview/', quote: `Future systems are "controllable and safe ... driven by objectives we give them."` },
+      { label: 'Meta Frontier AI Framework', url: 'https://ai.meta.com/static-resource/meta-frontier-ai-framework/' },
     ],
     factors: {
       orthogonality: { accuracy: 0.9, refs: [2, 3], note: `Explicit: orthogonality fails — "no reason to believe that just because AI systems are intelligent they will want to dominate"; doom "preposterous."` },
@@ -686,6 +1003,14 @@ export const presets: KnownPreset[] = [
       controlDeployed: { accuracy: 0.65, refs: [1], note: `Ships safety tooling (Llama Guard) and treats transparency/scrutiny as control — "safer since systems are more transparent."` },
       coordination: { accuracy: 0.55, refs: [1], note: `Leans none: favors an open ecosystem and working "with our government and allies" over a binding global regime.` },
       deception: { accuracy: 0.6, refs: [4], note: `LeCun-aligned: systems are controllable and "driven by objectives we give them," so systematic deception is not expected.` },
+      interpLegibility: { accuracy: 0.3, refs: [5], note: 'The safety stack is behavioral and system-level (Llama Guard, LlamaFirewall) rather than mechanistic transparency — internals partially readable via inputs/outputs and CoT auditing.' },
+      valueSpec: { accuracy: 0.45, note: 'Lab posture treats desired behavior as learnable through safety fine-tuning, red-teaming, and layered open-source guardrails; fragility concerns are absent from its framing.' },
+      corrigibility: { accuracy: 0.3, note: 'Implicit broad-basin view — iterative release, community hardening, fixable failures — though Zuckerberg concedes superintelligence "will raise novel safety concerns".' },
+      oversightScaling: { accuracy: 0.3, note: 'Ships AI-overseeing-AI in practice (Llama Guard, LlamaFirewall) and assumes threshold-based human oversight remains workable; no stated position on superhuman-judge limits.' },
+      interpResearch: { accuracy: 0.25, note: 'Funds little flagship mech interp compared to peers; partial maturity inferred, with system-level defenses expected to carry the load.' },
+      oversightResearch: { accuracy: 0.3, note: 'Bets that open, community-audited guardrail ecosystems mature rapidly into adequate oversight infrastructure.' },
+      theoryResearch: { accuracy: 0.2, note: 'Essentially no public investment in agent foundations or formal guarantees; the safety case is empirical.' },
+      evalsResearch: { accuracy: 0.45, note: 'Evals are its strongest documented safety investment — an outcomes-led framework with catastrophic-risk thresholds, red-teaming, and open-source safety evaluations (CyberSecEval).' },
     },
   },
 ];

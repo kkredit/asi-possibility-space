@@ -22,6 +22,7 @@ import {
 } from './ids';
 import { classifyCorner, type Corner } from './corners';
 import { factorBackgrounds } from './factorBackground';
+import { alignmentDerivations, alignmentSubBaseline, alignmentSubfactors } from './alignment';
 
 /**
  * ============================================================================
@@ -1047,11 +1048,43 @@ type KnownActionDelta = {
 type KnownAction = Omit<Action, 'deltas'> & { deltas: KnownActionDelta[] };
 
 const actions: KnownAction[] = [
+  // ── the four alignment research bets (replacing the old aggregate fundAlignment) ──
+  // Each moves its research area's maturity; the payoff routes through the sub-layer
+  // derivation, GATED by the matching objective belief — so the ranking answers
+  // "which research direction is the best marginal buy given what you believe about
+  // the problem". The small direct `deltas` are the fallback used when the parent
+  // is set directly (sub-layer detached).
   {
-    id: 'fundAlignment',
-    label: 'Fund technical alignment',
-    description: 'Pour resources into solving and deploying alignment before catastrophe.',
-    deltas: [{ factor: 'alignmentInTime', towardState: 'yes', magnitude: 0.15 }],
+    id: 'fundInterp',
+    label: 'Fund interpretability research',
+    description:
+      'Push mechanistic interpretability toward maturity — feature dictionaries, audits, internals-based deception detection. Pays off in worlds where cognition is legible.',
+    deltas: [{ factor: 'alignmentInTime', towardState: 'yes', magnitude: 0.05 }],
+    subDeltas: [{ subfactor: 'interpResearch', towardState: 'mature', magnitude: 0.25 }],
+  },
+  {
+    id: 'fundOversight',
+    label: 'Fund scalable oversight',
+    description:
+      'Push debate, weak-to-strong and process supervision toward production use. Pays off in worlds where weaker judges can hold stronger systems.',
+    deltas: [{ factor: 'alignmentInTime', towardState: 'yes', magnitude: 0.05 }],
+    subDeltas: [{ subfactor: 'oversightResearch', towardState: 'mature', magnitude: 0.25 }],
+  },
+  {
+    id: 'fundTheory',
+    label: 'Fund agent foundations & guarantees',
+    description:
+      'Push formal alignment theory — corrigibility, ELK, provable safety. Matters most exactly in the worlds where empirical iteration fails.',
+    deltas: [{ factor: 'alignmentInTime', towardState: 'yes', magnitude: 0.04 }],
+    subDeltas: [{ subfactor: 'theoryResearch', towardState: 'mature', magnitude: 0.25 }],
+  },
+  {
+    id: 'fundEvals',
+    label: 'Fund evals & model organisms',
+    description:
+      'Push the science of catching misalignment — dangerous-capability evals, model organisms, deception detection. The tripwire everything else consumes; pays off most where deception is the default.',
+    deltas: [{ factor: 'alignmentInTime', towardState: 'yes', magnitude: 0.04 }],
+    subDeltas: [{ subfactor: 'evalsResearch', towardState: 'mature', magnitude: 0.25 }],
   },
   {
     id: 'standardizeControl',
@@ -1088,6 +1121,9 @@ const actions: KnownAction[] = [
 export const dataset: Dataset = {
   name: 'AI Safety Possibility-Space Explorer',
   factors,
+  subfactors: alignmentSubfactors,
+  derivations: alignmentDerivations,
+  subBaseline: alignmentSubBaseline,
   valueDimensions,
   actions,
   couplings,

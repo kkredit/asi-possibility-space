@@ -193,15 +193,92 @@ export interface ActionDelta {
   magnitude: number;
 }
 
+/** A nudge on a SUBFACTOR's credences (used when the sub-layer is active). */
+export interface ActionSubDelta {
+  subfactor: SubfactorId;
+  towardState: StateId;
+  magnitude: number;
+}
+
 export interface Action {
   id: string;
   label: string;
   description: string;
+  /** Direct factor nudges. For sub-layer actions these are the FALLBACK used when
+   *  the parent factor is set directly (sub-layer detached). */
   deltas: ActionDelta[];
+  /** Sub-layer nudges; applied (and the parent re-derived) when the sub-layer is
+   *  active. Takes precedence over `deltas` for the derived parents. */
+  subDeltas?: ActionSubDelta[];
 }
 
 /** Baseline credences: per factor, a probability for each state (sums to 1). */
 export type Credences = Record<FactorId, Record<StateId, number>>;
+
+// ---------------------------------------------------------------------------
+// Subfactors — the belief-layer deep dive under a parent factor.
+// ---------------------------------------------------------------------------
+
+export type SubfactorId = string;
+
+/**
+ * A belief-layer refinement of one parent factor. Subfactors carry sliders,
+ * backgrounds, preset credences, and actions exactly like factors, but they do
+ * NOT enter the scenario space — instead a `Derivation` computes the parent
+ * factor's credences from the sub-beliefs, so the enumerated space stays small.
+ */
+export interface Subfactor {
+  id: SubfactorId;
+  /** The factor whose credences this subfactor helps derive. */
+  parent: FactorId;
+  label: string;
+  kind: FactorKind;
+  question: string;
+  description: string;
+  states: FactorState[];
+  /** Which objective belief gates this research area's payoff (display hint). */
+  gatedBy?: SubfactorId | FactorId;
+  background?: FactorBackground;
+}
+
+/** Per-subfactor credences (each subfactor's states sum to 1). */
+export type SubCredences = Record<SubfactorId, Record<StateId, number>>;
+
+/**
+ * How a parent factor's credences are derived from sub-beliefs.
+ *
+ *  - `cpt`: P(parent-state | sub-state combo) marginalized over the sub-credences
+ *    (keys are sub-states joined by '|' in `parents` order, like Bayes-net CPTs).
+ *  - `gatedOdds`: binary parent; odds(yes) = baseOdds × ∏ E[term multiplier],
+ *    where each term's multiplier depends on a research area's state AND its
+ *    objective gate's state (key `"areaState|gateState"`), expectation taken
+ *    over the current sub- (and, for factor gates, main) credences.
+ */
+export type Derivation =
+  | {
+      kind: 'cpt';
+      factor: FactorId;
+      parents: SubfactorId[];
+      cpt: Record<string, Record<StateId, number>>;
+    }
+  | {
+      kind: 'gatedOdds';
+      factor: FactorId;
+      yesState: StateId;
+      noState: StateId;
+      baseOdds: number;
+      terms: {
+        area: SubfactorId;
+        /** The gate belief: a subfactor id, or (with gateIsFactor) a main factor id. */
+        gate: SubfactorId | FactorId;
+        gateIsFactor?: boolean;
+        multipliers: Record<string, number>;
+      }[];
+      /** Plain per-factor odds modifiers (expectation over that factor's credences).
+       *  Evaluated against the partially-derived credences, so an earlier derivation
+       *  in the list (e.g. tractability) feeds a later one (alignment-in-time). */
+      modifiers?: { factor: FactorId; multipliers: Record<StateId, number> }[];
+    };
 
 /** Per-factor-state-dimension additive contributions for the linear evaluator. */
 export type LinearContributions = Record<
@@ -258,6 +335,8 @@ export interface Preset {
   /** One-line characterization of their view. */
   summary: string;
   credences: Credences;
+  /** Credences over the belief-layer subfactors (the alignment deep dive). */
+  subCredences?: SubCredences;
   /** Optional value-weight override; falls back to the dataset default. */
   weights?: ValueVector;
   /** Their stated p(doom)/p(catastrophe) as a display string, if on record. */
@@ -271,6 +350,12 @@ export interface Preset {
 export interface Dataset {
   name: string;
   factors: Factor[];
+  /** Belief-layer subfactors (deep dives under a parent factor); optional. */
+  subfactors?: Subfactor[];
+  /** How the derived parents' credences are computed from sub-beliefs. */
+  derivations?: Derivation[];
+  /** Default sub-credences (calibrated so derived parents ≈ baselineCredences). */
+  subBaseline?: SubCredences;
   valueDimensions: ValueDimension[];
   actions: Action[];
   /** Dependencies between factors; corrects the independence assumption. */

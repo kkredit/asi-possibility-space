@@ -14,20 +14,20 @@ For each objective factor we condition on each possible answer (weighted by its 
 
 | Objective question | P(changes top action) | P(changes priorities) | EVPI | what a resolution flips |
 |---|---:|---:|---:|---|
-| Deceptive alignment | 0% | 100% | +0.000 | Deceptive → #1 Fund technical alignment, #2 Compute-governance / coordination regime |
-| Offense/defense balance at ASI scale | 0% | 30% | +0.000 | Balanced → #1 Fund technical alignment, #2 Standardize AI control |
-| Orthogonality Thesis | 0% | 20% | +0.000 | Fails → #1 Fund technical alignment, #2 Broaden frontier access (open-source / antitrust) |
-| Takeoff speed | 0% | 20% | +0.000 | Fast → #1 Fund technical alignment, #2 Standardize AI control |
+| Deceptive alignment | 100% | 100% | +0.006 | Deceptive → #1 Compute-governance / coordination regime, #2 Fund interpretability research |
+| Takeoff speed | 20% | 40% | +0.001 | Fast → #1 Fund interpretability research, #2 Fund scalable oversight |
+| Offense/defense balance at ASI scale | 0% | 30% | +0.000 | Balanced → #1 Fund interpretability research, #2 Fund scalable oversight |
+| Orthogonality Thesis | 20% | 20% | +0.001 | Fails → #1 Broaden frontier access (open-source / antitrust), #2 Standardize AI control |
 | Alignment tractability (in principle) | 0% | 0% | +0.000 | — (order unchanged) |
 
 **Reading it:**
 
-- **No objective resolution changes the #1 action** — the top lever is *Fund technical alignment* however any single objective question resolves; objective research is then almost pure *prediction*.
+- **Deceptive alignment, Takeoff speed, Orthogonality Thesis can change the very top action** — e.g. Deceptive → #1 Compute-governance / coordination regime, #2 Fund interpretability research. That is genuine decision-ROI: resolving it changes *what you'd do*, not just what you'd predict. (This became possible only once power concentration got its own lever — before that, no objective resolution moved the #1 action at all.)
 
-- **Deceptive alignment, Offense/defense balance at ASI scale, Orthogonality Thesis, Takeoff speed change only the runner-up** (control ↔ coordination): learning that systems deceive, or that offense dominates, demotes *control* — which leans on trustworthy evaluation — beneath *coordination*, which buys time upstream. Worth resolving if you can fund a second priority.
+- **Offense/defense balance at ASI scale change only the runner-up** (control ↔ coordination): learning that systems deceive, or that offense dominates, demotes *control* — which leans on trustworthy evaluation — beneath *coordination*, which buys time upstream. Worth resolving if you can fund a second priority.
 - Nothing changes in the action ordering for **Alignment tractability (in principle)** — however decisive scientifically, these are for forecasting, not for choosing.
 
-- **EVPI stays small even where the top action flips.** Expected value of perfect information is positive only if the best action differs across a question's answers, which never happens here, but the winning action's edge in those worlds is slim, so the *decision value* rounds to ~0. Where the top never flips, EVPI is exactly 0 — pure prediction. Widen or differentiate the action set further and this column grows.
+- **EVPI stays small even where the top action flips.** Expected value of perfect information is positive only if the best action differs across a question's answers — which now happens for Deceptive alignment, but the winning action's edge in those worlds is slim, so the *decision value* rounds to ~0. Where the top never flips, EVPI is exactly 0 — pure prediction. Widen or differentiate the action set further and this column grows.
 
 ---
 
@@ -39,16 +39,19 @@ Across **108** objective-world resolutions:
 
 | Action | E[EV gain] | P(improves) | P(improves ≥ 0.02) | P(is the top lever) | gain range |
 |---|---:|---:|---:|---:|---|
-| Fund technical alignment | +0.088 | 99% | 63% | 84% | −0.002 … +0.200 |
-| Compute-governance / coordination regime | +0.033 | 100% | 63% | 6% | +0.001 … +0.061 |
-| Standardize AI control | +0.031 | 79% | 63% | 0% | −0.035 … +0.091 |
+| Compute-governance / coordination regime | +0.033 | 100% | 63% | 64% | +0.001 … +0.061 |
+| Standardize AI control | +0.031 | 79% | 63% | 24% | −0.035 … +0.091 |
+| Fund interpretability research | +0.030 | 99% | 63% | 0% | −0.001 … +0.064 |
+| Fund scalable oversight | +0.030 | 99% | 63% | 0% | −0.001 … +0.064 |
+| Fund agent foundations & guarantees | +0.024 | 99% | 63% | 0% | −0.000 … +0.051 |
+| Fund evals & model organisms | +0.024 | 99% | 63% | 0% | −0.000 … +0.051 |
 | Defensive acceleration (d/acc) | +0.016 | 79% | 63% | 0% | −0.017 … +0.045 |
-| Broaden frontier access (open-source / antitrust) | −0.021 | 19% | 0% | 10% | −0.058 … +0.011 |
+| Broaden frontier access (open-source / antitrust) | −0.021 | 19% | 0% | 12% | −0.058 … +0.011 |
 
 **Reading it:**
 
-- **Fund technical alignment** dominates on every measure: highest expected gain (+0.088), improves EV in 99% of resolutions, and is the single best lever in 84% of them — large *and* reliable, with no world where it backfires.
-- **Not every lever is a free lunch.** Broaden frontier access (open-source / antitrust) (worst case −0.058, helps in 19%) and Standardize AI control (worst case −0.035, helps in 79%) and Defensive acceleration (d/acc) (worst case −0.017, helps in 79%) and Fund technical alignment (worst case −0.002, helps in 99%) can actually *lower* EV in a minority of worlds. That's the deception logic biting: deploying a leash (control) on a system that fools its evaluations, or accelerating defenses that mostly harden a controlled-but-deceptive world, can leave you slightly worse than not leaning on them. Alignment-funding and coordination help in 100% of worlds.
+- **Compute-governance / coordination regime** dominates on every measure: highest expected gain (+0.033), improves EV in 100% of resolutions, and is the single best lever in 64% of them — large *and* reliable, with no world where it backfires.
+- **Not every lever is a free lunch.** Broaden frontier access (open-source / antitrust) (worst case −0.058, helps in 19%) and Standardize AI control (worst case −0.035, helps in 79%) and Defensive acceleration (d/acc) (worst case −0.017, helps in 79%) and Fund interpretability research (worst case −0.001, helps in 99%) and Fund scalable oversight (worst case −0.001, helps in 99%) and Fund agent foundations & guarantees (worst case −0.000, helps in 99%) and Fund evals & model organisms (worst case −0.000, helps in 99%) can actually *lower* EV in a minority of worlds. That's the deception logic biting: deploying a leash (control) on a system that fools its evaluations, or accelerating defenses that mostly harden a controlled-but-deceptive world, can leave you slightly worse than not leaning on them. Alignment-funding and coordination help in 100% of worlds.
 - So "likelihood to improve EV" reorders the middle by **risk appetite**: coordination has the *lower ceiling* but never backfires (a safe, reliable second bet), while control has the *higher ceiling* (best case +0.091) but an ~8% chance of costing you. Which you prefer as #2 is exactly the runner-up flip from §1.
 - The mean-gain ordering still matches the baseline single-point ranking, so the *headline* priority is **robust to objective uncertainty** — you don't need to resolve the science to know alignment-funding leads. (The flip side of §1: the levers are insensitive to the objective questions.)
 

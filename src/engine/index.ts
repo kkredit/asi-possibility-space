@@ -5,6 +5,8 @@ export * from './fit';
 export * from './analyze';
 export * from './actions';
 export * from './sensitivity';
+export * from './derive';
+export * from './subfactors';
 export * from './conditions';
 export * from './bayesnet';
 export * from './softevidence';

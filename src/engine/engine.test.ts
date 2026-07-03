@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { dataset } from '@model/dataset';
 import {
   analyze,
+  applyActionWithSubfactors,
+  deriveCredences,
   applyAction,
   cachedEvaluator,
   distribution,
@@ -208,16 +210,33 @@ describe('evaluators', () => {
 
 describe('actions', () => {
   it('applyAction keeps each factor distribution summing to 1', () => {
-    const next = applyAction(dataset.baselineCredences, dataset.actions[2]); // multi-delta
+    const multi = dataset.actions.find((a) => a.deltas.length > 1)!; // computeGovernance
+    const next = applyAction(dataset.baselineCredences, multi);
     for (const fid of Object.keys(next)) {
       const sum = Object.values(next[fid]).reduce((a, b) => a + b, 0);
       expect(sum).toBeCloseTo(1, 10);
     }
   });
 
-  it('funding alignment raises P(alignmentInTime=yes)', () => {
-    const next = applyAction(dataset.baselineCredences, dataset.actions[0]);
-    expect(next.alignmentInTime.yes).toBeCloseTo(0.8, 10); // 0.65 + 0.15
+  it('a research action raises P(alignmentInTime=yes) via its detached-mode fallback delta', () => {
+    // Without subCredences, applyAction uses the fallback factor delta (+0.05).
+    const fund = dataset.actions.find((a) => a.id === 'fundInterp')!;
+    const before = dataset.baselineCredences.alignmentInTime.yes;
+    const next = applyAction(dataset.baselineCredences, fund);
+    expect(next.alignmentInTime.yes).toBeCloseTo(before + 0.05, 10);
+  });
+
+  it('with the sub-layer active, the same action moves the research area and re-derives', () => {
+    const fund = dataset.actions.find((a) => a.id === 'fundInterp')!;
+    const { credences, subCredences } = applyActionWithSubfactors(
+      dataset,
+      dataset.baselineCredences,
+      dataset.subBaseline!,
+      fund,
+    );
+    expect(subCredences.interpResearch.mature).toBeCloseTo(dataset.subBaseline!.interpResearch.mature + 0.25, 10);
+    const before = deriveCredences(dataset, dataset.baselineCredences, dataset.subBaseline!);
+    expect(credences.alignmentInTime.yes).toBeGreaterThan(before.alignmentInTime.yes);
   });
 
   it('ranks actions by EV gain, all gains finite', () => {
@@ -262,5 +281,48 @@ describe('distribution', () => {
     );
     const total = distribution(scenarios).reduce((a, b) => a + b.probability, 0);
     expect(total).toBeCloseTo(1, 10);
+  });
+});
+
+describe('alignment sub-layer integrity', () => {
+  it('sub-baseline covers every subfactor with distributions summing to 1', () => {
+    for (const sf of dataset.subfactors!) {
+      const dist = dataset.subBaseline![sf.id];
+      expect(dist, `missing subBaseline for ${sf.id}`).toBeDefined();
+      expect(Object.values(dist).reduce((a, b) => a + b, 0)).toBeCloseTo(1, 8);
+    }
+  });
+
+  it('derivations reference real subfactors/factors and derive valid distributions', () => {
+    const subIds = new Set(dataset.subfactors!.map((s) => s.id));
+    for (const d of dataset.derivations!) {
+      expect(dataset.factors.some((f) => f.id === d.factor)).toBe(true);
+      if (d.kind === 'cpt') for (const pid of d.parents) expect(subIds.has(pid)).toBe(true);
+    }
+    const derived = deriveCredences(dataset, dataset.baselineCredences, dataset.subBaseline!);
+    for (const d of dataset.derivations!) {
+      const sum = Object.values(derived[d.factor]).reduce((a, b) => a + b, 0);
+      expect(sum).toBeCloseTo(1, 8);
+    }
+  });
+
+  it('the derived baseline stays close to the long-standing baseline sliders', () => {
+    const d = deriveCredences(dataset, dataset.baselineCredences, dataset.subBaseline!);
+    expect(Math.abs(d.alignmentInTime.yes - dataset.baselineCredences.alignmentInTime.yes)).toBeLessThan(0.05);
+    for (const st of ['easy', 'hard', 'nearImpossible']) {
+      expect(Math.abs(d.tractability[st] - dataset.baselineCredences.tractability[st])).toBeLessThan(0.08);
+    }
+  });
+
+  it('each research area is gated by its objective twin: closed gate mutes the payoff', () => {
+    const gd = dataset.derivations!.find((d) => d.kind === 'gatedOdds')!;
+    if (gd.kind !== 'gatedOdds') return;
+    for (const term of gd.terms) {
+      const area = dataset.subfactors!.find((s) => s.id === term.area)!;
+      // mature|<best gate state> must beat mature|<worst gate state>
+      const vals = Object.entries(term.multipliers).filter(([k]) => k.startsWith('mature|')).map(([, v]) => v);
+      expect(Math.max(...vals)).toBeGreaterThan(Math.min(...vals));
+      expect(area.parent).toBe('alignmentInTime');
+    }
   });
 });

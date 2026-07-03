@@ -1,5 +1,6 @@
-import type { Action, Credences, Dataset, Evaluator, StateId, ValueVector } from '@model/types';
+import type { Action, Credences, Dataset, Evaluator, StateId, SubCredences, ValueVector } from '@model/types';
 import { analyze } from '@engine/analyze';
+import { deriveCredences, derivedFactorIds } from '@engine/derive';
 import type { Pins } from '@engine/scenarios';
 
 /**
@@ -38,6 +39,54 @@ export function applyAction(credences: Credences, action: Action): Credences {
   return next;
 }
 
+/**
+ * Apply an action with the sub-layer ACTIVE: sub-deltas shift the sub-credences
+ * and the derived parents are recomputed; factor deltas on the derived parents are
+ * the detached-mode fallback and are skipped (the sub-layer owns those factors);
+ * deltas on any other factor apply as usual.
+ */
+export function applyActionWithSubfactors(
+  dataset: Dataset,
+  credences: Credences,
+  subCredences: SubCredences,
+  action: Action,
+): { credences: Credences; subCredences: SubCredences } {
+  const derived = derivedFactorIds(dataset);
+  let sub = subCredences;
+  if (action.subDeltas?.length) {
+    sub = { ...subCredences };
+    for (const d of action.subDeltas) {
+      const dist = sub[d.subfactor];
+      if (!dist || dist[d.towardState] === undefined) continue;
+      sub[d.subfactor] = withMarginal(dist, d.towardState, dist[d.towardState] + d.magnitude);
+    }
+  }
+  let cred: Credences = { ...credences };
+  for (const delta of action.deltas) {
+    if (derived.has(delta.factor)) continue;
+    const dist = cred[delta.factor];
+    if (!dist || dist[delta.towardState] === undefined) continue;
+    cred[delta.factor] = withMarginal(dist, delta.towardState, dist[delta.towardState] + delta.magnitude);
+  }
+  cred = deriveCredences(dataset, cred, sub);
+  return { credences: cred, subCredences: sub };
+}
+
+/**
+ * The shifted credences an action produces — sub-aware when `subCredences` is
+ * supplied (the derived parents re-derive), plain marginal shifts otherwise.
+ */
+export function shiftedCredences(
+  dataset: Dataset,
+  credences: Credences,
+  action: Action,
+  subCredences?: SubCredences,
+): Credences {
+  return subCredences
+    ? applyActionWithSubfactors(dataset, credences, subCredences, action).credences
+    : applyAction(credences, action);
+}
+
 export interface RankedAction {
   action: Action;
   ev: number;
@@ -55,11 +104,14 @@ export function rankActions(
   weights: ValueVector,
   evaluator: Evaluator,
   pins: Pins = {},
+  /** When supplied, actions with subDeltas act through the sub-layer (and the
+   *  derived parents re-derive) instead of nudging parent marginals directly. */
+  subCredences?: SubCredences,
 ): { baselineEv: number; ranked: RankedAction[] } {
   const baselineEv = analyze(dataset, credences, weights, evaluator, pins).ev;
   const ranked = dataset.actions
     .map((action) => {
-      const result = analyze(dataset, applyAction(credences, action), weights, evaluator, pins);
+      const result = analyze(dataset, shiftedCredences(dataset, credences, action, subCredences), weights, evaluator, pins);
       return { action, ev: result.ev, evGain: result.ev - baselineEv, evVector: result.evVector };
     })
     .sort((a, b) => b.evGain - a.evGain);

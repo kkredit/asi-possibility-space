@@ -3,7 +3,9 @@ import { dataset } from '@model/dataset';
 import type { Credences } from '@model/types';
 import type { KnownFactorId } from '@model/ids';
 import { presets } from '@model/presets';
+import { deriveCredences } from '@engine/derive';
 import { VALUE_DIMENSION_IDS } from '@engine/value';
+import type { SubCredences } from '@model/types';
 
 describe('belief presets', () => {
   it('have unique ids', () => {
@@ -32,7 +34,10 @@ describe('belief presets', () => {
       for (const [fid, view] of Object.entries(p.factors)) {
         expect(view!.accuracy, `${p.id}/${fid} accuracy`).toBeGreaterThanOrEqual(0);
         expect(view!.accuracy, `${p.id}/${fid} accuracy`).toBeLessThanOrEqual(1);
-        expect(dataset.factors.some((f) => f.id === fid), `${p.id} unknown factor ${fid}`).toBe(true);
+        const known =
+          dataset.factors.some((f) => f.id === fid) ||
+          (dataset.subfactors ?? []).some((sf) => sf.id === fid);
+        expect(known, `${p.id} unknown factor ${fid}`).toBe(true);
       }
       if (p.weights) {
         for (const dim of VALUE_DIMENSION_IDS) {
@@ -64,6 +69,39 @@ describe('belief presets', () => {
           expect(r, `${p.id}/${fid} ref ${r} out of range`).toBeLessThanOrEqual(p.references.length);
         }
       }
+    }
+  });
+});
+
+describe('preset sub-credences (alignment deep dive)', () => {
+  it('every subfactor distribution sums to 1 over that subfactor\'s states', () => {
+    for (const p of presets) {
+      for (const sf of dataset.subfactors ?? []) {
+        const dist = (p.subCredences as SubCredences | undefined)?.[sf.id];
+        expect(dist, `${p.id} missing subCredences.${sf.id}`).toBeDefined();
+        const ids = sf.states.map((s) => s.id);
+        for (const sid of Object.keys(dist!)) expect(ids).toContain(sid);
+        const sum = Object.values(dist!).reduce((a, b) => a + b, 0);
+        expect(sum, `${p.id}/${sf.id} sums to ${sum}`).toBeCloseTo(1, 6);
+      }
+    }
+  });
+
+  it('derived parents stay in the neighborhood of the stated top-level credences', () => {
+    // The deep dive is calibrated so each preset's derived tractability /
+    // alignment-in-time land NEAR its sourced top-level numbers. Exact agreement is
+    // not forced — a residual gap (e.g. LeCun's stated easy-optimism exceeding his
+    // specific positions) is the deep dive doing its job — but a blowout means the
+    // sub-credences or the derivation drifted.
+    for (const p of presets) {
+      const stated = { ...dataset.baselineCredences, ...p.credences };
+      const subs: SubCredences = { ...dataset.subBaseline!, ...(p.subCredences ?? {}) };
+      const d = deriveCredences(dataset, stated, subs);
+      const dy = Math.abs(d.alignmentInTime.yes - stated.alignmentInTime.yes);
+      expect(dy, `${p.id} alignYes derived-vs-stated gap ${dy.toFixed(2)}`).toBeLessThanOrEqual(0.2);
+      const l1 = (['easy', 'hard', 'nearImpossible'] as const).reduce(
+        (a, st) => a + Math.abs((d.tractability[st] ?? 0) - (stated.tractability[st] ?? 0)), 0);
+      expect(l1, `${p.id} tractability L1 gap ${l1.toFixed(2)}`).toBeLessThanOrEqual(0.9);
     }
   });
 });

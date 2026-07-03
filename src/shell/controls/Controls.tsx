@@ -2,23 +2,26 @@ import { useState } from 'react';
 import {
   Box,
   Button,
+  Collapse,
   Dialog,
   DialogContent,
   DialogTitle,
   Divider,
   FormControl,
+  FormControlLabel,
   Link,
   MenuItem,
   Select,
   Slider,
   Stack,
+  Switch,
   Tooltip,
   Typography,
 } from '@mui/material';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import { dataset } from '@model/dataset';
 import { evaluators } from '@engine/index';
-import { FACTOR_KINDS, type Factor, type FactorKind } from '@model/types';
+import { FACTOR_KINDS, type Factor, type FactorKind, type Subfactor } from '@model/types';
 import { useBeliefs } from '@shell/store';
 import { Presets } from '@shell/controls/Presets';
 import { InfoTip } from '@viz/InfoTip';
@@ -47,8 +50,12 @@ function FactorControl({ factor }: { factor: Factor }) {
   const pin = useBeliefs((s) => s.pins[factor.id]);
   const setCredence = useBeliefs((s) => s.setCredence);
   const setPin = useBeliefs((s) => s.setPin);
+  const alignmentMode = useBeliefs((s) => s.alignmentMode);
   const onSlide = setCredence;
   const [learnOpen, setLearnOpen] = useState(false);
+  // A parent owned by the deep dive: its sliders become derived read-outs.
+  const derivedLock =
+    alignmentMode === 'derived' && (dataset.derivations ?? []).some((d) => d.factor === factor.id);
 
   return (
     <Box sx={{ mb: 1.75 }}>
@@ -126,13 +133,140 @@ function FactorControl({ factor }: { factor: Factor }) {
             value={dist[st.id] ?? 0}
             onChange={(_, v) => onSlide(factor.id, st.id, v as number)}
             sx={{ flex: 1 }}
-            disabled={!!pin}
+            disabled={!!pin || derivedLock}
           />
           <Typography sx={{ ...monoPct, width: 34, textAlign: 'right', color: c.bone }}>
             {Math.round((dist[st.id] ?? 0) * 100)}
           </Typography>
         </Stack>
       ))}
+      <DeepDive factor={factor} />
+    </Box>
+  );
+}
+
+
+/** One deep-dive subfactor: like a factor row, minus pins, plus its gate hint. */
+function SubfactorControl({ sub }: { sub: Subfactor }) {
+  const dist = useBeliefs((s) => s.subCredences[sub.id]);
+  const active = useBeliefs((s) => s.alignmentMode === 'derived');
+  const setSubCredence = useBeliefs((s) => s.setSubCredence);
+  const [learnOpen, setLearnOpen] = useState(false);
+  const gateLabel = sub.gatedBy
+    ? dataset.subfactors?.find((x) => x.id === sub.gatedBy)?.label ??
+      dataset.factors.find((f) => f.id === sub.gatedBy)?.label
+    : undefined;
+
+  return (
+    <Box sx={{ mb: 1.5 }}>
+      <Stack direction="row" alignItems="baseline" spacing={0.75}>
+        <Tooltip
+          arrow
+          placement="top-start"
+          leaveDelay={120}
+          title={
+            <>
+              {sub.description}
+              {sub.background ? (
+                <Box sx={{ mt: 0.75 }}>
+                  <Link
+                    component="button"
+                    type="button"
+                    onClick={() => setLearnOpen(true)}
+                    sx={{ fontSize: '0.72rem', color: c.teal, textDecorationColor: c.teal }}
+                  >
+                    Read more — the debate &amp; key reading →
+                  </Link>
+                </Box>
+              ) : null}
+            </>
+          }
+        >
+          <Typography sx={{ fontFamily: fonts.display, fontWeight: 500, fontSize: '0.78rem', color: c.bone, cursor: 'help', minWidth: 0 }}>
+            {sub.label}
+          </Typography>
+        </Tooltip>
+        <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: kindColor[sub.kind], flexShrink: 0, alignSelf: 'center' }} />
+      </Stack>
+      {gateLabel ? (
+        <Typography sx={{ fontSize: '0.64rem', color: c.faint, mb: 0.25 }}>payoff gated by “{gateLabel}”</Typography>
+      ) : null}
+      {sub.background ? (
+        <Dialog open={learnOpen} onClose={() => setLearnOpen(false)} maxWidth="sm" fullWidth>
+          <DialogTitle sx={{ fontFamily: fonts.display, fontSize: '1rem', pb: 0.5 }}>
+            {sub.label}
+            <Typography sx={{ fontSize: '0.66rem', color: kindColor[sub.kind], fontWeight: 400, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              {sub.kind} · alignment deep dive
+            </Typography>
+          </DialogTitle>
+          <DialogContent>
+            <FactorBackground factor={sub} />
+          </DialogContent>
+        </Dialog>
+      ) : null}
+      {sub.states.map((st) => (
+        <Stack key={st.id} direction="row" alignItems="center" spacing={1}>
+          <Tooltip title={st.blurb ?? ''} arrow placement="left">
+            <Typography sx={{ width: 84, fontSize: '0.7rem', color: c.mute }}>{st.label}</Typography>
+          </Tooltip>
+          <Slider
+            size="small"
+            min={0}
+            max={1}
+            step={0.01}
+            value={dist?.[st.id] ?? 0}
+            onChange={(_, v) => setSubCredence(sub.id, st.id, v as number)}
+            sx={{ flex: 1 }}
+            disabled={!active}
+          />
+          <Typography sx={{ ...monoPct, width: 34, textAlign: 'right', color: c.bone }}>
+            {Math.round((dist?.[st.id] ?? 0) * 100)}
+          </Typography>
+        </Stack>
+      ))}
+    </Box>
+  );
+}
+
+/** The collapsible deep-dive cluster under a derived parent factor. */
+function DeepDive({ factor }: { factor: Factor }) {
+  const subs = (dataset.subfactors ?? []).filter((sf) => sf.parent === factor.id);
+  const alignmentMode = useBeliefs((s) => s.alignmentMode);
+  const setAlignmentMode = useBeliefs((s) => s.setAlignmentMode);
+  const [open, setOpen] = useState(false);
+  if (subs.length === 0) return null;
+  const derived = alignmentMode === 'derived';
+
+  return (
+    <Box sx={{ mt: 0.25, mb: 0.75, ml: 0.5, pl: 1.25, borderLeft: `2px solid ${c.line}` }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Typography
+          onClick={() => setOpen(!open)}
+          sx={{ fontFamily: fonts.display, fontSize: '0.72rem', color: derived ? c.teal : c.mute, cursor: 'pointer', userSelect: 'none', '&:hover': { color: c.teal } }}
+        >
+          {open ? '▾' : '▸'} Deep dive · {subs.length} subfactors{derived ? ' · driving this factor' : ' · detached'}
+        </Typography>
+        {open ? (
+          <FormControlLabel
+            sx={{ mr: 0, '& .MuiFormControlLabel-label': { fontSize: '0.66rem', color: c.mute } }}
+            control={<Switch size="small" checked={derived} onChange={(_, on) => setAlignmentMode(on ? 'derived' : 'direct')} />}
+            label="derive"
+            labelPlacement="start"
+          />
+        ) : null}
+      </Stack>
+      <Collapse in={open}>
+        <Box sx={{ mt: 1 }}>
+          {derived ? null : (
+            <Typography sx={{ fontSize: '0.66rem', color: c.faint, mb: 0.75 }}>
+              Detached: the parent slider is set directly; these sub-beliefs are inert until you re-enable “derive”.
+            </Typography>
+          )}
+          {subs.map((sf) => (
+            <SubfactorControl key={sf.id} sub={sf} />
+          ))}
+        </Box>
+      </Collapse>
     </Box>
   );
 }

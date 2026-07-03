@@ -18,7 +18,7 @@ import type { Preset } from '@model/types';
 import { presets } from '@model/presets';
 import { dataset } from '@model/dataset';
 import type { KnownFactorId } from '@model/ids';
-import { analyze, cachedEvaluator, doomMass, reconcileJoint } from '@engine/index';
+import { analyze, cachedEvaluator, deriveCredences, doomMass, reconcileJoint } from '@engine/index';
 import { useBeliefs, type ProbabilityModel } from '@shell/store';
 import { InfoTip } from '@viz/InfoTip';
 import { fmtSigned } from '@viz/text';
@@ -30,7 +30,12 @@ import { c, fonts, valueColor } from '@shell/theme';
  *  merged over the baseline exactly as the store does when applying the preset, so a
  *  preset that omits a factor still analyzes with a full distribution. */
 function analyzePreset(p: Preset, model: ProbabilityModel) {
-  const credences = { ...dataset.baselineCredences, ...p.credences };
+  const stated = { ...dataset.baselineCredences, ...p.credences };
+  // The store loads presets in derived mode: the deep-dive derives tractability and
+  // alignment-in-time from the preset's sub-credences. Mirror that here so the menu
+  // EV matches the headline once loaded.
+  const subs = { ...(dataset.subBaseline ?? {}), ...(p.subCredences ?? {}) };
+  const credences = deriveCredences(dataset, stated, subs);
   const weights = p.weights ?? dataset.defaultWeights;
   const joint =
     model === 'bayesNet' && dataset.bayesNet

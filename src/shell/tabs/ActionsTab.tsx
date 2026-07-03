@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Box, FormControl, MenuItem, Select, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { dataset } from '@model/dataset';
-import type { Credences, Evaluator, FactorId, StateId, ValueVector } from '@model/types';
+import type { Credences, Evaluator, FactorId, StateId, SubCredences, ValueVector } from '@model/types';
 import {
   actionBeliefThreshold,
   actionConditions,
@@ -22,6 +22,8 @@ import { VizHeading } from '@viz/VizHeading';
 
 interface Props {
   credences: Credences;
+  /** Sub-layer beliefs (present while the alignment deep-dive is deriving). */
+  subCredences?: SubCredences;
   weights: ValueVector;
   evaluator: Evaluator;
   pins: Pins;
@@ -35,15 +37,15 @@ interface Props {
  * helps on its own. Conditions are the objective factors (the exogenous facts no action
  * moves); this uses the independence×couplings model since actions move marginals.
  */
-export function ActionsTab({ credences, weights, evaluator, pins, ranking }: Props) {
+export function ActionsTab({ credences, subCredences, weights, evaluator, pins, ranking }: Props) {
   const [actionId, setActionId] = useState<string>(dataset.actions[0].id);
   const action = dataset.actions.find((a) => a.id === actionId)!;
   // 'gain' = absolute effect vs. doing nothing; 'margin' = vs. the best alternative.
   const [metric, setMetric] = useState<ActionMetric>('margin');
 
   const ac = useMemo(
-    () => actionConditions(dataset, credences, weights, evaluator, action, pins, metric),
-    [credences, weights, evaluator, action, pins, metric],
+    () => actionConditions(dataset, credences, weights, evaluator, action, pins, metric, subCredences),
+    [credences, weights, evaluator, action, pins, metric, subCredences],
   );
 
   const [hmF1, hmF2] = useMemo(() => {
@@ -51,8 +53,8 @@ export function ActionsTab({ credences, weights, evaluator, pins, ranking }: Pro
     return [ids[0], ids[1]] as [string | undefined, string | undefined];
   }, [ac]);
   const grid = useMemo(
-    () => (hmF1 && hmF2 ? actionContrastGrid(dataset, credences, weights, evaluator, action, hmF1, hmF2, pins, metric) : null),
-    [credences, weights, evaluator, action, pins, hmF1, hmF2, metric],
+    () => (hmF1 && hmF2 ? actionContrastGrid(dataset, credences, weights, evaluator, action, hmF1, hmF2, pins, metric, subCredences) : null),
+    [credences, weights, evaluator, action, pins, hmF1, hmF2, metric, subCredences],
   );
   const labelOf = (fid: string) => dataset.factors.find((f) => f.id === fid)?.label ?? fid;
 
@@ -69,8 +71,8 @@ export function ActionsTab({ credences, weights, evaluator, pins, ranking }: Pro
       : sweepFactor.states[0].id;
   const sweepStateLabel = sweepFactor.states.find((s) => s.id === sweepStateId)?.label ?? sweepStateId;
   const threshold = useMemo(
-    () => actionBeliefThreshold(dataset, credences, weights, evaluator, action, sweepFactorId, sweepStateId, pins, metric),
-    [credences, weights, evaluator, action, sweepFactorId, sweepStateId, pins, metric],
+    () => actionBeliefThreshold(dataset, credences, weights, evaluator, action, sweepFactorId, sweepStateId, pins, metric, subCredences),
+    [credences, weights, evaluator, action, sweepFactorId, sweepStateId, pins, metric, subCredences],
   );
 
   const stateSelectSx = { fontFamily: fonts.display, fontSize: '0.84rem' };
