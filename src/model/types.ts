@@ -249,7 +249,8 @@ export interface Preset {
   name: string;
   /** Whether this preset represents an individual's personal views or an org's institutional position. */
   category: 'person' | 'lab';
-  /** For individuals: the org/venue shown in parens after the name (e.g. "MIRI"). Omitted for orgs. */
+  /** Shown in parens after the name: for individuals their org/venue (e.g. "MIRI");
+   *  for labs their head/CEO (e.g. "Sam Altman"). */
   affiliation?: string;
   /** Fuller affiliation / role line shown in the detail card. */
   role: string;

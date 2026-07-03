@@ -50,14 +50,10 @@ function setStateProbability(
   return next;
 }
 
-/** Legacy preset-id aliases, so old shared `#preset=<id>` links keep resolving. */
-const PRESET_ID_ALIASES: Record<string, string> = { hassabis: 'deepmind' };
-
 /** Read a `#preset=<id>` from the URL (SSR-safe); only returns known preset ids. */
 function readUrlPresetId(): string | null {
   if (typeof window === 'undefined') return null;
-  const raw = window.location.hash.match(/preset=([A-Za-z0-9_-]+)/)?.[1];
-  const id = raw ? PRESET_ID_ALIASES[raw] ?? raw : undefined;
+  const id = window.location.hash.match(/preset=([A-Za-z0-9_-]+)/)?.[1];
   return id && presets.some((p) => p.id === id) ? id : null;
 }
 

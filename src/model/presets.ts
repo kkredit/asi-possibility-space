@@ -312,6 +312,7 @@ export const presets: Preset[] = [
     id: 'deepmind',
     name: 'Google DeepMind',
     category: 'lab',
+    affiliation: 'Demis Hassabis',
     role: 'Google DeepMind · Demis Hassabis (CEO)',
     summary:
       'AGI plausibly within 5–10 years; the catastrophe risk is "non-negligible" but addressable with much more safety work and international coordination — a self-described cautious optimist.',
@@ -512,6 +513,7 @@ export const presets: Preset[] = [
     id: 'anthropic',
     name: 'Anthropic',
     category: 'lab',
+    affiliation: 'Dario Amodei',
     role: 'Anthropic · Dario Amodei (CEO)',
     summary:
       'Powerful AI by 2026–27 and enormously high-variance: ~25% it goes really badly, ~75% really well; alignment is unsolved but probably tractable with urgent work, and the upside is worth fighting for.',
@@ -552,6 +554,7 @@ export const presets: Preset[] = [
     id: 'openai',
     name: 'OpenAI',
     category: 'lab',
+    affiliation: 'Sam Altman',
     role: 'OpenAI · Sam Altman (CEO)',
     summary:
       'Acknowledges existential risk ("lights-out for all of us") while building AGI fast and deploying iteratively; prefers a gradual takeoff and calls making superintelligence safe "an open research question".',
@@ -592,6 +595,7 @@ export const presets: Preset[] = [
     id: 'xai',
     name: 'xAI',
     category: 'lab',
+    affiliation: 'Elon Musk',
     role: 'xAI · Elon Musk',
     summary:
       'AI is a genuine existential risk (Musk cites a ~10–20% chance of annihilation) and superintelligence is imminent — but the ~80% good-outcome upside is worth it; the safety bet is a "maximally truth-seeking" AI rather than slowing down.',
@@ -632,6 +636,7 @@ export const presets: Preset[] = [
     id: 'meta',
     name: 'Meta',
     category: 'lab',
+    affiliation: 'Mark Zuckerberg',
     role: 'Meta · Mark Zuckerberg (CEO) / FAIR',
     summary:
       'AI is overwhelmingly beneficial and the dominant danger is concentration in a few closed labs, so open release makes the world safer; existential "doomsday" scenarios are downplayed — though by 2025 Meta reserves the right to withhold "critical-risk" models.',
