@@ -80,7 +80,7 @@ export function ResourcesPage() {
           <Box key={sec.id} sx={{ mb: 1.75 }}>
             <Typography
               onClick={() => document.getElementById(anchorId(sec.id))?.scrollIntoView({ behavior: 'smooth' })}
-              sx={{ fontFamily: fonts.display, fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: c.mute, cursor: 'pointer', mb: 0.5, '&:hover': { color: c.teal } }}
+              sx={{ fontFamily: fonts.display, fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: c.mute, cursor: 'pointer', mb: 0.5, '&:hover': { color: c.accent } }}
             >
               {sec.title}
             </Typography>

@@ -76,10 +76,10 @@ function Masthead({ page, onNavigate }: { page: Page; onNavigate: (p: Page) => v
         fontFamily: fonts.display,
         fontSize: '0.82rem',
         fontWeight: page === p ? 700 : 400,
-        color: page === p ? c.teal : c.mute,
+        color: page === p ? c.accent : c.mute,
         cursor: 'pointer',
         whiteSpace: 'nowrap',
-        '&:hover': { color: c.teal },
+        '&:hover': { color: c.accent },
       }}
     >
       {label}
@@ -119,7 +119,7 @@ function Masthead({ page, onNavigate }: { page: Page; onNavigate: (p: Page) => v
       </Box>
       <Box sx={{ flex: 1 }} />
       <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.68rem', color: c.faint, whiteSpace: 'nowrap', display: { xs: 'none', sm: 'block' } }}>
-        {SCENARIO_COUNT.toLocaleString()}-scenario model · editable content
+        {SCENARIO_COUNT.toLocaleString()}-scenario model
       </Typography>
     </Box>
   );

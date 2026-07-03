@@ -14,6 +14,10 @@ export const c = {
   red: '#E4564A', // extinction
   slate: '#5A6577', // neutral
   teal: '#34D3B5', // flourishing
+  // UI chrome accent — a muted teal for interactive affordances (tab indicator,
+  // links, toggles). The vivid `teal` stays reserved for DATA (the value spectrum,
+  // positive deltas); softening the chrome keeps charts loud and controls quiet.
+  accent: '#43A79C',
   // factor kinds
   amber: '#E0A33E', // objective — value of information
   contingent: '#6E7A92', // contingent — situational
@@ -56,7 +60,7 @@ export const valueGradient = `linear-gradient(90deg, ${c.red} 0%, ${c.slate} 50%
 export const kindColor: Record<FactorKind, string> = {
   objective: c.amber,
   contingent: c.contingent,
-  influenceable: c.teal,
+  influenceable: c.accent,
 };
 
 export const kindLabel: Record<FactorKind, string> = {
@@ -69,7 +73,7 @@ export const theme = createTheme({
   palette: {
     mode: 'dark',
     background: { default: c.ink, paper: c.panel },
-    primary: { main: c.teal },
+    primary: { main: c.accent },
     secondary: { main: c.amber },
     error: { main: c.red },
     text: { primary: c.bone, secondary: c.mute },
@@ -128,7 +132,7 @@ export const theme = createTheme({
     MuiTabs: {
       styleOverrides: {
         root: { minHeight: 40 },
-        indicator: { backgroundColor: c.teal, height: 2 },
+        indicator: { backgroundColor: c.accent, height: 2 },
       },
     },
     MuiTab: {

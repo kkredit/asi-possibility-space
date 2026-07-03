@@ -44,7 +44,7 @@ export function BeliefsSheet({ ev, pDoom, pDisempowered }: Props) {
           whiteSpace: 'nowrap',
         }}
       >
-        <TuneIcon sx={{ fontSize: 18, color: c.teal }} />
+        <TuneIcon sx={{ fontSize: 18, color: c.accent }} />
         <Typography sx={{ fontFamily: fonts.display, fontWeight: 600, fontSize: '0.85rem', color: c.bone }}>
           Beliefs
         </Typography>

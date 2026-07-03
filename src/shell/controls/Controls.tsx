@@ -75,7 +75,7 @@ function FactorControl({ factor }: { factor: Factor }) {
                     component="button"
                     type="button"
                     onClick={() => setLearnOpen(true)}
-                    sx={{ fontSize: '0.72rem', color: c.teal, textDecorationColor: c.teal }}
+                    sx={{ fontSize: '0.72rem', color: c.accent, textDecorationColor: c.accent }}
                   >
                     Read more — the debate &amp; key reading →
                   </Link>
@@ -107,7 +107,7 @@ function FactorControl({ factor }: { factor: Factor }) {
             variant="standard"
             disableUnderline
             onChange={(e) => setPin(factor.id, e.target.value === '__free' ? null : e.target.value)}
-            sx={{ fontFamily: fonts.mono, fontSize: '0.68rem', color: pin ? c.teal : c.faint, '& .MuiSelect-icon': { color: c.faint } }}
+            sx={{ fontFamily: fonts.mono, fontSize: '0.68rem', color: pin ? c.accent : c.faint, '& .MuiSelect-icon': { color: c.faint } }}
           >
             <MenuItem value="__free" sx={{ fontSize: '0.72rem' }}>free</MenuItem>
             {factor.states.map((st) => (
@@ -175,7 +175,7 @@ function SubfactorControl({ sub }: { sub: Subfactor }) {
                     component="button"
                     type="button"
                     onClick={() => setLearnOpen(true)}
-                    sx={{ fontSize: '0.72rem', color: c.teal, textDecorationColor: c.teal }}
+                    sx={{ fontSize: '0.72rem', color: c.accent, textDecorationColor: c.accent }}
                   >
                     Read more — the debate &amp; key reading →
                   </Link>
@@ -244,7 +244,7 @@ function DeepDive({ factor }: { factor: Factor }) {
       <Stack direction="row" alignItems="center" justifyContent="space-between">
         <Typography
           onClick={() => setOpen(!open)}
-          sx={{ fontFamily: fonts.display, fontSize: '0.72rem', color: derived ? c.teal : c.mute, cursor: 'pointer', userSelect: 'none', '&:hover': { color: c.teal } }}
+          sx={{ fontFamily: fonts.display, fontSize: '0.72rem', color: derived ? c.accent : c.mute, cursor: 'pointer', userSelect: 'none', '&:hover': { color: c.accent } }}
         >
           {open ? '▾' : '▸'} Deep dive · {subs.length} subfactors{derived ? ' · driving this factor' : ' · detached'}
         </Typography>
@@ -326,7 +326,7 @@ export function Controls() {
             size="small"
             startIcon={<LinkIcon sx={{ fontSize: 16 }} />}
             onClick={copyLink}
-            sx={{ color: copied ? c.teal : c.mute, minWidth: 0 }}
+            sx={{ color: copied ? c.accent : c.mute, minWidth: 0 }}
           >
             {copied ? 'Copied ✓' : 'Copy link'}
           </Button>
@@ -390,7 +390,7 @@ export function Controls() {
           <Box
             component="span"
             onClick={() => setNetOpen(true)}
-            sx={{ display: 'inline-block', mt: 0.6, cursor: 'pointer', color: c.mute, fontFamily: fonts.display, fontSize: '0.74rem', '&:hover': { color: c.teal } }}
+            sx={{ display: 'inline-block', mt: 0.6, cursor: 'pointer', color: c.mute, fontFamily: fonts.display, fontSize: '0.74rem', '&:hover': { color: c.accent } }}
           >
             View the network ↗
           </Box>

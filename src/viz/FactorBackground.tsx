@@ -102,9 +102,9 @@ export function FactorBackground({ factor }: { factor: Factor }) {
                     fontFamily: fonts.mono,
                     fontSize: '0.58rem',
                     letterSpacing: '0.02em',
-                    color: meta.accessible ? c.teal : c.faint,
+                    color: meta.accessible ? c.accent : c.faint,
                     bgcolor: 'transparent',
-                    border: `1px solid ${meta.accessible ? c.teal : c.line}`,
+                    border: `1px solid ${meta.accessible ? c.accent : c.line}`,
                     '& .MuiChip-label': { px: 0.7 },
                   }}
                 />

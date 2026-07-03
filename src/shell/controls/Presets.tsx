@@ -199,7 +199,7 @@ export function Presets() {
               component="button"
               type="button"
               onClick={() => setShowSources(true)}
-              sx={{ fontSize: '0.72rem', color: c.teal, textDecorationColor: c.teal }}
+              sx={{ fontSize: '0.72rem', color: c.accent, textDecorationColor: c.accent }}
             >
               Sources & reasoning ↗
             </Link>
@@ -258,7 +258,7 @@ export function Presets() {
                     <Typography sx={{ fontSize: '0.68rem', color: c.mute, lineHeight: 1.4, pl: 1.75 }}>
                       {view.note}
                       {view.refs?.length ? (
-                        <Box component="sup" sx={{ color: c.teal, fontFamily: fonts.mono, ml: 0.25 }}>
+                        <Box component="sup" sx={{ color: c.accent, fontFamily: fonts.mono, ml: 0.25 }}>
                           {view.refs.join(',')}
                         </Box>
                       ) : null}

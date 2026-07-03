@@ -45,14 +45,14 @@ export function ModelLadder({ rows, info }: Props) {
                   sx={{
                     fontFamily: fonts.display,
                     fontSize: '0.8rem',
-                    color: r.reference ? c.teal : c.bone,
+                    color: r.reference ? c.accent : c.bone,
                     cursor: r.note ? 'help' : 'default',
                   }}
                 >
                   {r.label}
                 </Typography>
               </Tooltip>
-              <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.78rem', color: r.reference ? c.teal : c.mute }}>
+              <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.78rem', color: r.reference ? c.accent : c.mute }}>
                 {r.reference ? '0 · reference' : r.rms.toFixed(3)}
               </Typography>
             </Stack>
@@ -61,7 +61,7 @@ export function ModelLadder({ rows, info }: Props) {
                 sx={{
                   height: '100%',
                   width: `${(r.rms / max) * 100}%`,
-                  bgcolor: r.reference ? c.teal : c.slate,
+                  bgcolor: r.reference ? c.accent : c.slate,
                   borderRadius: 3,
                   transition: 'width 0.3s ease',
                 }}
