@@ -156,13 +156,17 @@ describe('action conditions', () => {
     for (const cx of a.cruxes) expect(objIds.has(cx.factorId)).toBe(true);
   });
 
-  it('deception is fund-alignment’s top crux and it flips', () => {
+  it('deception is fund-alignment’s top verdict-flipping crux', () => {
     // Funding alignment pushes into the ALIGNED corner, but a deceptive defection
-    // collapses that corner to ≈ doom — so whether deception holds is what most
-    // decides if funding alignment is the best lever.
+    // collapses that corner (and the control corner) to ≈ doom — in deceptive
+    // worlds the funding gains ~nothing, so deception is the factor that flips
+    // the verdict and moves it most end-to-end. (Takeoff's absolute swing is a
+    // hair larger, but it never flips the sign.)
     const a = runA();
-    expect(a.cruxes[0].factorId).toBe('deception');
-    expect(a.cruxes[0].flips).toBe(true);
+    const flippers = a.cruxes.filter((c) => c.flips);
+    expect(flippers[0].factorId).toBe('deception');
+    const bySpan = [...a.cruxes].sort((x, y) => y.span - x.span);
+    expect(bySpan[0].factorId).toBe('deception');
   });
 
   it('action grid is over objective factors and sized to their states', () => {

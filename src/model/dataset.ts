@@ -323,13 +323,13 @@ const failsTable: FailsEntry[] = [
     narrative: 'Benign AI directed by a concentrated few who also solved alignment — safe and prosperous, but paternalistic.' },
   { off: 'balanced', conc: 'concentrated', align: 'yes', ctrl: 'yes', v: [0.83, 0.01, 0.53, 0.68],
     narrative: 'Benign, aligned, controlled AI, concentrated: very safe, agency thin; the safety work was redundant given benevolence.' },
-  { off: 'balanced', conc: 'diffuse', align: 'no', ctrl: 'no', v: [0.7, 0.2, 0.4, 0.6],
+  { off: 'balanced', conc: 'diffuse', align: 'no', ctrl: 'no', v: [0.7, 0.4, 0.4, 0.6],
     narrative: 'Orthogonality fails: sufficiently capable systems converge toward broadly benevolent goals on their own. Even without solved alignment or control, the resulting superintelligences do not wish us harm. We survive and broadly flourish — though we never really steered the outcome.' },
-  { off: 'balanced', conc: 'diffuse', align: 'no', ctrl: 'yes', v: [0.75, 0.23, 0.46, 0.64],
+  { off: 'balanced', conc: 'diffuse', align: 'no', ctrl: 'yes', v: [0.75, 0.43, 0.46, 0.64],
     narrative: 'Benign AI distributed with a control layer, balanced offense/defense: a free, steady, prosperous world.' },
-  { off: 'balanced', conc: 'diffuse', align: 'yes', ctrl: 'no', v: [0.76, 0.24, 0.48, 0.66],
+  { off: 'balanced', conc: 'diffuse', align: 'yes', ctrl: 'no', v: [0.76, 0.44, 0.48, 0.66],
     narrative: 'Benign, aligned AI distributed, balanced: free and prosperous; alignment added assurance we did not strictly need.' },
-  { off: 'balanced', conc: 'diffuse', align: 'yes', ctrl: 'yes', v: [0.79, 0.25, 0.51, 0.7],
+  { off: 'balanced', conc: 'diffuse', align: 'yes', ctrl: 'yes', v: [0.79, 0.45, 0.51, 0.7],
     narrative: 'Benign, aligned, controlled AI, distributed, balanced: a free and flourishing world.' },
   // defense-dominant
   { off: 'defense', conc: 'concentrated', align: 'no', ctrl: 'no', v: [0.8, 0.0, 0.5, 0.63],
@@ -431,7 +431,7 @@ const baseCells: CachedCell[] = [
   // ==========================================================================
 
   // (no, no) — DOOM, slightly worse than Group 1: a deeply misaligned system.
-  cell('holds', 'nearImpossible', 'offense', 'concentrated', 'no', 'no', [-0.95, -0.9, -0.5, -0.95],
+  cell('holds', 'nearImpossible', 'offense', 'concentrated', 'no', 'no', [-0.96, -0.93, -0.53, -0.96],
     'Orthogonality holds, alignment is near-impossible and unsolved, and there is no effective control. A misaligned superintelligence pursues goals indifferent to us. Humanity is disempowered and extinguished.', 0.7),
   cell('holds', 'nearImpossible', 'balanced', 'concentrated', 'no', 'no', [-0.96, -0.93, -0.52, -0.96],
     'Deeply misaligned and uncontained in a few hands; the human offense/defense balance is irrelevant to a takeover. Extinction.', 0.7),
@@ -712,7 +712,7 @@ function expandCoordination(base: CachedCell): CachedCell[] {
 // from within — so a near-uniform collapse is consistent with the doom narrative.)
 const deceptionDelta: Record<Corner, ValueTuple> = {
   doom: [-0.03, 0.0, -0.03, -0.02],
-  control: [-1.1, -0.7, -0.55, -1.1],
+  control: [-1.8, -1.3, -1.0, -1.5],
   aligned: [-1.9, -1.3, -1.3, -1.8],
   benign: [0.0, 0.0, 0.02, 0.0],
 };

@@ -67,10 +67,10 @@ from cached over all 1,728 scenarios, in value-vector space (each dimension is i
 
 | Model | Free params | RMS to cached | What its residual *is* |
 |---|---:|---:|---|
-| `linear` (hand-set)¹ | 22 | **0.636** | bad coefficients **+** non-linearity (conflated) |
-| `fitted` (additive) | 22 | **0.373** | **irreducible non-linearity** — what no sum-of-factors can express |
-| `fitted + pairwise` | 217 | **0.190** | two-way interaction captured, but misses the higher-order régime gating |
-| `archetype` (8 régimes) | 32 | **0.174** | **the best fit** — only within-régime modulation left |
+| `linear` (hand-set)¹ | 22 | **0.653** | bad coefficients **+** non-linearity (conflated) |
+| `fitted` (additive) | 22 | **0.377** | **irreducible non-linearity** — what no sum-of-factors can express |
+| `fitted + pairwise` | 217 | **0.186** | two-way interaction captured, but misses the higher-order régime gating |
+| `archetype` (8 régimes) | 32 | **0.165** | **the best fit** — only within-régime modulation left |
 | `cached` | — | 0 | (the reference) |
 
 ¹ `linear` is the analytical baseline only; it's not selectable in the UI ladder (it
@@ -80,20 +80,20 @@ was too crude to be worth picking) — the picker shows `fitted`, `archetype`, a
 Three things fall out of this ladder:
 
 1. **About 40% of the hand-set model's error was just bad coefficients.**
-   `linear → fitted` drops the RMS from 0.636 to 0.373 with no change in form. So
+   `linear → fitted` drops the RMS from 0.653 to 0.377 with no change in form. So
    when you look at the cached-vs-linear scatter, much of the spread is *not*
    evidence of non-linearity — it's the hand-picked numbers being suboptimal. The
    fitted model is the honest foil.
 
 2. **The space is substantially non-linear, and much of that is pairwise.** The
-   best possible additive model still sits 0.373 from cached; adding two-way terms
-   roughly halves that (to 0.190). Survival, agency and the rest really do depend
+   best possible additive model still sits 0.377 from cached; adding two-way terms
+   roughly halves that (to 0.186). Survival, agency and the rest really do depend
    on *combinations* of factors, not a sum of independent pulls.
 
 3. **The space is fundamentally *gated*, not additive — and the gating wins outright.**
-   The `archetype` model (0.174, just 32 data-derived numbers) is **the single best
-   fit** — it beats not only the best additive model (0.373) but even the
-   217-parameter pairwise model (0.190), at a fraction of the parameters. It works by
+   The `archetype` model (0.165, just 32 data-derived numbers) is **the single best
+   fit** — it beats not only the best additive model (0.377) but even the
+   217-parameter pairwise model (0.186), at a fraction of the parameters. It works by
    classifying each scenario into one of **eight logical régimes** — the four
    archetypes (benign / aligned / control / doom) each split by whether **deception**
    holds — and predicting that régime's mean. *Which régime you're in* dominates *how
@@ -128,7 +128,7 @@ the model confirming the narrative's own logic.
 
 - The `fitted` evaluator is the right **null model**: divergence from *it* (not from
   hand-`linear`) is real non-linearity worth investigating.
-- The `archetype` residual (0.174) localises *within-régime* variation — once you
+- The `archetype` residual (0.165) localises *within-régime* variation — once you
   know the gate (including deception), what's left is the secondary modulation
   (offense/defense balance, power concentration, takeoff, coordination) the means
   average over. Those are the cells most worth re-reasoning carefully.
@@ -191,10 +191,12 @@ the child factors are set by CPTs conditioned on their parents. The CPTs mirror 
 couplings (e.g. `P(concentrated | fast) = 0.9`).
 
 **It validates as a faithful refinement, not a different universe.** The net's joint
-sums to 1; its root marginals reproduce the sliders exactly; its child marginals stay
-in the baseline ballpark but are now *derived* (tractability skews easier because
-orthogonality-fails implies easy). At baseline beliefs the headline EV is **0.113**
-under the net vs. **0.116** under independence×couplings — a small, explainable shift.
+sums to 1; its root marginals reproduce the sliders exactly; its child marginals are
+now *derived* rather than read from the sliders (tractability skews easier because
+orthogonality-fails implies easy). At baseline beliefs the headline EV is **−0.082**
+under the net vs. **0.003** under independence×couplings — an explainable shift: the
+net's CPTs imply longer odds of alignment-in-time (≈0.47) than the baseline slider
+asserts (0.65), so more mass lands in the bad corners.
 `validateBayesNet` checks acyclicity and CPT completeness/normalisation;
 [`bayesnet.test.ts`](../src/engine/bayesnet.test.ts) pins all of this.
 
