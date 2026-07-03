@@ -31,11 +31,18 @@ import { VALUE_DIMENSION_IDS, zeroVector } from '@engine/value';
  */
 
 /** The régime key: corner (shared classifier from @model/corners), split by
- *  deception when the factor is present (8 vs 4 régimes). */
+ *  deception when present (8 vs 4 régimes), and — in régimes where a misaligned
+ *  takeover actually happens — by takeover severity (up to 12 régimes). This
+ *  mirrors the value surface's own gating (expandDeception / expandSeverity). */
 function regime(scenario: Scenario): string | undefined {
   const c = classifyCorner(scenario);
   if (!c) return undefined;
-  return scenario['deception'] !== undefined ? `${c}|${scenario['deception']}` : c;
+  const dec = scenario['deception'];
+  let key = dec !== undefined ? `${c}|${dec}` : c;
+  const takeover = c === 'doom' || (dec === 'deceptive' && c !== 'benign');
+  const sev = scenario['takeoverSeverity'];
+  if (takeover && sev !== undefined) key += `|${sev}`;
+  return key;
 }
 
 function hasArchetypeFactors(dataset: Dataset): boolean {
@@ -77,7 +84,7 @@ export const archetypeEvaluator: Evaluator = {
   id: 'archetype',
   label: 'Logical gates',
   description:
-    'Piecewise model: classify each scenario into a logical régime (benign / aligned / control / doom, each split by whether deception holds) and predict that régime’s mean value. Zero hand-tuning — tests whether the surface is gated rather than additive.',
+    'Piecewise model: classify each scenario into a logical régime (benign / aligned / control / doom, split by deception, and takeover régimes split by severity) and predict that régime’s mean value. Zero hand-tuning — tests whether the surface is gated rather than additive.',
   evaluate(scenario: Scenario, dataset: Dataset) {
     if (!hasArchetypeFactors(dataset)) return linearEvaluator.evaluate(scenario, dataset);
     const key = regime(scenario);

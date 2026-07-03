@@ -4,6 +4,7 @@ import { dataset } from '@model/dataset';
 import {
   analyze,
   cachedEvaluator,
+  disempowermentMass,
   distribution,
   doomMass,
   evaluatorFit,
@@ -120,6 +121,9 @@ export function App() {
   // Modeled p(doom): probability mass on extinction-level outcomes (survival < −0.5).
   // A different summary than EV — the extinction tail, not a cross-dimension average.
   const pDoom = useMemo(() => doomMass(analysis.scenarios), [analysis]);
+  // Alive-but-disempowered mass: the "p(pets)" band — survives, but the future is
+  // no longer ours (subjugated takeover, hard lock-in).
+  const pDisempowered = useMemo(() => disempowermentMass(analysis.scenarios), [analysis]);
   // Standalone (linear) value pull of each factor-state, for the distribution
   // tooltip's valence glyphs. Recomputed when weights change.
   const stateValence = useMemo(() => {
@@ -171,7 +175,7 @@ export function App() {
     const NOTES: Record<string, string> = {
       cached: 'The hand-reasoned surface itself — the reference every model is measured against.',
       fittedPairwise: 'Every two-way interaction, fit by least squares. Captures pairwise structure but still misses the higher-order régime gating — so it now trails the archetype despite far more parameters.',
-      archetype: 'Eight logical régimes — the four archetypes (benign / aligned / control / doom) each split by whether deception holds — predicting each régime’s mean value. Zero hand-tuning, yet it’s the single best fit: it beats even the 217-parameter pairwise model, because the surface’s sharpest structure is a régime collapse (a deceptive defection turns an aligned/controlled world into ≈ doom) that only a gate can represent.',
+      archetype: 'Twelve logical régimes — the four archetypes split by deception, with takeover régimes further split by severity (extermination vs subjugation) — predicting each régime’s mean value. Zero hand-tuning, yet it’s the single best fit: it beats even the 261-parameter pairwise model, because the surface’s sharpest structure is gated (deceptive defection collapses a world to ≈ doom; severity decides whether the takeover ends us) in ways only a gate can represent.',
       fitted: 'Best possible interaction-free fit. Its residual is the irreducible non-linearity — what no sum-of-factors can capture.',
     };
     return evaluators
@@ -210,7 +214,7 @@ export function App() {
 
           <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
             <Box sx={{ mb: 2 }}>
-              <EvHeadline ev={analysis.ev} evVector={analysis.evVector} pDoom={pDoom} />
+              <EvHeadline ev={analysis.ev} evVector={analysis.evVector} pDoom={pDoom} pDisempowered={pDisempowered} />
             </Box>
 
             <Box sx={{ borderBottom: `1px solid ${c.line}`, mb: 2 }}>

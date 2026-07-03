@@ -12,7 +12,7 @@ modulates one).
 
 ---
 
-## 1. The current set (9 factors → 1,728 scenarios)
+## 1. The current set (10 factors → 3,456 scenarios)
 
 | # | Factor | Kind | States | Role |
 |---|--------|------|:---:|------|
@@ -25,6 +25,7 @@ modulates one).
 | 7 | Control deployed | influenceable | 2 | gate: is a misaligned system leashed |
 | 8 | Coordination regime | influenceable | 2 | upstream cause: buys time for 6 & 7 (added — §2/§4) |
 | 9 | Deceptive alignment | objective | 2 | gates whether CONTROL (7) can be trusted (added — §2/§4) |
+| 10 | Takeover severity | objective | 2 | in takeover worlds: extermination vs subjugation — the "alive but bad" band (added) |
 
 Each factor also carries a scholarly **background** — the debate, the named
 positions, and curated reading (accessible entry points first, then primary
@@ -32,7 +33,7 @@ sources) — in [`src/model/factorBackground.ts`](../src/model/factorBackground.
 surfaced via the "learn more" (📖) modal next to each slider. When you add or revise
 a factor, keep its background in sync (the checklist in `AGENTS.md` points at it).
 
-**Kind mix:** 5 objective, 4 influenceable, 0 contingent. (Power concentration moved
+**Kind mix:** 6 objective, 4 influenceable, 0 contingent. (Power concentration moved
 from contingent → influenceable: it's influenceable *in principle* — antitrust,
 open-source policy, compute licensing all push on it — and how much leverage one
 really has is left to the slider/couplings rather than baked into the taxonomy. The
@@ -144,7 +145,7 @@ in `dataset.ts`):
 
 | Action | Scenarios | Hand-authored cells to keep coverage |
 |--------|----------:|-------------------------------------:|
-| today (9 factors) | 1,728 | 1,728 |
+| today (10 factors) | 3,456 | 3,456 |
 | + one binary factor | 3,456 | 3,456 |
 | + one 3-state factor | 5,184 | 5,184 |
 
@@ -170,7 +171,7 @@ disciplines keep this sane:
    control gate honest and closed the control-pessimist p(doom) gap.
 
 I would still **defer** competitive race pressure to a later step and model
-warning-shots / timeline as **couplings**, not factors. Space is now 1,728; further
+warning-shots / timeline as **couplings**, not factors. Space is now 3,456; further
 factors should clear a high bar (a new gate or gate-modulator, not another pull).
 
 The cheaper win from here is to **re-reason the high-residual cells**

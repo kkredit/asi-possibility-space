@@ -62,15 +62,15 @@ divergence from the hand-reasoned surface is the research signal.
 ## 3. The model ladder — what we learned
 
 Fit each model to the same hand-reasoned cells and measure the **RMS divergence**
-from cached over all 1,728 scenarios, in value-vector space (each dimension is in
+from cached over all 3,456 scenarios, in value-vector space (each dimension is in
 `[-1, 1]`, so the RMS is in value-units and weight-independent):
 
 | Model | Free params | RMS to cached | What its residual *is* |
 |---|---:|---:|---|
-| `linear` (hand-set)¹ | 22 | **0.653** | bad coefficients **+** non-linearity (conflated) |
-| `fitted` (additive) | 22 | **0.377** | **irreducible non-linearity** — what no sum-of-factors can express |
-| `fitted + pairwise` | 217 | **0.186** | two-way interaction captured, but misses the higher-order régime gating |
-| `archetype` (8 régimes) | 32 | **0.165** | **the best fit** — only within-régime modulation left |
+| `linear` (hand-set)¹ | 24 | **0.636** | bad coefficients **+** non-linearity (conflated) |
+| `fitted` (additive) | 24 | **0.361** | **irreducible non-linearity** — what no sum-of-factors can express |
+| `fitted + pairwise` | 261 | **0.182** | two-way interaction captured, but misses the higher-order régime gating |
+| `archetype` (12 régimes) | 48 | **0.165** | **the best fit** — only within-régime modulation left |
 | `cached` | — | 0 | (the reference) |
 
 ¹ `linear` is the analytical baseline only; it's not selectable in the UI ladder (it
@@ -80,23 +80,24 @@ was too crude to be worth picking) — the picker shows `fitted`, `archetype`, a
 Three things fall out of this ladder:
 
 1. **About 40% of the hand-set model's error was just bad coefficients.**
-   `linear → fitted` drops the RMS from 0.653 to 0.377 with no change in form. So
+   `linear → fitted` drops the RMS from 0.636 to 0.361 with no change in form. So
    when you look at the cached-vs-linear scatter, much of the spread is *not*
    evidence of non-linearity — it's the hand-picked numbers being suboptimal. The
    fitted model is the honest foil.
 
 2. **The space is substantially non-linear, and much of that is pairwise.** The
-   best possible additive model still sits 0.377 from cached; adding two-way terms
-   roughly halves that (to 0.186). Survival, agency and the rest really do depend
+   best possible additive model still sits 0.361 from cached; adding two-way terms
+   roughly halves that (to 0.182). Survival, agency and the rest really do depend
    on *combinations* of factors, not a sum of independent pulls.
 
 3. **The space is fundamentally *gated*, not additive — and the gating wins outright.**
-   The `archetype` model (0.165, just 32 data-derived numbers) is **the single best
-   fit** — it beats not only the best additive model (0.377) but even the
-   217-parameter pairwise model (0.186), at a fraction of the parameters. It works by
-   classifying each scenario into one of **eight logical régimes** — the four
-   archetypes (benign / aligned / control / doom) each split by whether **deception**
-   holds — and predicting that régime's mean. *Which régime you're in* dominates *how
+   The `archetype` model (0.165, just 48 data-derived numbers) is **the single best
+   fit** — it beats not only the best additive model (0.361) but even the
+   261-parameter pairwise model (0.182), at a fraction of the parameters. It works by
+   classifying each scenario into one of **twelve logical régimes** — the four
+   archetypes (benign / aligned / control / doom) split by whether **deception**
+   holds, with the takeover régimes further split by **takeover severity**
+   (extermination vs subjugation) — and predicting that régime's mean. *Which régime you're in* dominates *how
    much each factor adds*. The sharpest structure is a **régime collapse**: a deceptive
    defection turns an ALIGNED or CONTROL world into ≈ the DOOM outcome (the "alignment"
    was never real; the leash was on a masked system). That is a higher-order (3-way+)
@@ -117,6 +118,8 @@ ALIGNED  holds ∧ alignment-in-time = yes            → we fielded aligned ASI
 CONTROL  holds ∧ ¬aligned ∧ control deployed        → misaligned but leashed
 DOOM     holds ∧ ¬aligned ∧ ¬control                → uncontained misaligned ASI
          × { deceptive | faithful }                 → does the leash / verification hold?
+         × { extinction | subjugation }             → in takeover régimes: does the winner
+                                                      exterminate us, or keep us — alive but bad?
 ```
 
 This mirrors the structure the hand-reasoning already used (the
@@ -129,7 +132,7 @@ the model confirming the narrative's own logic.
 - The `fitted` evaluator is the right **null model**: divergence from *it* (not from
   hand-`linear`) is real non-linearity worth investigating.
 - The `archetype` residual (0.165) localises *within-régime* variation — once you
-  know the gate (including deception), what's left is the secondary modulation
+  know the gate (including deception and takeover severity), what's left is the secondary modulation
   (offense/defense balance, power concentration, takeoff, coordination) the means
   average over. Those are the cells most worth re-reasoning carefully.
 - The next evaluator worth building is a **gated-additive hybrid**: classify by the
@@ -200,8 +203,8 @@ the independence-model rendering of the deception→alignment edge).
 **It validates as a faithful refinement, not a different universe.** The net's joint
 sums to 1; its root marginals reproduce the sliders exactly; its child marginals are
 now *derived* rather than read from the sliders (tractability skews easier because
-orthogonality-fails implies easy). At baseline beliefs the headline EV is **−0.054**
-under the net vs. **0.174** under independence×couplings — an explainable shift: the
+orthogonality-fails implies easy). At baseline beliefs the headline EV is **0.003**
+under the net vs. **0.221** under independence×couplings — an explainable shift: the
 net's CPTs imply longer odds of alignment-in-time (≈0.42) than the baseline slider
 asserts (0.65), so more mass lands in the bad corners.
 `validateBayesNet` checks acyclicity and CPT completeness/normalisation;

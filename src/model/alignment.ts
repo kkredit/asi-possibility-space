@@ -18,7 +18,7 @@ import { subfactorBackgrounds } from './factorBackground';
  * research areas decompose "do we land it in time" (they derive
  * `alignmentInTime` via gated odds — each area's payoff is gated by its
  * objective twin, so funding a direction only helps in worlds where that
- * direction can work). Subfactors do NOT enter the 1,728-scenario space; see
+ * direction can work). Subfactors do NOT enter the 3,456-scenario space; see
  * engine/derive.ts for the machinery and docs/MODEL.md for the design.
  * Everything here is authored content — argue with it and edit.
  * ============================================================================

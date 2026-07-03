@@ -175,8 +175,24 @@ export const factorBackgrounds: Record<KnownFactorId, FactorBackground> = {
       { kind: 'paper', label: 'Hubinger et al. (Anthropic) — Sleeper Agents (2024)', url: 'https://arxiv.org/abs/2401.05566', note: 'Shows trained-in deception can survive safety training.' },
     ],
   },
-};
 
+  takeoverSeverity: {
+    paragraphs: [
+      'Conditional on a misaligned ASI takeover, the doom pictures split sharply. The extermination view (Yudkowsky): the system has no use for us, we are made of atoms it can repurpose, and leaving a rival species intact is an unforced risk — "the AI does not hate you, nor does it love you." The subjugation view: keeping humanity alive costs a superintelligence almost nothing (a rounding error of cosmic resources), and many motives point toward it — remnants of partially-learned human-regarding preferences, trade and commitment norms, curiosity, or simple indifference that never gets around to extermination. Hinton pictures being kept the way we keep pets; Sutskever suggests the way we treat animals; Christiano’s "whimper" failures leave humans alive in a future irreversibly steered away from what we value.',
+      'The distinction barely changes how bad a takeover is on agency or flourishing — disempowerment is near-total either way — but it is decisive for the survival dimension and therefore for any p(doom) defined as extinction. Much of the spread between stated doom numbers (a gut "10-20%" versus "99%+") traces less to disagreement about whether control is lost than to this question of what the winner does afterwards. It is treated here as an objective fact about victorious misaligned superintelligences, conditional and therefore moot in every world without a takeover.',
+    ],
+    positions: [
+      { name: 'Extermination', stance: 'Yudkowsky-line: atoms, rivals, indifference — the takeover ends us.', state: 'extinction' },
+      { name: 'Subjugation', stance: 'Hinton, Sutskever, Christiano-adjacent: humanity persists, permanently disempowered.', state: 'subjugation' },
+    ],
+    references: [
+      { kind: 'post', label: 'Grace — Counterarguments to the basic AI x-risk case (2022)', url: 'https://www.lesswrong.com/posts/LDRQ5Zfqwi8GjzPYG/counterarguments-to-the-basic-ai-x-risk-case', note: 'Includes the case that a misaligned AI keeps humans alive.' },
+      { kind: 'post', label: 'Christiano — What failure looks like (2019)', url: 'https://www.alignmentforum.org/posts/HBxe6wdjxK239zajf/what-failure-looks-like', note: 'Canonical alive-but-bad trajectories: influence-seeking systems and the whimper.' },
+      { kind: 'post', label: 'Yudkowsky — AGI Ruin: A List of Lethalities (2022)', url: 'https://www.lesswrong.com/posts/uMQ3cqWDPHhjtiesc/agi-ruin-a-list-of-lethalities', note: 'The extermination case stated maximally.' },
+      { kind: 'paper', label: 'Carlsmith — Is Power-Seeking AI an Existential Risk? (2022)', url: 'https://arxiv.org/abs/2206.13353', note: 'Carefully separates disempowerment from extinction in the risk decomposition.' },
+    ],
+  },
+};
 
 /**
  * Backgrounds for the alignment SUB-layer (the deep-dive under tractability and

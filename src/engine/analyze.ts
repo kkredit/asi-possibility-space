@@ -104,6 +104,20 @@ export function doomMass(scenarios: EvaluatedScenario[]): number {
 }
 
 /**
+ * Probability mass on ALIVE-BUT-DISEMPOWERED outcomes — humanity persists
+ * (survival ≥ −0.5) but the future is out of our hands (agency < −0.6):
+ * subjugated takeovers, hard lock-in, permanent curtailment. Carlsmith's
+ * "unrecoverable disempowerment", minus the extinct worlds doomMass already
+ * counts. The bands partition: doom / disempowered / the rest.
+ */
+export function disempowermentMass(scenarios: EvaluatedScenario[]): number {
+  return scenarios.reduce(
+    (m, s) => m + (s.value.survival >= -0.5 && s.value.agency < -0.6 ? s.probability : 0),
+    0,
+  );
+}
+
+/**
  * How far an evaluator sits from the hand-reasoned (cached) surface, measured as
  * root-mean-square divergence over every cell the cached evaluator actually has an
  * opinion on. Reported both in value-vector space (weight-independent, the quantity

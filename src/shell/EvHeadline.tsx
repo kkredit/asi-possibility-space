@@ -10,6 +10,8 @@ interface Props {
   evVector: ValueVector;
   /** Modeled p(doom): probability mass on extinction-level outcomes (survival < −0.5). */
   pDoom: number;
+  /** Alive-but-disempowered mass (survives, future out of our hands). */
+  pDisempowered: number;
 }
 
 /** Position of a value in [-1,1] as a percent across a gauge. */
@@ -45,7 +47,7 @@ function DimensionBar({ label, low, high, value }: { label: string; low: string;
   );
 }
 
-export function EvHeadline({ ev, evVector, pDoom }: Props) {
+export function EvHeadline({ ev, evVector, pDoom, pDisempowered }: Props) {
   return (
     <Paper sx={{ p: { xs: 2, sm: 2.5 } }}>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 2.5, md: 4 }} alignItems="stretch">
@@ -94,8 +96,8 @@ export function EvHeadline({ ev, evVector, pDoom }: Props) {
             </Typography>
           </Stack>
 
-          {/* Second headline: modeled p(doom) — a different summary of the same futures. */}
-          <Stack direction="row" alignItems="baseline" spacing={1.25} sx={{ mt: 2.25 }}>
+          {/* Second headline row: the two catastrophe bands — extinct, and alive-but-bad. */}
+          <Stack direction="row" alignItems="baseline" spacing={1.25} sx={{ mt: 2.25 }} flexWrap="wrap" useFlexGap>
             <Typography variant="overline" sx={{ color: c.mute, display: 'inline-flex', alignItems: 'center' }}>
               Modeled p(doom)
               <InfoTip>
@@ -110,6 +112,20 @@ export function EvHeadline({ ev, evVector, pDoom }: Props) {
             </Typography>
             <Typography sx={{ fontFamily: fonts.mono, fontWeight: 700, fontSize: '1.7rem', lineHeight: 0.9, color: valueColor(-Math.min(1, pDoom * 2)) }}>
               {Math.round(pDoom * 100)}%
+            </Typography>
+            <Typography variant="overline" sx={{ color: c.mute, display: 'inline-flex', alignItems: 'center', ml: 1.5 }}>
+              p(disempowered)
+              <InfoTip>
+                The probability mass on <b>alive-but-disempowered</b> futures: humanity persists
+                (survival&nbsp;≥&nbsp;−0.5) but the future is no longer ours
+                (agency&nbsp;&lt;&nbsp;−0.6) — a subjugated takeover, hard lock-in, permanent
+                curtailment. Carlsmith's <em>unrecoverable disempowerment</em>, minus the extinct
+                worlds p(doom) already counts. Many stated views put much of their "doom" here
+                rather than in extinction — the takeover-severity factor is what separates the two.
+              </InfoTip>
+            </Typography>
+            <Typography sx={{ fontFamily: fonts.mono, fontWeight: 700, fontSize: '1.7rem', lineHeight: 0.9, color: valueColor(-Math.min(1, pDisempowered * 2)) }}>
+              {Math.round(pDisempowered * 100)}%
             </Typography>
           </Stack>
         </Box>

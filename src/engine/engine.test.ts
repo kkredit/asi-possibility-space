@@ -47,11 +47,11 @@ describe('dataset integrity (cached cells)', () => {
     }
   });
 
-  it('every scenario is hand-reasoned across the full 1,728-cell space', () => {
-    // 144 anchor cells × {fast,medium,slow} × {none,regime} × {faithful,deceptive} = 1,728.
-    expect(dataset.cachedOutcomes.length).toBe(1728);
+  it('every scenario is hand-reasoned across the full 3,456-cell space', () => {
+    // 144 anchors × {fast,medium,slow} × {none,regime} × {faithful,deceptive} × {extinction,subjugation} = 3,456.
+    expect(dataset.cachedOutcomes.length).toBe(3456);
     const scenarios = enumerateScenarios(dataset.factors);
-    expect(scenarios).toHaveLength(1728);
+    expect(scenarios).toHaveLength(3456);
     expect(scenarios.every((s) => isReasoned(s, dataset))).toBe(true);
   });
 
@@ -71,13 +71,13 @@ describe('dataset integrity (cached cells)', () => {
 });
 
 describe('scenario enumeration', () => {
-  it('produces the full cross-product (2·3·3·3·2·2·2·2·2 = 1,728)', () => {
-    expect(enumerateScenarios(dataset.factors)).toHaveLength(1728);
+  it('produces the full cross-product (2·3·3·3·2·2·2·2·2·2 = 3,456)', () => {
+    expect(enumerateScenarios(dataset.factors)).toHaveLength(3456);
   });
 
   it('collapses a pinned factor', () => {
     const pinned = enumerateScenarios(dataset.factors, { tractability: 'hard' });
-    expect(pinned).toHaveLength(576); // 1728 / 3
+    expect(pinned).toHaveLength(1152); // 3456 / 3
     expect(pinned.every((s) => s.tractability === 'hard')).toBe(true);
   });
 
@@ -176,6 +176,7 @@ describe('evaluators', () => {
       takeoff: 'medium', // medium is the hand-reasoned anchor — value verbatim
       coordination: 'none', // none is the anchor — value verbatim (regime adds a delta)
       deception: 'faithful', // faithful is the anchor — verbatim (deceptive guts control/aligned corners)
+      takeoverSeverity: 'extinction', // moot here (faithful control ⇒ no takeover) — both states verbatim
     };
     const outcome = cachedEvaluator.evaluate(scenario, dataset)!;
     expect(outcome.value.survival).toBe(-0.9);

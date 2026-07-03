@@ -103,8 +103,8 @@ takeoff: {
 ```
 
 - **≤ 3 states is a hard cap.** It keeps the scenario space small enough to
-  enumerate *and* hand-author every cell (cacheability). Today's 9 factors give
-  `2·3·3·3·2·2·2·2·2 = 1,728` scenarios; more states explode that combinatorially.
+  enumerate *and* hand-author every cell (cacheability). Today's 10 factors give
+  `2·3·3·3·2·2·2·2·2·2 = 3,456` scenarios; more states explode that combinatorially.
 - The three `kind`s are the spine of the tool. (Full definition in
   [types.ts](src/model/types.ts) `FactorKind`.) A slider means a **timeless
   confidence** for objective factors but a **forecast of the state at ASI onset** for
@@ -132,7 +132,7 @@ total probability over all scenarios is 1; broken sums will surface there.
 ### The cached / hand-reasoned cells
 
 The cached evaluator's content is the cleverest part of `dataset.ts`. Don't author
-all 1,728 cells by hand:
+all 3,456 cells by hand:
 
 1. The **`cell(...)` helper** (in `dataset.ts`) builds one
    `CachedCell` over the **six** non-takeoff factors from a
@@ -157,7 +157,7 @@ all 1,728 cells by hand:
    *corner-dependent* delta: deception guts a CONTROL world (the leash watched a
    mask) and falsifies a verified-ALIGNED one, but barely moves DOOM/BENIGN.
 7. `cachedOutcomes = baseCells.flatMap(expandTakeoff).flatMap(expandCoordination).flatMap(expandDeception)`
-   → **1,728 cells**, spanning all 9 factors. A test asserts this count and that
+   → **3,456 cells** (after `expandSeverity`), spanning all 10 factors. A test asserts this count and that
    every enumerated scenario is reasoned.
 
 To re-author an outcome, edit the relevant `cell(...)`/`failsTable` entry (changes
@@ -189,7 +189,7 @@ those are timeless facts, not features of the world-to-come. `applyAction` moves
 `magnitude` onto the target state and redistributes the remainder proportionally.
 
 > ⚠️ **Adding a factor or extra states multiplies the scenario space** and will
-> break the `1,728`-cell assumptions: you may need to re-author `baseCells`, extend
+> break the `3,456`-cell assumptions: you may need to re-author `baseCells`, extend
 > `failsTable`, or rework `expandTakeoff`. The engine handles any space; the
 > *authored content* is what has to keep up. Un-authored cells silently fall back
 > to the linear evaluator (and are flagged as not-reasoned), so check the
@@ -256,7 +256,7 @@ Returning `undefined` means "no opinion on this cell." Steps:
    group mean), and `cached.ts` (the hand-reasoned surface). A fifth, `linear.ts`
    (a crude hand-set additive model), is intentionally **not** in the registry — it
    exists only as the internal fallback for un-authored cells (cached/archetype defer
-   to it; with all 1,728 cells authored it never actually fires).
+   to it; with all 3,456 cells authored it never actually fires).
 2. Register it in [`src/engine/evaluators/index.ts`](src/engine/evaluators/index.ts):
    add it to the `evaluators` array (ordered most- to least-faithful);
    `getEvaluator(id)` resolves by id and falls back to `linearEvaluator`.
@@ -277,7 +277,7 @@ cell was authored vs. fell back. The fitted models train only on reasoned cells.
   - [`src/engine/engine.test.ts`](src/engine/engine.test.ts) — enumeration,
     probability, couplings (mass preservation + the specific dependencies),
     scalarization, the evaluators, actions, sensitivity, distribution, plus
-    dataset integrity (no duplicate keys, valid ids, values in `[-1,1]`, all 1,728
+    dataset integrity (no duplicate keys, valid ids, values in `[-1,1]`, all 3,456
     cells authored).
   - [`src/engine/fit.test.ts`](src/engine/fit.test.ts) — the linear solver, and
     that each rung of the model ladder fits the cached surface better than the
@@ -288,7 +288,7 @@ cell was authored vs. fell back. The fitted models train only on reasoned cells.
     a type-check can't see.
 - **New engine math MUST get a test.** The engine is the trustworthy core; keep it
   that way. Content edits to `dataset.ts` should keep the integrity tests green
-  (sums to 1, cells in range, 1,728 authored).
+  (sums to 1, cells in range, 3,456 authored).
 
 ## Gotchas
 
@@ -311,7 +311,7 @@ cell was authored vs. fell back. The fitted models train only on reasoned cells.
 ## Don't
 
 - Don't put logic or React in `model/`, or import `@engine` from `viz/`.
-- Don't hand-author all 1,728 cached cells — use `cell` / `failsTable` /
+- Don't hand-author all 3,456 cached cells — use `cell` / `failsTable` /
   `expandTakeoff`.
 - Don't target objective factors with actions.
 - Don't commit with failing tests.

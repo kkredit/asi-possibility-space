@@ -35,7 +35,7 @@ import { alignmentDerivations, alignmentSubBaseline, alignmentSubfactors } from 
  * objective, the probability model, no action-cost term, name) are recorded in
  * docs/DESIGN.md §9.
  *
- * Structure: 9 factors → 1,728 scenarios; a cached hand-reasoned value surface
+ * Structure: 10 factors → 3,456 scenarios; a cached hand-reasoned value surface
  * (§ cell/failsTable/expand* below); couplings + a Bayes net for the joint.
  * ============================================================================
  */
@@ -148,6 +148,17 @@ const factorDefs: { [F in KnownFactorId]: FactorDef<F> } = {
       none: { label: 'None', blurb: 'uncoordinated; each actor races' },
     },
   },
+  takeoverSeverity: {
+    label: 'Takeover severity',
+    kind: 'objective',
+    question: 'If a misaligned ASI takes over, does it exterminate us — or keep us, disempowered?',
+    description:
+      'Conditional on an uncontained misaligned takeover (the doom corner, or a deceptive defection), whether the system exterminates humanity (we are made of useful atoms; leaving rivals alive is risky) or merely subjugates it (keeping humans costs the system almost nothing — pets, curiosities, trade norms, remnants of partial alignment). One of the sharpest documented cruxes between doom pictures: "everyone dies" versus "alive but permanently disempowered". Moot in worlds with no takeover.',
+    states: {
+      extinction: { label: 'Extinction', blurb: 'the takeover ends us — atoms, rivals, or indifference' },
+      subjugation: { label: 'Subjugation', blurb: 'humanity persists, permanently disempowered' },
+    },
+  },
   deception: {
     label: 'Deceptive alignment',
     kind: 'objective',
@@ -187,6 +198,7 @@ const baselineCredences = {
   controlDeployed: { yes: 0.45, no: 0.55 },
   coordination: { regime: 0.75, none: 0.25 },
   deception: { deceptive: 0.35, faithful: 0.65 },
+  takeoverSeverity: { extinction: 0.5, subjugation: 0.5 },
 } satisfies KnownCredences;
 
 // Default weights — survival & suffering weighted highest.
@@ -248,6 +260,12 @@ const linearContributions = {
   deception: {
     deceptive: { survival: -0.1, agency: -0.06, suffering: -0.06, flourishing: -0.08 },
     faithful: {},
+  },
+  // Severity's real effect is conditional on a takeover (expandSeverity); the linear
+  // foil sees only the marginal pull.
+  takeoverSeverity: {
+    extinction: { survival: -0.1, flourishing: -0.03 },
+    subjugation: { survival: 0.08, agency: -0.05 },
   },
 } satisfies KnownLinearContributions;
 
@@ -763,11 +781,50 @@ function expandDeception(base: CachedCell): CachedCell[] {
   ];
 }
 
-// The full 1,728-cell space: base × {fast,medium,slow} × {none,regime} × {faithful,deceptive}.
+// Takeover severity applies wherever a misaligned takeover actually HAPPENS: the
+// DOOM corner always, and the deceptive-defection variants of ALIGNED/CONTROL
+// (their values already collapsed to ≈ doom — same takeover, same question). It is
+// moot in benign worlds and in faithful aligned/control worlds (no takeover), where
+// both states share the cell unchanged. Subjugation lifts survival well above the
+// extinction band (humanity persists, at the system's sufferance) while agency stays
+// floored — this is the "alive but bad" band many stated views put real mass on.
+const severityDelta: ValueTuple = [0.65, -0.02, 0.08, 0.08];
+const severityClause: Record<StateOf<'takeoverSeverity'>, string> = {
+  extinction: ' The takeover ends in extermination: the system has no further use for us.',
+  subjugation:
+    ' The takeover ends in subjugation rather than extermination — humanity persists, permanently disempowered, at the system’s sufferance.',
+};
+
+function expandSeverity(base: CachedCell): CachedCell[] {
+  const corner = cornerOf(base.scenario);
+  const takeover = corner === 'doom' || (base.scenario.deception === 'deceptive' && corner !== 'benign');
+  const { survival, agency, suffering, flourishing } = base.outcome.value;
+  const tuple: ValueTuple = [survival, agency, suffering, flourishing];
+  const conf = base.outcome.confidence ?? 0.4;
+  const make = (takeoverSeverity: string, [s, a, su, f]: ValueTuple, narrative: string, confidence: number): CachedCell => ({
+    scenario: { ...base.scenario, takeoverSeverity },
+    outcome: { narrative, value: { survival: s, agency: a, suffering: su, flourishing: f }, confidence },
+  });
+  if (!takeover) {
+    // No takeover to grade: both states share the cell verbatim.
+    return [
+      make('extinction', tuple, base.outcome.narrative, conf),
+      make('subjugation', tuple, base.outcome.narrative, conf),
+    ];
+  }
+  return [
+    make('extinction', tuple, `${base.outcome.narrative}${severityClause.extinction}`, conf),
+    make('subjugation', shiftTuple(tuple, severityDelta), `${base.outcome.narrative}${severityClause.subjugation}`, Math.max(0.25, conf - 0.05)),
+  ];
+}
+
+// The full 3,456-cell space:
+// base × {fast,medium,slow} × {none,regime} × {faithful,deceptive} × {extinction,subjugation}.
 const cachedOutcomes: CachedCell[] = baseCells
   .flatMap(expandTakeoff)
   .flatMap(expandCoordination)
-  .flatMap(expandDeception);
+  .flatMap(expandDeception)
+  .flatMap(expandSeverity);
 
 // ============================================================================
 //  COUPLINGS — dependencies that correct the independence assumption (§9.4).
@@ -1000,6 +1057,7 @@ const bayesNodes: Record<KnownFactorId, KnownBayesNode> = {
   takeoff: { parents: [], note: 'Root: treated as exogenous; prior from your slider.' },
   coordination: { parents: [], note: 'Root: our collective choice; prior from your slider. Buys time for alignment & control.' },
   deception: { parents: [], note: 'Root: a structural fact about how training scales; prior from your slider. Decides whether deployed control can be trusted.' },
+  takeoverSeverity: { parents: [], note: 'Root: a structural fact about what a victorious misaligned ASI does with a defeated humanity; prior from your slider. Only bites in takeover worlds.' },
 
   // --- tractability | orthogonality -----------------------------------------
   tractability: {

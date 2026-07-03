@@ -21,6 +21,7 @@ export const FACTOR_STATES = {
   controlDeployed: ['yes', 'no'],
   coordination: ['regime', 'none'],
   deception: ['deceptive', 'faithful'],
+  takeoverSeverity: ['extinction', 'subjugation'],
 } as const;
 
 export type KnownFactorId = keyof typeof FACTOR_STATES;
