@@ -301,10 +301,13 @@ cell was authored vs. fell back. The fitted models train only on reasoned cells.
   `https://<user>.github.io/<repo>/` path without hard-coding the repo name. Don't
   introduce client-side routing or absolute asset URLs — the app uses tab
   navigation, not a router.
-- **URL state encodes the active preset in the hash** (`#preset=<id>`), read/written
-  in [`src/shell/store.ts`](src/shell/store.ts). It's SSR-safe and only restores
-  known preset ids. Manual credence/weight edits clear the preset (and the hash).
-  Credences/weights themselves are **not** URL-encoded.
+- **URL state lives in the hash**: `#preset=<id>` (a known preset), `#tab=<slug>`
+  (active tab), and `#beliefs=<base64url>` — a full CUSTOM belief set (credences,
+  sub-credences, weights, both modes) compactly encoded in
+  [`src/shell/urlBeliefs.ts`](src/shell/urlBeliefs.ts) and minted by the Beliefs
+  panel's "Copy link" button. All SSR-safe; `beliefs=` takes precedence over
+  `preset=` on load, schema-mismatched payloads are ignored, and manual edits
+  clear whichever share param no longer matches.
 - Keep the `@…/*` path aliases identical in `vite.config.ts` and
   `tsconfig.app.json` — they're declared in two places.
 

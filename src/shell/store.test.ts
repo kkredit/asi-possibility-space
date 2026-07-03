@@ -3,6 +3,7 @@ import { useBeliefs } from '@shell/store';
 import { presets } from '@model/presets';
 import { dataset } from '@model/dataset';
 import { analyze, cachedEvaluator, enumerateScenarios, scenarioKey } from '@engine/index';
+import { encodeBeliefs } from '@shell/urlBeliefs';
 
 const s = () => useBeliefs.getState();
 
@@ -92,6 +93,39 @@ describe('belief store — probability model', () => {
       }
       expect(holds).toBeCloseTo(st.credences.orthogonality.holds, 4);
       expect(holds).toBeGreaterThan(0.95);
+    } finally {
+      vi.unstubAllGlobals();
+      vi.resetModules();
+    }
+  });
+
+  it('initial state from a #beliefs= URL restores a full custom belief set', async () => {
+    // Mint a custom link (doom-leaning orthogonality, custom weights, direct mode),
+    // then boot a fresh store against it.
+    const custom = {
+      credences: structuredClone(dataset.baselineCredences),
+      subCredences: structuredClone(dataset.subBaseline!),
+      weights: { survival: 0.5, agency: 0.1, suffering: 0.25, flourishing: 0.15 },
+      probabilityModel: 'independence' as const,
+      alignmentMode: 'direct' as const,
+    };
+    custom.credences.orthogonality = { holds: 0.97, fails: 0.03 };
+    const encoded = encodeBeliefs(custom);
+
+    vi.resetModules();
+    vi.stubGlobal('window', {
+      location: { hash: `#beliefs=${encoded}`, href: `https://example.test/#beliefs=${encoded}` },
+      history: { replaceState: () => {} },
+    });
+    try {
+      const { useBeliefs: freshStore } = await import('@shell/store');
+      const st = freshStore.getState();
+      expect(st.activePresetId).toBeNull();
+      expect(st.probabilityModel).toBe('independence');
+      expect(st.alignmentMode).toBe('direct');
+      expect(st.credences.orthogonality.holds).toBeCloseTo(0.97, 3);
+      expect(st.weights.survival).toBeCloseTo(0.5, 3);
+      expect(st.bayesProbability).toBeNull();
     } finally {
       vi.unstubAllGlobals();
       vi.resetModules();

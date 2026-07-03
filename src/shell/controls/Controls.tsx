@@ -19,10 +19,12 @@ import {
   Typography,
 } from '@mui/material';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
+import LinkIcon from '@mui/icons-material/Link';
 import { dataset } from '@model/dataset';
 import { evaluators } from '@engine/index';
 import { FACTOR_KINDS, type Factor, type FactorKind, type Subfactor } from '@model/types';
-import { useBeliefs } from '@shell/store';
+import { setHashParam, useBeliefs } from '@shell/store';
+import { encodeBeliefs } from '@shell/urlBeliefs';
 import { Presets } from '@shell/controls/Presets';
 import { InfoTip } from '@viz/InfoTip';
 import { BayesNetDiagram } from '@viz/BayesNetDiagram';
@@ -281,6 +283,37 @@ export function Controls() {
   const reset = useBeliefs((s) => s.reset);
   const netMode = probabilityModel === 'bayesNet';
   const [netOpen, setNetOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // Share the CURRENT beliefs: an active preset shares as `#preset=<id>`; anything
+  // custom is encoded whole into a compact `#beliefs=<base64url>` param.
+  const copyLink = async () => {
+    if (typeof window === 'undefined' || !navigator.clipboard) return;
+    const s = useBeliefs.getState();
+    if (s.activePresetId) {
+      setHashParam('beliefs', null);
+      setHashParam('preset', s.activePresetId);
+    } else {
+      setHashParam('preset', null);
+      setHashParam(
+        'beliefs',
+        encodeBeliefs({
+          credences: s.credences,
+          subCredences: s.subCredences,
+          weights: s.weights,
+          probabilityModel: s.probabilityModel,
+          alignmentMode: s.alignmentMode,
+        }),
+      );
+    }
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard unavailable */
+    }
+  };
 
   return (
     <Stack spacing={2.25}>
@@ -288,9 +321,19 @@ export function Controls() {
         <Typography variant="overline" sx={{ color: c.mute }}>
           Beliefs
         </Typography>
-        <Button size="small" startIcon={<RestartAltIcon sx={{ fontSize: 16 }} />} onClick={reset} sx={{ color: c.mute, minWidth: 0 }}>
-          Reset
-        </Button>
+        <Stack direction="row" spacing={0.5}>
+          <Button
+            size="small"
+            startIcon={<LinkIcon sx={{ fontSize: 16 }} />}
+            onClick={copyLink}
+            sx={{ color: copied ? c.teal : c.mute, minWidth: 0 }}
+          >
+            {copied ? 'Copied ✓' : 'Copy link'}
+          </Button>
+          <Button size="small" startIcon={<RestartAltIcon sx={{ fontSize: 16 }} />} onClick={reset} sx={{ color: c.mute, minWidth: 0 }}>
+            Reset
+          </Button>
+        </Stack>
       </Stack>
 
       <Presets />

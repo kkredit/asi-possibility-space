@@ -5,6 +5,7 @@ import { presets } from '@model/presets';
 import type { Pins } from '@engine/scenarios';
 import { withMarginal } from '@engine/actions';
 import { deriveCredences } from '@engine/derive';
+import { decodeBeliefs } from '@shell/urlBeliefs';
 import { reconcileJoint } from '@engine/softevidence';
 
 export type ProbabilityModel = 'independence' | 'bayesNet';
@@ -39,6 +40,20 @@ export interface BeliefState {
   applyPreset: (id: string) => void;
   setProbabilityModel: (model: ProbabilityModel) => void;
   reset: () => void;
+}
+
+/** Read a `#beliefs=<base64url>` custom belief set from the URL (SSR-safe). */
+function readUrlBeliefs() {
+  if (typeof window === 'undefined') return null;
+  const encoded = window.location.hash.match(/beliefs=([A-Za-z0-9_-]+)/)?.[1];
+  return encoded ? decodeBeliefs(encoded) : null;
+}
+
+/** Clear the shared-beliefs hash param once the beliefs no longer match it. */
+function clearUrlBeliefs(): void {
+  if (typeof window !== 'undefined' && window.location.hash.includes('beliefs=')) {
+    setHashParam('beliefs', null);
+  }
 }
 
 /** Read a `#preset=<id>` from the URL (SSR-safe); only returns known preset ids. */
@@ -120,10 +135,30 @@ function baselineState() {
   };
 }
 
-/** Initial state honors a shared `#preset=<id>` URL if present. */
+/** Initial state honors a shared `#beliefs=` (custom set) or `#preset=<id>` URL. */
 function initialState() {
-  const urlId = readUrlPresetId();
   const state = baselineState();
+  const shared = readUrlBeliefs();
+  if (shared) {
+    // A custom belief link is self-contained: credences, sub-credences, weights and
+    // both modes. Re-derive the parents so the derived-mode invariant holds exactly.
+    const credences =
+      shared.alignmentMode === 'derived'
+        ? deriveCredences(dataset, shared.credences, shared.subCredences)
+        : shared.credences;
+    const probabilityModel: ProbabilityModel = dataset.bayesNet ? shared.probabilityModel : 'independence';
+    return {
+      ...state,
+      credences,
+      subCredences: shared.subCredences,
+      weights: shared.weights,
+      alignmentMode: shared.alignmentMode,
+      probabilityModel,
+      activePresetId: null,
+      bayesProbability: probabilityModel === 'bayesNet' ? netJoint(credences) : null,
+    };
+  }
+  const urlId = readUrlPresetId();
   if (!urlId) return state;
   const { credences: stated, subCredences, weights } = presetCredencesWeights(urlId);
   const credences =
@@ -147,6 +182,7 @@ export const useBeliefs = create<BeliefState>((set) => ({
   setCredence: (factor, state, value) =>
     set((s) => {
       if (s.activePresetId) writeUrlPresetId(null);
+      clearUrlBeliefs();
       const credences = { ...s.credences, [factor]: withMarginal(s.credences[factor], state, value) };
       return {
         activePresetId: null,
@@ -158,12 +194,14 @@ export const useBeliefs = create<BeliefState>((set) => ({
   setWeight: (dim, value) =>
     set((s) => {
       if (s.activePresetId) writeUrlPresetId(null);
+      clearUrlBeliefs();
       return { activePresetId: null, weights: { ...s.weights, [dim]: Math.max(0, value) } };
     }),
 
   setSubCredence: (subfactor, state, value) =>
     set((s) => {
       if (s.activePresetId) writeUrlPresetId(null);
+      clearUrlBeliefs();
       const subCredences = { ...s.subCredences, [subfactor]: withMarginal(s.subCredences[subfactor], state, value) };
       const credences =
         s.alignmentMode === 'derived' ? deriveCredences(dataset, s.credences, subCredences) : s.credences;
@@ -200,6 +238,7 @@ export const useBeliefs = create<BeliefState>((set) => ({
 
   applyPreset: (id) => {
     if (!presets.some((p) => p.id === id)) return;
+    clearUrlBeliefs();
     writeUrlPresetId(id);
     const { credences: stated, subCredences, weights } = presetCredencesWeights(id);
     set((s) => {
@@ -223,6 +262,7 @@ export const useBeliefs = create<BeliefState>((set) => ({
 
   reset: () => {
     writeUrlPresetId(null);
+    clearUrlBeliefs();
     set(baselineState());
   },
 }));
