@@ -9,7 +9,13 @@ const s = () => useBeliefs.getState();
 afterEach(() => s().reset());
 
 describe('belief store — probability model', () => {
-  it('defaults to independence with no Bayes-net joint', () => {
+  it('defaults to the Bayes net with a joint ready', () => {
+    expect(s().probabilityModel).toBe('bayesNet');
+    expect(typeof s().bayesProbability).toBe('function');
+  });
+
+  it('can switch to independence (opt-out) and drop the joint', () => {
+    s().setProbabilityModel('independence');
     expect(s().probabilityModel).toBe('independence');
     expect(s().bayesProbability).toBeNull();
   });
@@ -49,11 +55,11 @@ describe('belief store — probability model', () => {
     expect(doom).toBeGreaterThan(0.8); // not the ~baseline value it showed before the fix
   });
 
-  it('reset returns to independence baseline', () => {
-    s().setProbabilityModel('bayesNet');
+  it('reset returns to the Bayes-net default baseline', () => {
+    s().setProbabilityModel('independence');
     s().reset();
-    expect(s().probabilityModel).toBe('independence');
-    expect(s().bayesProbability).toBeNull();
+    expect(s().probabilityModel).toBe('bayesNet');
+    expect(typeof s().bayesProbability).toBe('function');
   });
 
   it('applying a preset preserves the active model and recomputes the joint', () => {

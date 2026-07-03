@@ -90,14 +90,19 @@ function netJoint(credences: Credences): ((s: Scenario) => number) | null {
 }
 
 function baselineState() {
+  // The Bayes net is the default probability model: it's the principled joint (factors
+  // co-occur), and independence×couplings is the opt-out. Falls back to independence
+  // only if the dataset ships no net.
+  const credences = structuredClone(dataset.baselineCredences);
+  const probabilityModel: ProbabilityModel = dataset.bayesNet ? 'bayesNet' : 'independence';
   return {
-    credences: structuredClone(dataset.baselineCredences),
+    credences,
     weights: { ...dataset.defaultWeights },
     evaluatorId: 'cached',
     pins: {} as Pins,
     activePresetId: null as string | null,
-    probabilityModel: 'independence' as ProbabilityModel,
-    bayesProbability: null as ((s: Scenario) => number) | null,
+    probabilityModel,
+    bayesProbability: probabilityModel === 'bayesNet' ? netJoint(credences) : null,
   };
 }
 

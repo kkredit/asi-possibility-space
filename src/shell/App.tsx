@@ -90,6 +90,12 @@ export function App() {
     [credences, weights, evaluator, pins, jointProbability],
   );
   const bins = useMemo(() => distribution(analysis.scenarios), [analysis]);
+  // Modeled p(doom): probability mass on extinction-level outcomes (survival < −0.5).
+  // A different summary than EV — the extinction tail, not a cross-dimension average.
+  const pDoom = useMemo(
+    () => analysis.scenarios.reduce((m, s) => m + (s.value.survival < -0.5 ? s.probability : 0), 0),
+    [analysis],
+  );
   // Standalone (linear) value pull of each factor-state, for the distribution
   // tooltip's valence glyphs. Recomputed when weights change.
   const stateValence = useMemo(() => {
@@ -179,7 +185,7 @@ export function App() {
 
           <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
             <Box sx={{ mb: 2 }}>
-              <EvHeadline ev={analysis.ev} evVector={analysis.evVector} />
+              <EvHeadline ev={analysis.ev} evVector={analysis.evVector} pDoom={pDoom} />
             </Box>
 
             <Box sx={{ borderBottom: `1px solid ${c.line}`, mb: 2 }}>
