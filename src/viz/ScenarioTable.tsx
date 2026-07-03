@@ -16,6 +16,7 @@ import type { EvaluatedScenario } from '@engine/analyze';
 import { c, fonts, valueColor } from '@shell/theme';
 
 type SortKey = 'probability' | 'scalar' | 'contribution';
+type SortDir = 'asc' | 'desc';
 
 interface Props {
   scenarios: EvaluatedScenario[];
@@ -27,19 +28,35 @@ function stateLabel(factor: Factor, stateId: string): string {
   return factor.states.find((s) => s.id === stateId)?.label ?? stateId;
 }
 
+/** The metric each column sorts on, and the direction it opens with when first picked. */
+const metricOf: Record<SortKey, (s: EvaluatedScenario) => number> = {
+  probability: (s) => s.probability,
+  scalar: (s) => s.scalar,
+  contribution: (s) => Math.abs(s.probability * s.scalar),
+};
+const DEFAULT_DIR: Record<SortKey, SortDir> = { probability: 'desc', scalar: 'asc', contribution: 'desc' };
+
 /** Sortable, truncated table of the most relevant scenarios. */
 export function ScenarioTable({ scenarios, factors, limit = 25 }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('probability');
+  const [sortDir, setSortDir] = useState<SortDir>(DEFAULT_DIR.probability);
 
-  const sorted = [...scenarios].sort((a, b) => {
-    if (sortKey === 'probability') return b.probability - a.probability;
-    if (sortKey === 'scalar') return a.scalar - b.scalar; // worst first
-    return Math.abs(b.probability * b.scalar) - Math.abs(a.probability * a.scalar);
-  });
+  // Click a new column → sort by its natural default direction; click the active
+  // column again → reverse it.
+  const handleSort = (key: SortKey) => {
+    if (key === sortKey) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    else {
+      setSortKey(key);
+      setSortDir(DEFAULT_DIR[key]);
+    }
+  };
+
+  const metric = metricOf[sortKey];
+  const sorted = [...scenarios].sort((a, b) => (sortDir === 'asc' ? metric(a) - metric(b) : metric(b) - metric(a)));
   const shown = sorted.slice(0, limit);
 
   const header = (key: SortKey, label: string) => (
-    <TableSortLabel active={sortKey === key} direction={key === 'scalar' ? 'asc' : 'desc'} onClick={() => setSortKey(key)}>
+    <TableSortLabel active={sortKey === key} direction={sortKey === key ? sortDir : DEFAULT_DIR[key]} onClick={() => handleSort(key)}>
       <Box component="span" sx={{ fontFamily: fonts.display, fontSize: '0.78rem', letterSpacing: '0.03em' }}>{label}</Box>
     </TableSortLabel>
   );
@@ -50,7 +67,7 @@ export function ScenarioTable({ scenarios, factors, limit = 25 }: Props) {
         Scenarios
       </Typography>
       <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 1 }}>
-        top {shown.length} of {scenarios.length} — sort by probability, value, or contribution to EV
+        top {shown.length} of {scenarios.length} — click a column to sort by probability, value, or contribution to EV; click again to reverse
       </Typography>
       <Box sx={{ overflowX: 'auto' }}>
         <Table size="small" sx={{ minWidth: 640, '& td, & th': { borderColor: c.line } }}>
