@@ -6,6 +6,7 @@ import {
   applyAction,
   cachedEvaluator,
   distribution,
+  doomMass,
   evaluatorFit,
   evaluators,
   fittedLinearEvaluator,
@@ -63,7 +64,7 @@ function Masthead() {
       </Box>
       <Box sx={{ flex: 1 }} />
       <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.68rem', color: c.faint, whiteSpace: 'nowrap' }}>
-        {SCENARIO_COUNT.toLocaleString()} scenarios · presumed first-pass model
+        {SCENARIO_COUNT.toLocaleString()}-scenario model · editable content
       </Typography>
     </Box>
   );
@@ -92,10 +93,7 @@ export function App() {
   const bins = useMemo(() => distribution(analysis.scenarios), [analysis]);
   // Modeled p(doom): probability mass on extinction-level outcomes (survival < −0.5).
   // A different summary than EV — the extinction tail, not a cross-dimension average.
-  const pDoom = useMemo(
-    () => analysis.scenarios.reduce((m, s) => m + (s.value.survival < -0.5 ? s.probability : 0), 0),
-    [analysis],
-  );
+  const pDoom = useMemo(() => doomMass(analysis.scenarios), [analysis]);
   // Standalone (linear) value pull of each factor-state, for the distribution
   // tooltip's valence glyphs. Recomputed when weights change.
   const stateValence = useMemo(() => {
@@ -268,11 +266,12 @@ export function App() {
             )}
 
             <Typography sx={{ mt: 1, color: c.faint, fontSize: '0.72rem', fontFamily: fonts.body, display: 'inline-flex', alignItems: 'center' }}>
-              Presumed first-pass defaults
+              Editable model
               <InfoTip>
-                Every factor, probability, outcome and weight is a presumed first-pass default — edit{' '}
+                Every factor, probability, outcome and weight is authored content — a considered
+                estimate, not ground truth. Edit{' '}
                 <Box component="code" sx={{ fontFamily: fonts.mono, color: c.bone }}>src/model/dataset.ts</Box> to
-                refine. See <Box component="code" sx={{ fontFamily: fonts.mono, color: c.bone }}>docs/DESIGN.md</Box>.
+                refine it; see <Box component="code" sx={{ fontFamily: fonts.mono, color: c.bone }}>docs/DESIGN.md</Box> for the design decisions behind it.
               </InfoTip>
             </Typography>
           </Box>

@@ -60,7 +60,7 @@ The "measure by" selector on the *Factors* tornado surfaces this per dimension.
 ## 2. Candidate factors, ranked by expected usefulness
 
 Usefulness = (opens or modulates a gate) × (fills an under-represented kind) ×
-(independent of existing factors) ÷ (scenario-space cost). Verdicts are first-pass
+(independent of existing factors) ÷ (scenario-space cost). Verdicts are judgment calls
 and arguable.
 
 | Candidate | Kind | States | Verdict | One-line reason |

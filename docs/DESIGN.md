@@ -67,9 +67,11 @@ world. The set of all scenarios is the cross-product of factor states. With the 
 dimension and shrinks the cross-product. Pin the objective factors to your best guess and explore
 just the influenceable subspace; or pin everything except one factor to study it in isolation.
 
-**Scenario probability** (v1): factors are assumed **independent**, so
-`P(scenario) = ∏ P(state_f)`. Known dependencies (e.g. "fast takeoff makes alignment-in-time less
-likely") are a deliberate v1 limitation — see §10 Open Questions for the Bayes-net upgrade path.
+**Scenario probability**: two models ship. The **Bayes net** (the default) defines the joint
+via a DAG + CPTs and rakes to your slider marginals; **independence × couplings** — where
+`P(scenario) = ∏ P(state_f)` corrected by a sparse set of dependency multipliers — is the
+readable opt-out. Known dependencies (e.g. "fast takeoff makes alignment-in-time less likely")
+are captured either way. See [`MODEL.md`](MODEL.md) §4–§5.
 
 ### 2.3 Value (multi-dimensional)
 
@@ -96,9 +98,10 @@ outcome `{ narrative, valueVector }` (or `undefined` if it has no opinion on tha
 
 - **Linear evaluator** — `value_d = baseline_d + Σ_f w[f, state, d]`. No interactions between
   factors. Tests the "nice result" hypothesis: *is the space approximately linear?*
-- **Cached / hand-reasoned evaluator** — a sparse lookup table keyed by the scenario tuple. You
-  "think for ~a minute" about a scenario and cache an authored narrative + value vector. Missing
-  cells fall back to the linear evaluator (and are visibly flagged as "not yet reasoned").
+- **Cached / hand-reasoned evaluator** — a lookup table keyed by the scenario tuple, with an
+  authored narrative + value vector per cell. It now covers **all 1,728 scenarios** (built from
+  144 anchor cells expanded along takeoff × coordination × deception; a test enforces full
+  coverage). Any genuinely missing cell would fall back to the linear evaluator.
 - **(Future) rule/logic evaluator; Bayes-net; LLM-assisted evaluator.**
 
 The **comparison view** is itself the research output: plot cached value vs. linear value per
@@ -278,34 +281,41 @@ React-free and independently testable.
 
 ---
 
-## 9. Open questions / decisions for you
+## 9. Design decisions (settled)
 
-> **POC status:** the items below have **presumed first-pass answers** encoded in
-> `src/model/dataset.ts` (clearly marked as not-locked-in) so the tool is immediately explorable.
-> Current presumptions: value dims = survival/agency/suffering/flourishing (survival- & suffering-
-> weighted); the six §5 factors as listed; offense/defense treated as **purely objective**;
-> **independence** assumed; actions ranked by **raw EV gain** (no cost); name as in the title.
-> Override any of these by editing the dataset and/or answering below.
+These were the early open questions; each now has a decision, encoded in
+`src/model/dataset.ts`. They remain editable — this records *what was chosen and why*,
+not a claim they're immutable.
 
-
-1. **Value dimensions** — keep survival/agency/suffering/flourishing, or change the set? Any frame
-   you want baked into the *defaults* (e.g. survival- or suffering-weighted)?
-2. **The v1 factor set (§5)** — right six? Swap takeoff in for one of them? Drop alignment-
-   tractability to binary to shrink the space?
-3. **Is offense/defense balance purely objective, or partly influenceable** (d/acc)? Affects
-   whether an action can attach to it.
-4. **Dependencies between factors** — OK to ship v1 with the independence assumption and add a
-   Bayes-net probability model later, or is a known dependency (e.g. takeoff→alignment-in-time)
-   important enough to model from the start?
-5. **Action cost** — model a cost/feasibility term per action (EV-per-unit-effort), or rank by raw
-   EV gain for v1?
-6. **Project name.**
+1. **Value dimensions** — **survival / agency / suffering / flourishing**, defaults
+   weighted toward survival & suffering. Kept.
+2. **Factor set** — grew from the original six to **9** (added coordination and
+   deceptive alignment; power concentration reclassified objective→influenceable). See §5.
+3. **Offense/defense balance — objective.** No action attaches to the *balance* itself: a
+   sufficiently capable system finds what's optimal for both attack and defense, so the
+   balance is a structural fact we observe, not steer. d/acc is modeled as boosting realized
+   *control*, not moving the balance.
+4. **Dependencies — both models, Bayes net is the default.** Independence×couplings remains
+   as a readable opt-out; the **Bayes net** (with soft-evidence raking) is the default joint.
+5. **Action cost — omitted for now.** Actions are ranked by **raw EV gain**; a
+   cost/feasibility term is out of scope (cost is per-actor and subjective).
+6. **Name** — **ASI Possibility Space**.
+7. **Pin semantics — conditional.** Pinning a factor conditions on it (the distribution
+   renormalizes to sum to 1), so a pinned EV / p(doom) reads as "given this factor," not a
+   mass-weighted slice.
+8. **Coordination → power concentration** — a governance regime is modeled as *concentrating*
+   the (governable) frontier; flip the coordination→power coupling/CPT to model governance-as-
+   openness instead.
 
 ---
 
-## 10. Known v1 limitations (deliberate)
+## 10. Known limitations (deliberate scope)
 
-- Independence assumption in the probability model (see §9.4).
-- Cached evaluator is sparse; uncovered cells fall back to linear and are flagged.
-- Single decision-maker frame for actions (no game-theoretic interaction between actors' choices).
-- Values are author-set point estimates, not distributions.
+- **Single decision-maker frame** for actions (no game-theoretic interaction between actors' choices).
+- **Point estimates, not distributions** — values and credences are single numbers, not ranges.
+- **No action-cost term** (§9.5) — rankings are raw EV gain, not EV-per-unit-effort.
+- The **`Coupling`** type and the Bayes-net CPTs encode the same dependencies two ways; kept in
+  parallel (couplings are the readable model, the net is the principled default).
+
+*(The former "sparse cached evaluator / cells fall back to linear" limitation is resolved — all
+1,728 scenarios are now hand-reasoned; a test enforces full coverage.)*

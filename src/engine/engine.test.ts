@@ -118,10 +118,11 @@ describe('couplings', () => {
       .scenarios.filter(pred)
       .reduce((a, s) => a + s.probability, 0);
 
-  it('preserves total mass after renormalization (with and without pins)', () => {
+  it('is a normalized distribution — sums to 1 with and without pins', () => {
     expect(massOf(() => true)).toBeCloseTo(1, 10);
-    // Pinned subset keeps the pinned state's marginal mass.
-    expect(massOf(() => true, { orthogonality: 'holds' })).toBeCloseTo(0.7, 10);
+    // Pins CONDITION on the state, so the pinned distribution renormalizes to 1
+    // (it's P(· | orthogonality = holds), not the 0.7 mass-weighted slice).
+    expect(massOf(() => true, { orthogonality: 'holds' })).toBeCloseTo(1, 10);
   });
 
   it('suppresses the fast-takeoff + diffuse combination vs. independence', () => {

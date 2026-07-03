@@ -78,6 +78,14 @@ export function analyze(
     };
   });
 
+  // Condition on the pins: renormalize so the pinned distribution sums to 1. Pins mean
+  // "given this factor is in this state", so EV, p(doom) and the distribution read as
+  // conditional means — not mass-weighted contributions. With no pins the mass is
+  // already 1 and this is a no-op.
+  const pinnedMass = scenarios.reduce((a, s) => a + s.probability, 0);
+  const condNorm = pinnedMass > 0 ? 1 / pinnedMass : 0;
+  for (const s of scenarios) s.probability *= condNorm;
+
   const evVector: ValueVector = { ...ZERO };
   let ev = 0;
   let totalProbability = 0;
@@ -88,6 +96,11 @@ export function analyze(
   }
 
   return { scenarios, evVector, ev, totalProbability };
+}
+
+/** Probability mass on extinction-level outcomes (survival < −0.5) — the modeled p(doom). */
+export function doomMass(scenarios: EvaluatedScenario[]): number {
+  return scenarios.reduce((m, s) => m + (s.value.survival < -0.5 ? s.probability : 0), 0);
 }
 
 /**

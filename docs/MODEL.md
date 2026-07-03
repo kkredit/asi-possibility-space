@@ -6,11 +6,11 @@ the hand-reasoned outcomes. It is the conceptual companion to
 [`DESIGN.md`](DESIGN.md) (which fixes the *content*) and to the engine code in
 [`src/engine/`](../src/engine).
 
-> **Status:** the findings below are computed from the **presumed first-pass**
-> dataset in [`src/model/dataset.ts`](../src/model/dataset.ts). The *method* is the
-> durable contribution; the specific residual numbers move whenever the
-> hand-reasoned cells are re-authored. Re-run `pnpm test` — the model-ladder
-> assertions in [`fit.test.ts`](../src/engine/fit.test.ts) pin the ordering.
+> **Status:** the findings below are computed from the dataset in
+> [`src/model/dataset.ts`](../src/model/dataset.ts). The *method* is the durable
+> contribution; the specific residual numbers move whenever the hand-reasoned cells are
+> re-authored. Re-run `pnpm test` — the model-ladder assertions in
+> [`fit.test.ts`](../src/engine/fit.test.ts) pin the ordering.
 
 ---
 
@@ -19,9 +19,9 @@ the hand-reasoned outcomes. It is the conceptual companion to
 A "future" is a scenario `s` — one state assigned to every factor. Everything the
 tool surfaces is built from two independent functions over scenarios:
 
-| | Question | Maps | Current implementation | Upgrade path |
+| | Question | Maps | Default | Alternative |
 |---|---|---|---|---|
-| **Probability model** | How likely is this world? | `s → P(s)` | independence × couplings (§4) | **Bayes net** (§5) |
+| **Probability model** | How likely is this world? | `s → P(s)` | **Bayes net** (§5) | independence × couplings (§4) |
 | **Value model** | How good is this world? | `s → V(s)` (a value vector) | the **evaluators** (§2–3) | richer evaluators |
 
 The headline `EV = Σ_s P(s)·scalarize(V(s), weights)` multiplies them. They are
@@ -140,7 +140,7 @@ confirming the narrative's own logic.
 
 ---
 
-## 4. The probability model today: independence × couplings
+## 4. The readable opt-out: independence × couplings
 
 The base model assumes factors are independent: `P(s) = ∏_f credence[f, s_f]`.
 That's wrong in known ways (a fast takeoff makes diffuse power and alignment-in-time
@@ -157,7 +157,7 @@ is no notion of conditional independence structure.
 
 ---
 
-## 5. The probability-model upgrade path: a Bayes net
+## 5. The default probability model: a Bayes net
 
 A Bayes net is the principled version of what couplings approximate. It is a
 **directed acyclic graph** over the factors plus a **conditional probability table
@@ -167,7 +167,7 @@ A Bayes net is the principled version of what couplings approximate. It is a
 P(s) = ∏_f  P(s_f | parents(f))
 ```
 
-**This is now implemented (opt-in).** The DAG and CPTs ship in the dataset
+**This is the default model.** The DAG and CPTs ship in the dataset
 (`bayesNet` in [`dataset.ts`](../src/model/dataset.ts)); the engine is in
 [`bayesnet.ts`](../src/engine/bayesnet.ts) and `analyze` takes an optional `net`
 argument that swaps the joint over to it. The implemented graph:
@@ -216,12 +216,12 @@ probability-model selector opens a layered diagram of the net
 ([`BayesNetDiagram`](../src/viz/BayesNetDiagram.tsx)), roots on top, arrows
 parent → child, nodes colored by kind with the dependency rationale on hover.
 
-**What still remains:**
-- **Pin semantics.** `analyze`'s probabilities sum to the pinned mass `P(pins)` (EV
-  under pins is mass-weighted, not conditional). The net path mirrors this exactly; if
-  we want true conditional EVs under pins, that normalisation choice should be made for
-  *both* models together.
-- The `Coupling` type can eventually be retired (or kept as compile-to-CPT sugar).
+**Settled since:**
+- **Pin semantics — conditional.** `analyze` renormalizes the pinned distribution to sum
+  to 1, so a pinned EV / p(doom) reads as "given the pins" (a conditional mean), not a
+  mass-weighted slice. Same for both probability models.
+- **Default model — the Bayes net.** It's the default joint; independence×couplings is the
+  readable opt-out. Both are kept (the `Coupling` type is not retired).
 
 ---
 

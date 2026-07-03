@@ -6,7 +6,7 @@
 > The inverse of the "where to act" tornado: for each action, the region of
 > conditions where it is the **best lever to pursue** (vs. the best alternative,
 > floored at doing nothing). Conditions = the 5 objective factors (the exogenous
-> facts no action can move). Default probability model + cached value surface.
+> facts no action can move). Independence × couplings model (the app defaults to the Bayes net) + cached value surface.
 
 **How to read a crux table:** each row is an objective question; the cells show, for
 each of its answers, the *share of that answer's worlds where this action is best* and

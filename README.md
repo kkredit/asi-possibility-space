@@ -4,10 +4,10 @@ An interactive tool for exploring the AI-safety possibility space. Set your cred
 of key questions, watch them combine into a probability distribution over futures, see the expected
 value, and find the maximum-EV action to take now.
 
-> **Status: proof of concept.** All AI-safety content (factors, probabilities, outcomes, weights) is
-> a **presumed first-pass default**, chosen to make the tool concrete — not a set of locked-in
-> claims. See [`docs/DESIGN.md`](docs/DESIGN.md) §5 and §9 for the open questions, and edit
-> [`src/model/dataset.ts`](src/model/dataset.ts) to refine the model.
+> **Note.** All AI-safety content (factors, probabilities, outcomes, weights) is authored
+> content — considered estimates meant to be argued with and refined, not locked-in claims.
+> See [`docs/DESIGN.md`](docs/DESIGN.md) §5 and §9 for the model and the design decisions
+> behind it, and edit [`src/model/dataset.ts`](src/model/dataset.ts) to refine it.
 
 ## Quick start
 

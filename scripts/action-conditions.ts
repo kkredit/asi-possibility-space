@@ -88,7 +88,7 @@ P('>');
 P('> The inverse of the "where to act" tornado: for each action, the region of');
 P('> conditions where it is the **best lever to pursue** (vs. the best alternative,');
 P('> floored at doing nothing). Conditions = the 5 objective factors (the exogenous');
-P('> facts no action can move). Default probability model + cached value surface.');
+P('> facts no action can move). Independence × couplings model (the app defaults to the Bayes net) + cached value surface.');
 P();
 P('**How to read a crux table:** each row is an objective question; the cells show, for');
 P('each of its answers, the *share of that answer\'s worlds where this action is best* and');

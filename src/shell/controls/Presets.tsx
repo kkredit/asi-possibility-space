@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Box,
   Dialog,
@@ -17,28 +17,22 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import type { Preset } from '@model/types';
 import { presets } from '@model/presets';
 import { dataset } from '@model/dataset';
-import { analyze, cachedEvaluator } from '@engine/index';
-import { useBeliefs } from '@shell/store';
+import { analyze, cachedEvaluator, doomMass, reconcileJoint } from '@engine/index';
+import { useBeliefs, type ProbabilityModel } from '@shell/store';
 import { InfoTip } from '@viz/InfoTip';
 import { c, fonts, valueColor } from '@shell/theme';
 
-/** Each preset's own analysis (its credences + its weights). */
-const presetAnalysis = Object.fromEntries(
-  presets.map((p) => [p.id, analyze(dataset, p.credences, p.weights ?? dataset.defaultWeights, cachedEvaluator)]),
-);
-/** Each preset's expected value, for color-coding. */
-const presetEv: Record<string, number> = Object.fromEntries(
-  presets.map((p) => [p.id, presetAnalysis[p.id].ev]),
-);
-/** Model-implied extinction-level mass: probability the outcome's survival is ~lost,
- *  given the preset's credences + the shared outcome model. Compared with the stated
- *  p(doom) to expose any divergence. */
-const presetDoom: Record<string, number> = Object.fromEntries(
-  presets.map((p) => [
-    p.id,
-    presetAnalysis[p.id].scenarios.reduce((m, s) => m + (s.value.survival < -0.5 ? s.probability : 0), 0),
-  ]),
-);
+/** Analyze a preset under the ACTIVE probability model — the net's raked joint when in
+ *  Bayes-net mode, independence×couplings otherwise — so the preset's EV and implied
+ *  p(doom) match what the headline shows once that preset is loaded. */
+function analyzePreset(p: Preset, model: ProbabilityModel) {
+  const weights = p.weights ?? dataset.defaultWeights;
+  const joint =
+    model === 'bayesNet' && dataset.bayesNet
+      ? reconcileJoint(dataset.bayesNet, dataset.factors, p.credences, p.credences).probability
+      : undefined;
+  return analyze(dataset, p.credences, weights, cachedEvaluator, {}, joint);
+}
 
 const fmtEv = (v: number) => `${v >= 0 ? '+' : '−'}${Math.abs(v).toFixed(2)}`;
 
@@ -64,16 +58,16 @@ function displayName(p: Preset): string {
 const people = presets.filter((p) => p.category === 'person');
 const labs = presets.filter((p) => p.category === 'lab');
 
-function presetItem(p: Preset) {
+function presetItem(p: Preset, ev: number) {
   return (
     <MenuItem key={p.id} value={p.id} sx={{ fontSize: '0.82rem' }}>
       <Box component="span" sx={{ flex: 1 }}>{displayName(p)}</Box>
       <Box
         component="span"
-        title={`expected value ${fmtEv(presetEv[p.id])}`}
-        sx={{ fontFamily: fonts.mono, fontSize: '0.74rem', color: valueColor(presetEv[p.id]), ml: 1.5 }}
+        title={`expected value ${fmtEv(ev)}`}
+        sx={{ fontFamily: fonts.mono, fontSize: '0.74rem', color: valueColor(ev), ml: 1.5 }}
       >
-        {fmtEv(presetEv[p.id])}
+        {fmtEv(ev)}
       </Box>
     </MenuItem>
   );
@@ -82,10 +76,23 @@ function presetItem(p: Preset) {
 export function Presets() {
   const activePresetId = useBeliefs((s) => s.activePresetId);
   const applyPreset = useBeliefs((s) => s.applyPreset);
+  const probabilityModel = useBeliefs((s) => s.probabilityModel);
   const [showSources, setShowSources] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const active = presets.find((p) => p.id === activePresetId);
+
+  // EV + implied p(doom) per preset, under the ACTIVE model (recomputed on toggle).
+  const { presetEv, presetDoom } = useMemo(() => {
+    const ev: Record<string, number> = {};
+    const doom: Record<string, number> = {};
+    for (const p of presets) {
+      const a = analyzePreset(p, probabilityModel);
+      ev[p.id] = a.ev;
+      doom[p.id] = doomMass(a.scenarios);
+    }
+    return { presetEv: ev, presetDoom: doom };
+  }, [probabilityModel]);
 
   const copyLink = async () => {
     if (typeof navigator === 'undefined' || !navigator.clipboard) return;
@@ -119,9 +126,9 @@ export function Presets() {
           MenuProps={{ PaperProps: { sx: { maxHeight: 420, bgcolor: c.panel, border: `1px solid ${c.line}` } } }}
         >
           <ListSubheader sx={{ ...sectionLabel, bgcolor: c.panel, lineHeight: '28px', color: c.faint }}>People</ListSubheader>
-          {people.map(presetItem)}
+          {people.map((p) => presetItem(p, presetEv[p.id]))}
           <ListSubheader sx={{ ...sectionLabel, bgcolor: c.panel, lineHeight: '28px', color: c.faint }}>Labs</ListSubheader>
-          {labs.map(presetItem)}
+          {labs.map((p) => presetItem(p, presetEv[p.id]))}
         </Select>
       </FormControl>
 
@@ -149,12 +156,15 @@ export function Presets() {
               </Box>
               <InfoTip>
                 The probability this model puts on extinction-level outcomes (survival ≈ lost), given
-                this entity's credences and the <em>shared</em> outcome model. It can diverge from a
-                stated p(doom) for two reasons: (1) a gestalt p(doom) often differs from the product of
-                someone's per-factor credences (people are not internally consistent), and (2) the
-                outcome model is shared — it may value a scenario like "misaligned but controlled" more
-                optimistically than a given pessimist would. Large gaps point at a credence worth
-                re-checking, or a value judgment the shared model can't express.
+                this entity's credences and the <em>shared</em> outcome model, under the{' '}
+                <b>active probability model</b> ({probabilityModel === 'bayesNet' ? 'Bayes net' : 'independence + couplings'}) —
+                so it equals the headline p(doom) once you load this preset. Toggle the probability model
+                and this value tracks it. It can diverge from a <em>stated</em> p(doom) for two reasons:
+                (1) a gestalt p(doom) often differs from the product of someone's per-factor credences
+                (people aren't internally consistent), and (2) the outcome model is shared — it may value
+                a scenario like "misaligned but controlled" more optimistically than a given pessimist
+                would. Large gaps point at a credence worth re-checking, or a value judgment the shared
+                model can't express.
               </InfoTip>
             </Typography>
           </Box>

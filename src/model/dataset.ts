@@ -15,26 +15,17 @@ import { factorBackgrounds } from './factorBackground';
 
 /**
  * ============================================================================
- *  PRESUMED FIRST-PASS CONTENT — NOT LOCKED IN.
+ *  MODEL CONTENT — the one file to edit.
  * ============================================================================
- * Every number, factor, state, action, and narrative below is a starting
- * default chosen to make the POC concrete and explorable. They encode the
- * "presumed answers" to docs/DESIGN.md §5 (content) and §9 (open questions):
+ * Every number, factor, state, action, and narrative below is authored content:
+ * a considered estimate meant to be argued with and refined, not ground truth.
+ * The engine and UI are content-agnostic — this is where the model lives. The
+ * design decisions behind it (value dims, factor set, offense/defense as
+ * objective, the probability model, no action-cost term, name) are recorded in
+ * docs/DESIGN.md §9.
  *
- *  §9.1 value dimensions  -> survival / agency / suffering / flourishing, with
- *                            defaults weighted toward survival & suffering.
- *  §9.2 factor set        -> the six from §5, plus takeoff speed (objective).
- *  §9.3 offense/defense   -> treated as PURELY OBJECTIVE for now (no action
- *                            attaches to it). d/acc is modeled as boosting
- *                            realized control instead.
- *  §9.4 dependencies      -> independence is the BASE, corrected by an explicit
- *                            set of `couplings` (e.g. fast takeoff ⇒ concentrated;
- *                            orthogonality fails ⇒ alignment is moot/easy).
- *  §9.5 action cost       -> ranked by RAW EV gain (no cost term yet).
- *  §9.6 name              -> "AI Safety Possibility-Space Explorer".
- *
- * These are meant to be argued with and edited. This is the one file you change
- * to refine the model's content; the engine and UI are content-agnostic.
+ * Structure: 9 factors → 1,728 scenarios; a cached hand-reasoned value surface
+ * (§ cell/failsTable/expand* below); couplings + a Bayes net for the joint.
  * ============================================================================
  */
 
@@ -139,7 +130,7 @@ const factorDefs: Factor[] = [
     kind: 'influenceable',
     question: 'Do we achieve a binding regime that coordinates frontier development?',
     description:
-      'Whether a real coordination/governance regime over frontier AI is achieved — international agreements, compute governance, enforced safety standards — versus an uncoordinated free-for-all. Our choices can move it; its main effect is upstream, buying time and raising the odds that alignment and control are solved and deployed in time.',
+      'Whether a real coordination/governance regime over frontier AI is achieved — international agreements, compute governance, enforced safety standards — versus an uncoordinated free-for-all. Our choices can move it; its main effect is upstream, buying time and raising the odds that alignment and control are solved and deployed in time. Note the model assumes a regime governs via a governable few, so it also tilts power toward concentration (licensing, compute allocation); flip the coordination→power coupling/CPT if you think governance would instead mandate openness and diffuse it.',
     states: [
       { id: 'regime', label: 'Regime', blurb: 'binding coordination / governance achieved' },
       { id: 'none', label: 'None', blurb: 'uncoordinated; each actor races' },
@@ -163,7 +154,7 @@ const factorDefs: Factor[] = [
 // module so the debate/reading content lives apart from the modelling numbers).
 const factors: Factor[] = factorDefs.map((f) => ({ ...f, background: factorBackgrounds[f.id] }));
 
-// Presumed starting odds (credences). Each factor's states sum to 1.
+// Starting odds (default credences). Each factor's states sum to 1.
 const baselineCredences: Credences = {
   orthogonality: { holds: 0.7, fails: 0.3 },
   tractability: { easy: 0.2, hard: 0.5, nearImpossible: 0.3 },
@@ -176,7 +167,7 @@ const baselineCredences: Credences = {
   deception: { deceptive: 0.5, faithful: 0.5 },
 };
 
-// Presumed default weights — survival & suffering weighted highest.
+// Default weights — survival & suffering weighted highest.
 const defaultWeights: ValueVector = {
   survival: 0.4,
   suffering: 0.3,
@@ -756,7 +747,7 @@ const cachedOutcomes: CachedCell[] = baseCells
 // Each coupling multiplies the independent prior of every scenario matching ALL
 // its `when` conditions; `analyze` then renormalizes so total mass is preserved.
 // Multiplier < 1 suppresses a combination, > 1 boosts it, 0 forbids it. These are
-// presumed first-pass dependency strengths — argue with them and edit.
+// dependency strengths — argue with them and edit.
 // ============================================================================
 const couplings: Coupling[] = [
   // --- Takeoff speed ↔ power concentration -------------------------------------
@@ -874,7 +865,7 @@ const couplings: Coupling[] = [
 //  docs/MODEL.md §5). A DAG over the factors with a CPT per node defines the joint
 //  exactly: P(scenario) = ∏ P(state | parents). Root nodes (the objective facts plus
 //  takeoff) read their prior live from the sliders; child nodes are conditioned on
-//  their parents. These CPTs are PRESUMED FIRST-PASS — argue with them and edit. The
+//  their parents. These CPTs are authored estimates — argue with them and edit. The
 //  edges mirror the couplings above: takeoff drives concentration and the "in time"
 //  factors; orthogonality drives tractability.
 //
@@ -923,7 +914,7 @@ function concentrationCpt(base: Record<string, number>): Record<string, Record<s
 
 const bayesNet: BayesNet = {
   description:
-    'First-pass DAG: objective facts, takeoff, coordination, and deceptive alignment are roots (priors from your sliders); tractability depends on orthogonality; power concentration depends on takeoff and coordination (a governance regime concentrates the governable frontier); and the “solved in time” factors depend on takeoff, tractability, and whether a coordination regime is in place. Deception is the lever that decides whether a deployed control regime can actually be trusted.',
+    'DAG: objective facts, takeoff, coordination, and deceptive alignment are roots (priors from your sliders); tractability depends on orthogonality; power concentration depends on takeoff and coordination (a governance regime concentrates the governable frontier); and the “solved in time” factors depend on takeoff, tractability, and whether a coordination regime is in place. Deception is the lever that decides whether a deployed control regime can actually be trusted.',
   nodes: [
     // --- roots: priors read live from credences (no CPT) -----------------------
     { factor: 'orthogonality', parents: [], note: 'Root: a structural fact; prior from your slider.' },
