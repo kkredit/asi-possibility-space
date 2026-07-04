@@ -26,15 +26,20 @@ import { FACTOR_KINDS, type Factor, type FactorKind, type Subfactor } from '@mod
 import { setHashParam, useBeliefs } from '@shell/store';
 import { encodeBeliefs } from '@shell/urlBeliefs';
 import { Presets } from '@shell/controls/Presets';
-import { InfoTip } from '@viz/InfoTip';
 import { BayesNetDiagram } from '@viz/BayesNetDiagram';
 import { FactorBackground } from '@viz/FactorBackground';
 import { c, fonts, kindColor } from '@shell/theme';
 
 const KIND_HEADING: Record<FactorKind, string> = {
-  objective: 'Objective · timeless structural fact',
-  contingent: 'Contingent · the world at ASI · low leverage',
-  influenceable: 'Influenceable · the world at ASI · high leverage',
+  objective: 'Objective',
+  contingent: 'Contingent',
+  influenceable: 'Influenceable',
+};
+// One-line hint under each kind heading: what the sliders in that group mean.
+const KIND_SUBHEAD: Record<FactorKind, string> = {
+  objective: 'your estimate that each timeless fact holds',
+  contingent: 'your estimate of the world at ASI onset (low leverage)',
+  influenceable: 'your estimate of the world at ASI onset (high leverage)',
 };
 const KIND_HINT: Record<FactorKind, string> = {
   objective:
@@ -281,9 +286,9 @@ export function Controls() {
   const probabilityModel = useBeliefs((s) => s.probabilityModel);
   const setProbabilityModel = useBeliefs((s) => s.setProbabilityModel);
   const reset = useBeliefs((s) => s.reset);
-  const netMode = probabilityModel === 'bayesNet';
   const [netOpen, setNetOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   // Share the CURRENT beliefs: an active preset shares as `#preset=<id>`; anything
   // custom is encoded whole into a compact `#beliefs=<base64url>` param.
@@ -340,63 +345,6 @@ export function Controls() {
 
       <Divider />
 
-      <Box>
-        <Typography sx={{ ...monoPct, color: c.faint, mb: 0.75, letterSpacing: '0.04em' }}>EVALUATOR</Typography>
-        <FormControl fullWidth size="small">
-          <Select
-            value={evaluatorId}
-            onChange={(e) => setEvaluator(e.target.value)}
-            sx={{ fontFamily: fonts.display, fontSize: '0.82rem' }}
-            MenuProps={{ slotProps: { paper: { sx: { maxWidth: 340 } } } }}
-          >
-            {evaluators.map((e) => (
-              <MenuItem key={e.id} value={e.id} sx={{ display: 'block', py: 0.9 }}>
-                <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.bone }}>
-                  {e.label}
-                </Typography>
-                <Typography sx={{ fontSize: '0.7rem', color: c.mute, whiteSpace: 'normal', lineHeight: 1.35 }}>
-                  {e.description}
-                </Typography>
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-
-      <Box>
-        <Typography sx={{ ...monoPct, color: c.faint, mb: 0.75, letterSpacing: '0.04em' }}>PROBABILITY MODEL</Typography>
-        <FormControl fullWidth size="small">
-          <Select
-            value={probabilityModel}
-            onChange={(e) => setProbabilityModel(e.target.value as 'independence' | 'bayesNet')}
-            sx={{ fontFamily: fonts.display, fontSize: '0.82rem' }}
-            MenuProps={{ slotProps: { paper: { sx: { maxWidth: 340 } } } }}
-          >
-            <MenuItem value="independence" sx={{ display: 'block', py: 0.9 }}>
-              <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.bone }}>Independence + couplings</Typography>
-              <Typography sx={{ fontSize: '0.7rem', color: c.mute, whiteSpace: 'normal', lineHeight: 1.35 }}>
-                Factors independent, with a few hand-set dependency corrections. Each slider is a free marginal.
-              </Typography>
-            </MenuItem>
-            <MenuItem value="bayesNet" sx={{ display: 'block', py: 0.9 }}>
-              <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.bone }}>Bayes net (soft evidence)</Typography>
-              <Typography sx={{ fontSize: '0.7rem', color: c.mute, whiteSpace: 'normal', lineHeight: 1.35 }}>
-                A DAG of relationships. Slide any factor and the untouched ones re-rake to stay consistent.
-              </Typography>
-            </MenuItem>
-          </Select>
-        </FormControl>
-        {dataset.bayesNet ? (
-          <Box
-            component="span"
-            onClick={() => setNetOpen(true)}
-            sx={{ display: 'inline-block', mt: 0.6, cursor: 'pointer', color: c.mute, fontFamily: fonts.display, fontSize: '0.74rem', '&:hover': { color: c.accent } }}
-          >
-            View the network ↗
-          </Box>
-        ) : null}
-      </Box>
-
       {dataset.bayesNet ? (
         <Dialog open={netOpen} onClose={() => setNetOpen(false)} maxWidth="md" fullWidth>
           <DialogTitle sx={{ fontFamily: fonts.display, fontSize: '1rem' }}>
@@ -412,43 +360,23 @@ export function Controls() {
         </Dialog>
       ) : null}
 
-      <Box>
-        <Stack direction="row" alignItems="center" sx={{ mb: 0.4 }}>
-          <Typography sx={{ ...monoPct, color: c.faint, letterSpacing: '0.04em' }}>PROBABILITIES</Typography>
-          <InfoTip>
-            {netMode ? (
-              <>
-                Each slider is the chance of a state <b>at ASI onset</b>. In Bayes-net mode these
-                marginals are unchanged, but the joint respects the network's causal correlations
-                (e.g. alignment & control tend to fail together) — so the EV and doom-corner mass
-                shift versus assuming independence. View the network to see the structure.
-              </>
-            ) : (
-              <>
-                For each factor, the chance of each state <b>at ASI onset</b> (the threshold where value
-                locks in). Objective factors are the exception — there the slider is your current confidence
-                a timeless property holds.
-              </>
-            )}
-          </InfoTip>
-        </Stack>
-        <Typography variant="caption" sx={{ color: c.mute, display: 'block', lineHeight: 1.4 }}>
-          {netMode ? 'chance of each state at ASI onset · joint uses the net’s correlations' : 'chance of each state at ASI onset'}
-        </Typography>
-      </Box>
-
       {FACTOR_KINDS.map((kind) => {
         const factors = dataset.factors.filter((f) => f.kind === kind);
         if (factors.length === 0) return null;
         return (
           <Box key={kind}>
             <Tooltip title={KIND_HINT[kind]} arrow placement="top-start">
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.25 }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: kindColor[kind], flexShrink: 0 }} />
-                <Typography sx={{ fontFamily: fonts.display, fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: c.mute }}>
-                  {KIND_HEADING[kind]}
+              <Box sx={{ mb: 1.25, cursor: 'help' }}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Box sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: kindColor[kind], flexShrink: 0 }} />
+                  <Typography sx={{ fontFamily: fonts.display, fontSize: '0.92rem', fontWeight: 700, color: c.bone }}>
+                    {KIND_HEADING[kind]}
+                  </Typography>
+                </Stack>
+                <Typography sx={{ fontSize: '0.7rem', color: c.mute, lineHeight: 1.4, mt: 0.25, ml: 2 }}>
+                  {KIND_SUBHEAD[kind]}
                 </Typography>
-              </Stack>
+              </Box>
             </Tooltip>
             {factors.map((f) => (
               <FactorControl key={f.id} factor={f} />
@@ -472,6 +400,79 @@ export function Controls() {
             <Typography sx={{ ...monoPct, width: 34, textAlign: 'right', color: c.bone }}>{weights[dim.id].toFixed(2)}</Typography>
           </Stack>
         ))}
+      </Box>
+
+      <Divider />
+
+      {/* Advanced: the value model + probability model. Collapsed by default — these
+          are analysis-methodology knobs most users never need to touch. */}
+      <Box>
+        <Typography
+          onClick={() => setAdvancedOpen((o) => !o)}
+          sx={{ fontFamily: fonts.display, fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: c.mute, cursor: 'pointer', userSelect: 'none', '&:hover': { color: c.accent } }}
+        >
+          {advancedOpen ? '▾' : '▸'} Advanced · model settings
+        </Typography>
+        <Collapse in={advancedOpen}>
+          <Stack spacing={2.25} sx={{ mt: 1.5 }}>
+            <Box>
+              <Typography sx={{ ...monoPct, color: c.faint, mb: 0.75, letterSpacing: '0.04em' }}>VALUE MODEL (EVALUATOR)</Typography>
+              <FormControl fullWidth size="small">
+                <Select
+                  value={evaluatorId}
+                  onChange={(e) => setEvaluator(e.target.value)}
+                  sx={{ fontFamily: fonts.display, fontSize: '0.82rem' }}
+                  MenuProps={{ slotProps: { paper: { sx: { maxWidth: 340 } } } }}
+                >
+                  {evaluators.map((e) => (
+                    <MenuItem key={e.id} value={e.id} sx={{ display: 'block', py: 0.9 }}>
+                      <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.bone }}>
+                        {e.label}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.7rem', color: c.mute, whiteSpace: 'normal', lineHeight: 1.35 }}>
+                        {e.description}
+                      </Typography>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box>
+              <Typography sx={{ ...monoPct, color: c.faint, mb: 0.75, letterSpacing: '0.04em' }}>PROBABILITY MODEL</Typography>
+              <FormControl fullWidth size="small">
+                <Select
+                  value={probabilityModel}
+                  onChange={(e) => setProbabilityModel(e.target.value as 'independence' | 'bayesNet')}
+                  sx={{ fontFamily: fonts.display, fontSize: '0.82rem' }}
+                  MenuProps={{ slotProps: { paper: { sx: { maxWidth: 340 } } } }}
+                >
+                  <MenuItem value="independence" sx={{ display: 'block', py: 0.9 }}>
+                    <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.bone }}>Independence + couplings</Typography>
+                    <Typography sx={{ fontSize: '0.7rem', color: c.mute, whiteSpace: 'normal', lineHeight: 1.35 }}>
+                      Factors independent, with a few hand-set dependency corrections. Each slider is a free marginal.
+                    </Typography>
+                  </MenuItem>
+                  <MenuItem value="bayesNet" sx={{ display: 'block', py: 0.9 }}>
+                    <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.bone }}>Bayes net (soft evidence)</Typography>
+                    <Typography sx={{ fontSize: '0.7rem', color: c.mute, whiteSpace: 'normal', lineHeight: 1.35 }}>
+                      A DAG of relationships. Slide any factor and the untouched ones re-rake to stay consistent.
+                    </Typography>
+                  </MenuItem>
+                </Select>
+              </FormControl>
+              {dataset.bayesNet ? (
+                <Box
+                  component="span"
+                  onClick={() => setNetOpen(true)}
+                  sx={{ display: 'inline-block', mt: 0.6, cursor: 'pointer', color: c.mute, fontFamily: fonts.display, fontSize: '0.74rem', '&:hover': { color: c.accent } }}
+                >
+                  View the network ↗
+                </Box>
+              ) : null}
+            </Box>
+          </Stack>
+        </Collapse>
       </Box>
     </Stack>
   );
