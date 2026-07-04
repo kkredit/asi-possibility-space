@@ -1,4 +1,4 @@
-import { Box, Paper, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Divider, Paper, Stack, Tooltip, Typography, type SxProps } from '@mui/material';
 import { dataset } from '@model/dataset';
 import type { ValueVector } from '@model/types';
 import { c, fonts, valueColor, valueGradient } from '@shell/theme';
@@ -46,6 +46,21 @@ function DimensionBar({ label, low, high, value }: { label: string; low: string;
         </Typography>
       </Stack>
     </Tooltip>
+  );
+}
+
+/** One outcome-band stat tile: label (+ explainer) over a large colored percentage. */
+function BandStat({ label, value, tip, sx }: { label: string; value: number; tip: React.ReactNode; sx?: SxProps }) {
+  return (
+    <Box sx={{ flex: 1, minWidth: 0, ...sx }}>
+      <Typography variant="overline" sx={{ color: c.mute, display: 'inline-flex', alignItems: 'center' }}>
+        {label}
+        <InfoTip>{tip}</InfoTip>
+      </Typography>
+      <Typography sx={{ fontFamily: fonts.mono, fontWeight: 700, fontSize: '1.9rem', lineHeight: 1, mt: 0.25, color: valueColor(value >= 0 ? Math.min(1, value) : Math.max(-1, value)) }}>
+        {Math.round(Math.abs(value) * 100)}%
+      </Typography>
+    </Box>
   );
 }
 
@@ -97,60 +112,6 @@ export function EvHeadline({ ev, evVector, pDoom, pDisempowered, pFlourishing }:
               flourishing →
             </Typography>
           </Stack>
-
-          {/* Second headline row: the two catastrophe bands — extinct, and alive-but-bad.
-              Each label+number pair is an unbreakable unit; wrapping only happens between pairs. */}
-          <Stack direction="row" alignItems="baseline" columnGap={2.5} rowGap={1} sx={{ mt: 2.25 }} flexWrap="wrap">
-            <Stack direction="row" alignItems="baseline" spacing={1.25} sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
-              <Typography variant="overline" sx={{ color: c.mute, display: 'inline-flex', alignItems: 'center' }}>
-                p(doom)
-                <InfoTip>
-                  The probability mass this model puts on <b>extinction-level</b> outcomes
-                  (survival&nbsp;&lt;&nbsp;−0.5), under your current beliefs. It answers a different
-                  question than the expected value: EV is a weighted average <em>across all four value
-                  dimensions</em> (a mild-but-broad loss and a catastrophe can share an EV), while
-                  p(doom) is purely the <em>extinction tail</em>. Both are worth watching — they often
-                  disagree. This is the same quantity compared against public figures' stated p(doom)
-                  in the belief presets.
-                </InfoTip>
-              </Typography>
-              <Typography sx={{ fontFamily: fonts.mono, fontWeight: 700, fontSize: '1.7rem', lineHeight: 0.9, color: valueColor(-Math.min(1, pDoom * 2)) }}>
-                {Math.round(pDoom * 100)}%
-              </Typography>
-            </Stack>
-            <Stack direction="row" alignItems="baseline" spacing={1.25} sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
-              <Typography variant="overline" sx={{ color: c.mute, display: 'inline-flex', alignItems: 'center' }}>
-                p(disempowered)
-                <InfoTip>
-                  The probability mass on <b>alive-but-disempowered</b> futures: humanity persists
-                  (survival&nbsp;≥&nbsp;−0.5) but the future is no longer ours
-                  (agency&nbsp;&lt;&nbsp;−0.6) — a subjugated takeover, hard lock-in, permanent
-                  curtailment. Carlsmith's <em>unrecoverable disempowerment</em>, minus the extinct
-                  worlds p(doom) already counts. Many stated views put much of their "doom" here
-                  rather than in extinction — the takeover-severity factor is what separates the two.
-                </InfoTip>
-              </Typography>
-              <Typography sx={{ fontFamily: fonts.mono, fontWeight: 700, fontSize: '1.7rem', lineHeight: 0.9, color: valueColor(-Math.min(1, pDisempowered * 2)) }}>
-                {Math.round(pDisempowered * 100)}%
-              </Typography>
-            </Stack>
-            <Stack direction="row" alignItems="baseline" spacing={1.25} sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
-              <Typography variant="overline" sx={{ color: c.mute, display: 'inline-flex', alignItems: 'center' }}>
-                p(flourishing)
-                <InfoTip>
-                  The probability mass on <b>flourishing</b> futures — the good tail, mirror of
-                  p(doom): humanity clearly persists (survival&nbsp;≥&nbsp;0.5) and clearly realizes
-                  value (flourishing&nbsp;≥&nbsp;0.5). Distinct from the expected value, which averages
-                  across dimensions — a muted, just-okay future can carry a middling EV without
-                  landing here. The three bands (doom / disempowered / flourishing) don't sum to 1;
-                  the remainder is the ambiguous middle.
-                </InfoTip>
-              </Typography>
-              <Typography sx={{ fontFamily: fonts.mono, fontWeight: 700, fontSize: '1.7rem', lineHeight: 0.9, color: valueColor(Math.min(1, pFlourishing * 2)) }}>
-                {Math.round(pFlourishing * 100)}%
-              </Typography>
-            </Stack>
-          </Stack>
         </Box>
 
         {/* Right: the value vector breakdown */}
@@ -162,6 +123,59 @@ export function EvHeadline({ ev, evVector, pDoom, pDisempowered, pFlourishing }:
             <DimensionBar key={dim.id} label={dim.label} low={dim.lowLabel} high={dim.highLabel} value={evVector[dim.id]} />
           ))}
         </Box>
+      </Stack>
+
+      {/* Full-width outcome-band strip: the three probability tiles as equal peers
+          below the EV + by-dimension row, divided; stacks on mobile. */}
+      <Divider sx={{ my: { xs: 2, sm: 2.5 } }} />
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        divider={<Divider orientation="vertical" flexItem sx={{ borderColor: c.line }} />}
+        spacing={{ xs: 1.5, sm: 3 }}
+      >
+        <BandStat
+          label="p(doom)"
+          value={-pDoom}
+          tip={
+            <>
+              The probability mass this model puts on <b>extinction-level</b> outcomes
+              (survival&nbsp;&lt;&nbsp;−0.5), under your current beliefs. It answers a different
+              question than the expected value: EV is a weighted average <em>across all four value
+              dimensions</em> (a mild-but-broad loss and a catastrophe can share an EV), while p(doom)
+              is purely the <em>extinction tail</em>. Both are worth watching — they often disagree.
+              This is the same quantity compared against public figures' stated p(doom) in the belief
+              presets.
+            </>
+          }
+        />
+        <BandStat
+          label="p(disempowered)"
+          value={-pDisempowered}
+          tip={
+            <>
+              The probability mass on <b>alive-but-disempowered</b> futures: humanity persists
+              (survival&nbsp;≥&nbsp;−0.5) but the future is no longer ours (agency&nbsp;&lt;&nbsp;−0.6) —
+              a subjugated takeover, hard lock-in, permanent curtailment. Carlsmith's{' '}
+              <em>unrecoverable disempowerment</em>, minus the extinct worlds p(doom) already counts.
+              Many stated views put much of their "doom" here rather than in extinction — the
+              takeover-severity factor is what separates the two.
+            </>
+          }
+        />
+        <BandStat
+          label="p(flourishing)"
+          value={pFlourishing}
+          tip={
+            <>
+              The probability mass on <b>flourishing</b> futures — the good tail, mirror of p(doom):
+              humanity clearly persists (survival&nbsp;≥&nbsp;0.5) and clearly realizes value
+              (flourishing&nbsp;≥&nbsp;0.5). Distinct from the expected value, which averages across
+              dimensions — a muted, just-okay future can carry a middling EV without landing here.
+              The three bands (doom / disempowered / flourishing) don't sum to 1; the remainder is
+              the ambiguous middle.
+            </>
+          }
+        />
       </Stack>
     </Paper>
   );
