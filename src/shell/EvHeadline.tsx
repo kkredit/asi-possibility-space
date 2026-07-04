@@ -53,11 +53,11 @@ function DimensionBar({ label, low, high, value }: { label: string; low: string;
 function BandStat({ label, value, tip, sx }: { label: string; value: number; tip: React.ReactNode; sx?: SxProps }) {
   return (
     <Box sx={{ flex: 1, minWidth: 0, ...sx }}>
-      <Typography variant="overline" sx={{ color: c.mute, display: 'inline-flex', alignItems: 'center' }}>
+      <Typography variant="overline" sx={{ color: c.mute, display: 'inline-flex', alignItems: 'center', lineHeight: 1.2 }}>
         {label}
         <InfoTip>{tip}</InfoTip>
       </Typography>
-      <Typography sx={{ fontFamily: fonts.mono, fontWeight: 700, fontSize: '1.9rem', lineHeight: 1, mt: 0.25, color: valueColor(value >= 0 ? Math.min(1, value) : Math.max(-1, value)) }}>
+      <Typography sx={{ fontFamily: fonts.mono, fontWeight: 700, fontSize: '1.9rem', lineHeight: 1, color: valueColor(value >= 0 ? Math.min(1, value) : Math.max(-1, value)) }}>
         {Math.round(Math.abs(value) * 100)}%
       </Typography>
     </Box>
@@ -127,11 +127,11 @@ export function EvHeadline({ ev, evVector, pDoom, pDisempowered, pFlourishing }:
 
       {/* Full-width outcome-band strip: the three probability tiles as equal peers
           below the EV + by-dimension row, divided; stacks on mobile. */}
-      <Divider sx={{ my: { xs: 2, sm: 2.5 } }} />
+      <Divider sx={{ my: { xs: 1.5, sm: 1.75 } }} />
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         divider={<Divider orientation="vertical" flexItem sx={{ borderColor: c.line }} />}
-        spacing={{ xs: 1.5, sm: 3 }}
+        spacing={{ xs: 1, sm: 3 }}
       >
         <BandStat
           label="p(doom)"

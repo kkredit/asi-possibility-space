@@ -17,7 +17,7 @@ export const c = {
   // UI chrome accent — a muted teal for interactive affordances (tab indicator,
   // links, toggles). The vivid `teal` stays reserved for DATA (the value spectrum,
   // positive deltas); softening the chrome keeps charts loud and controls quiet.
-  accent: '#43A79C',
+  accent: '#3FB2A2',
   // factor kinds
   amber: '#E0A33E', // objective — value of information
   contingent: '#6E7A92', // contingent — situational
