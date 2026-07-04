@@ -31,7 +31,7 @@ import { EvaluatorDiff, type DiffPoint } from '@viz/EvaluatorDiff';
 import { ModelLadder, type LadderRow } from '@viz/ModelLadder';
 import { Panel } from '@shell/Panel';
 import { ActionsTab } from '@shell/tabs/ActionsTab';
-import { IntroPage } from '@shell/pages/IntroPage';
+import { AboutPage } from '@shell/pages/AboutPage';
 import { ResourcesPage } from '@shell/pages/ResourcesPage';
 import { DisclaimersPage } from '@shell/pages/DisclaimersPage';
 import { FactorsTab } from '@shell/tabs/FactorsTab';
@@ -56,16 +56,16 @@ function readUrlTab(): number {
   return i >= 0 ? i : 0;
 }
 
-// Top-level pages, hash-navigable (`#page=intro` / `#page=resources`) — the app
+// Top-level pages, hash-navigable (`#page=about` / `#page=resources`) — the app
 // deliberately has no client-side router (see AGENTS.md), so pages follow the same
 // hash-param pattern as tabs and presets.
-const PAGES = ['explorer', 'intro', 'resources', 'disclaimers'] as const;
+const PAGES = ['explorer', 'about', 'resources', 'disclaimers'] as const;
 type Page = (typeof PAGES)[number];
 
 function readUrlPage(): Page {
   if (typeof window === 'undefined') return 'explorer';
   const p = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('page');
-  return p === 'intro' || p === 'resources' || p === 'disclaimers' ? p : 'explorer';
+  return p === 'about' || p === 'resources' || p === 'disclaimers' ? p : 'explorer';
 }
 
 function Masthead({ page, onNavigate }: { page: Page; onNavigate: (p: Page) => void }) {
@@ -115,7 +115,7 @@ function Masthead({ page, onNavigate }: { page: Page; onNavigate: (p: Page) => v
       </Box>
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', ml: { xs: 0, sm: 2 } }}>
         {navLink('explorer', 'Explorer')}
-        {navLink('intro', 'Intro')}
+        {navLink('about', 'About')}
         {navLink('resources', 'Resources')}
         {navLink('disclaimers', 'Disclaimers')}
       </Box>
@@ -266,7 +266,7 @@ export function App() {
       <Box sx={{ minHeight: '100vh' }}>
         <Masthead page={page} onNavigate={selectPage} />
         <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3 } }}>
-          {page === 'intro' ? <IntroPage /> : page === 'resources' ? <ResourcesPage /> : <DisclaimersPage />}
+          {page === 'about' ? <AboutPage /> : page === 'resources' ? <ResourcesPage /> : <DisclaimersPage />}
         </Container>
       </Box>
     );

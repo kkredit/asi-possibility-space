@@ -2,10 +2,10 @@ import { Box, Typography } from '@mui/material';
 import { c, fonts } from '@shell/theme';
 
 /**
- * PLACEHOLDER — KK to write the real intro (what this site is, why it exists).
+ * PLACEHOLDER — KK to write the real About page (what this site is, why it exists).
  * Keep it short and personal; the Resources page carries the background reading.
  */
-export function IntroPage() {
+export function AboutPage() {
   return (
     <Box sx={{ maxWidth: 720, mx: 'auto', py: { xs: 3, md: 5 }, px: 2 }}>
       <Typography sx={{ fontFamily: fonts.display, fontWeight: 700, fontSize: '1.6rem', color: c.bone, mb: 2 }}>

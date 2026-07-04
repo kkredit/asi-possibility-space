@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import { ThemeProvider } from '@mui/material';
 import { App } from '@shell/App';
-import { IntroPage } from '@shell/pages/IntroPage';
+import { AboutPage } from '@shell/pages/AboutPage';
 import { ResourcesPage } from '@shell/pages/ResourcesPage';
 import { DisclaimersPage } from '@shell/pages/DisclaimersPage';
 import { theme } from '@shell/theme';
@@ -20,13 +20,13 @@ describe('App smoke render', () => {
     expect(html).toContain('Possibility');
   });
 
-  it('renders the intro and resources pages without throwing', () => {
-    const intro = renderToString(
+  it('renders the about and resources pages without throwing', () => {
+    const about = renderToString(
       <ThemeProvider theme={theme}>
-        <IntroPage />
+        <AboutPage />
       </ThemeProvider>,
     );
-    expect(intro).toContain('About this site');
+    expect(about).toContain('About this site');
 
     const resources = renderToString(
       <ThemeProvider theme={theme}>

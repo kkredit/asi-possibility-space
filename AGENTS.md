@@ -302,7 +302,7 @@ cell was authored vs. fell back. The fitted models train only on reasoned cells.
   introduce client-side routing or absolute asset URLs — the app uses tab
   navigation, not a router.
 - **URL state lives in the hash**: `#preset=<id>` (a known preset), `#tab=<slug>`
-  (active tab), `#page=intro|resources|disclaimers` (the top-level pages — still no client-side
+  (active tab), `#page=about|resources|disclaimers` (the top-level pages — still no client-side
   router; pages follow the same hash pattern), and `#beliefs=<base64url>` — a full
   CUSTOM belief set (credences,
   sub-credences, weights, both modes) compactly encoded in
@@ -310,6 +310,12 @@ cell was authored vs. fell back. The fitted models train only on reasoned cells.
   panel's "Copy link" button. All SSR-safe; `beliefs=` takes precedence over
   `preset=` on load, schema-mismatched payloads are ignored, and manual edits
   clear whichever share param no longer matches.
+- **Social link previews.** `index.html` has OG/Twitter meta + a general
+  `public/og-banner.png` (regenerate: `pnpm exec vitest run --config scripts/og.config.ts`).
+  Per-beliefs preview cards are built and tested in
+  [`src/shell/ogPreview.ts`](src/shell/ogPreview.ts) but DORMANT — they need a
+  function-capable host (unfurlers can't see the `#beliefs=` hash on static Pages).
+  See [`docs/SOCIAL-PREVIEW.md`](docs/SOCIAL-PREVIEW.md).
 - Keep the `@…/*` path aliases identical in `vite.config.ts` and
   `tsconfig.app.json` — they're declared in two places.
 

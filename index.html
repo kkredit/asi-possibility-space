@@ -8,6 +8,27 @@
       name="description"
       content="Interactively explore the AI-safety possibility space: tweak credences, see expected outcomes, find the max-EV action."
     />
+    <!-- Social / chat link preview (the GENERAL banner — see docs/SOCIAL-PREVIEW.md).
+         og:url and og:image should be ABSOLUTE once the site has a real domain;
+         relative paths work in some unfurlers but not all. Per-beliefs preview cards
+         are a dormant, tested feature (src/shell/ogPreview.ts) awaiting a
+         function-capable host. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ASI Possibility Space" />
+    <meta
+      property="og:description"
+      content="An instrument for reasoning about AI futures: set your credences over the key questions and see the outcome distribution, expected value, and where the leverage is."
+    />
+    <meta property="og:image" content="./og-banner.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="ASI Possibility Space" />
+    <meta
+      name="twitter:description"
+      content="An instrument for reasoning about AI futures: set your credences and see the outcome distribution, expected value, and where the leverage is."
+    />
+    <meta name="twitter:image" content="./og-banner.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
