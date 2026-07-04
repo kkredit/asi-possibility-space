@@ -75,3 +75,12 @@ dependency-free SVG. Builds to a static bundle.
 push to `main`/`master`. In the repo settings, set **Pages → Source → GitHub Actions**. The Vite
 `base` is relative (`./`), so it works under any `https://<user>.github.io/<repo>/` path without
 configuration.
+
+## License
+
+Copyright © 2026 Kevin Kredit.
+
+Licensed under the [GNU General Public License v3.0 or later](LICENSE) (GPL-3.0-or-later). You are
+free to use, share, and modify this project — including all authored content (factors, odds,
+outcomes, narratives) — provided derivative works remain under the same license and retain
+attribution to this repository.
