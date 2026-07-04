@@ -7,6 +7,7 @@ import {
   disempowermentMass,
   distribution,
   doomMass,
+  flourishingMass,
   evaluatorFit,
   evaluators,
   fittedLinearEvaluator,
@@ -185,6 +186,8 @@ export function App() {
   // Alive-but-disempowered mass: the "p(pets)" band — survives, but the future is
   // no longer ours (subjugated takeover, hard lock-in).
   const pDisempowered = useMemo(() => disempowermentMass(analysis.scenarios), [analysis]);
+  // Flourishing mass: the good tail — mirror of p(doom).
+  const pFlourishing = useMemo(() => flourishingMass(analysis.scenarios), [analysis]);
   // Standalone (linear) value pull of each factor-state, for the distribution
   // tooltip's valence glyphs. Recomputed when weights change.
   const stateValence = useMemo(() => {
@@ -293,7 +296,7 @@ export function App() {
 
           <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
             <Box sx={{ mb: 2 }}>
-              <EvHeadline ev={analysis.ev} evVector={analysis.evVector} pDoom={pDoom} pDisempowered={pDisempowered} />
+              <EvHeadline ev={analysis.ev} evVector={analysis.evVector} pDoom={pDoom} pDisempowered={pDisempowered} pFlourishing={pFlourishing} />
             </Box>
 
             <Box sx={{ borderBottom: `1px solid ${c.line}`, mb: 2 }}>
@@ -382,7 +385,7 @@ export function App() {
         </Box>
       </Container>
 
-      {isMobile && <BeliefsSheet ev={analysis.ev} pDoom={pDoom} pDisempowered={pDisempowered} />}
+      {isMobile && <BeliefsSheet ev={analysis.ev} pDoom={pDoom} pDisempowered={pDisempowered} pFlourishing={pFlourishing} />}
     </Box>
   );
 }

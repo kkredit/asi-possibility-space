@@ -12,6 +12,8 @@ interface Props {
   pDoom: number;
   /** Alive-but-disempowered mass (survives, future out of our hands). */
   pDisempowered: number;
+  /** Flourishing mass: the good tail (survives & realizes value). */
+  pFlourishing: number;
 }
 
 /** Position of a value in [-1,1] as a percent across a gauge. */
@@ -47,7 +49,7 @@ function DimensionBar({ label, low, high, value }: { label: string; low: string;
   );
 }
 
-export function EvHeadline({ ev, evVector, pDoom, pDisempowered }: Props) {
+export function EvHeadline({ ev, evVector, pDoom, pDisempowered, pFlourishing }: Props) {
   return (
     <Paper sx={{ p: { xs: 2, sm: 2.5 } }}>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 2.5, md: 4 }} alignItems="stretch">
@@ -130,6 +132,22 @@ export function EvHeadline({ ev, evVector, pDoom, pDisempowered }: Props) {
               </Typography>
               <Typography sx={{ fontFamily: fonts.mono, fontWeight: 700, fontSize: '1.7rem', lineHeight: 0.9, color: valueColor(-Math.min(1, pDisempowered * 2)) }}>
                 {Math.round(pDisempowered * 100)}%
+              </Typography>
+            </Stack>
+            <Stack direction="row" alignItems="baseline" spacing={1.25} sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <Typography variant="overline" sx={{ color: c.mute, display: 'inline-flex', alignItems: 'center' }}>
+                p(flourishing)
+                <InfoTip>
+                  The probability mass on <b>flourishing</b> futures — the good tail, mirror of
+                  p(doom): humanity clearly persists (survival&nbsp;≥&nbsp;0.5) and clearly realizes
+                  value (flourishing&nbsp;≥&nbsp;0.5). Distinct from the expected value, which averages
+                  across dimensions — a muted, just-okay future can carry a middling EV without
+                  landing here. The three bands (doom / disempowered / flourishing) don't sum to 1;
+                  the remainder is the ambiguous middle.
+                </InfoTip>
+              </Typography>
+              <Typography sx={{ fontFamily: fonts.mono, fontWeight: 700, fontSize: '1.7rem', lineHeight: 0.9, color: valueColor(Math.min(1, pFlourishing * 2)) }}>
+                {Math.round(pFlourishing * 100)}%
               </Typography>
             </Stack>
           </Stack>

@@ -118,6 +118,19 @@ export function disempowermentMass(scenarios: EvaluatedScenario[]): number {
 }
 
 /**
+ * Probability mass on FLOURISHING outcomes — the good tail, mirror of p(doom):
+ * humanity clearly persists (survival ≥ 0.5) and clearly realizes value
+ * (flourishing ≥ 0.5). Distinct from EV (a cross-dimension average a muted future
+ * can share) — this is the genuinely-thriving end of the spectrum.
+ */
+export function flourishingMass(scenarios: EvaluatedScenario[]): number {
+  return scenarios.reduce(
+    (m, s) => m + (s.value.survival >= 0.5 && s.value.flourishing >= 0.5 ? s.probability : 0),
+    0,
+  );
+}
+
+/**
  * How far an evaluator sits from the hand-reasoned (cached) surface, measured as
  * root-mean-square divergence over every cell the cached evaluator actually has an
  * opinion on. Reported both in value-vector space (weight-independent, the quantity

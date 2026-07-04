@@ -9,15 +9,16 @@ interface Props {
   ev: number;
   pDoom: number;
   pDisempowered: number;
+  pFlourishing: number;
 }
 
 /**
  * Mobile beliefs editor: results stay first on the page; the full Beliefs panel
  * lives in a swipeable bottom sheet behind a pinned pill button (the standard
- * "filters" pattern). A compact EV · p(doom) · p(disempowered) strip is pinned
+ * "filters" pattern). A compact EV · p(doom) · p(disemp.) · p(flourish) strip is pinned
  * at the sheet's top, so slider drags give live feedback without any scrolling.
  */
-export function BeliefsSheet({ ev, pDoom, pDisempowered }: Props) {
+export function BeliefsSheet({ ev, pDoom, pDisempowered, pFlourishing }: Props) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -83,6 +84,9 @@ export function BeliefsSheet({ ev, pDoom, pDisempowered }: Props) {
             </Typography>
             <Typography sx={{ whiteSpace: 'nowrap', fontFamily: fonts.mono, fontSize: '0.8rem', color: c.mute }}>
               p(disemp.) <Box component="span" sx={{ fontWeight: 700, color: valueColor(-Math.min(1, pDisempowered * 2)) }}>{Math.round(pDisempowered * 100)}%</Box>
+            </Typography>
+            <Typography sx={{ whiteSpace: 'nowrap', fontFamily: fonts.mono, fontSize: '0.8rem', color: c.mute }}>
+              p(flourish) <Box component="span" sx={{ fontWeight: 700, color: valueColor(Math.min(1, pFlourishing * 2)) }}>{Math.round(pFlourishing * 100)}%</Box>
             </Typography>
           </Stack>
         </Box>
