@@ -132,12 +132,8 @@ export function Presets() {
 
   return (
     <Box>
-      <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.bone, mb: 0.25 }}>
+      <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.bone, mb: 1 }}>
         Enter your own beliefs below — or start from a well-known figure or lab:
-      </Typography>
-      <Typography sx={{ fontSize: '0.72rem', color: c.faint, mb: 1 }}>
-        a cited public view as a starting point · value = their expected value (red extinction → teal flourishing) ·
-        per-factor sourcing &amp; accuracy shown once selected
       </Typography>
 
       <FormControl fullWidth size="small">
