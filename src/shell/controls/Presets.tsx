@@ -14,22 +14,22 @@ import {
   Typography,
 } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import type { Preset } from '@model/types';
+import type { Evaluator, Preset } from '@model/types';
 import { presets } from '@model/presets';
 import { dataset } from '@model/dataset';
 import type { KnownFactorId } from '@model/ids';
-import { analyze, cachedEvaluator, deriveCredences, doomMass, reconcileJoint } from '@engine/index';
+import { analyze, deriveCredences, doomMass, getEvaluator, reconcileJoint } from '@engine/index';
 import { useBeliefs, type ProbabilityModel } from '@shell/store';
 import { InfoTip } from '@viz/InfoTip';
 import { fmtSigned } from '@viz/text';
 import { c, fonts, valueColor } from '@shell/theme';
 
-/** Analyze a preset under the ACTIVE probability model — the net's raked joint when in
- *  Bayes-net mode, independence×couplings otherwise — so the preset's EV and implied
- *  p(doom) match what the headline shows once that preset is loaded. Credences are
+/** Analyze a preset under the ACTIVE evaluator + probability model — so the preset's
+ *  EV and implied p(doom) match what the headline shows once that preset is loaded,
+ *  and both track when you switch the value model or probability model. Credences are
  *  merged over the baseline exactly as the store does when applying the preset, so a
  *  preset that omits a factor still analyzes with a full distribution. */
-function analyzePreset(p: Preset, model: ProbabilityModel) {
+function analyzePreset(p: Preset, model: ProbabilityModel, evaluator: Evaluator) {
   const stated = { ...dataset.baselineCredences, ...p.credences };
   // The store loads presets in derived mode: the deep-dive derives tractability and
   // alignment-in-time from the preset's sub-credences. Mirror that here so the menu
@@ -41,7 +41,7 @@ function analyzePreset(p: Preset, model: ProbabilityModel) {
     model === 'bayesNet' && dataset.bayesNet
       ? reconcileJoint(dataset.bayesNet, dataset.factors, credences, credences).probability
       : undefined;
-  return analyze(dataset, credences, weights, cachedEvaluator, {}, joint);
+  return analyze(dataset, credences, weights, evaluator, {}, joint);
 }
 
 
@@ -102,6 +102,7 @@ export function Presets() {
   const activePresetId = useBeliefs((s) => s.activePresetId);
   const applyPreset = useBeliefs((s) => s.applyPreset);
   const probabilityModel = useBeliefs((s) => s.probabilityModel);
+  const evaluatorId = useBeliefs((s) => s.evaluatorId);
   const [showSources, setShowSources] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -111,13 +112,14 @@ export function Presets() {
   const { presetEv, presetDoom } = useMemo(() => {
     const ev: Record<string, number> = {};
     const doom: Record<string, number> = {};
+    const evaluator = getEvaluator(evaluatorId);
     for (const p of presets) {
-      const a = analyzePreset(p, probabilityModel);
+      const a = analyzePreset(p, probabilityModel, evaluator);
       ev[p.id] = a.ev;
       doom[p.id] = doomMass(a.scenarios);
     }
     return { presetEv: ev, presetDoom: doom };
-  }, [probabilityModel]);
+  }, [probabilityModel, evaluatorId]);
 
   const copyLink = async () => {
     if (typeof navigator === 'undefined' || !navigator.clipboard) return;

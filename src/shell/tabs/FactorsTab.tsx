@@ -2,7 +2,7 @@ import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { Box, FormControl, MenuItem, Select, Stack, Typography } from '@mui/material';
 import { dataset } from '@model/dataset';
 import type { Credences, Evaluator, FactorId, Scenario, StateId, SubCredences, ValueDimensionId, ValueVector } from '@model/types';
-import { beliefThreshold, conditionalContrast, contrastGrid, sensitivity, subfactorSensitivity, zeroVector, type Decision } from '@engine/index';
+import { beliefThreshold, conditionalContrast, contrastGrid, sensitivity, subfactorSensitivity, zeroVector, type Decision, type MakeJoint } from '@engine/index';
 import type { Pins } from '@engine/scenarios';
 import { Panel } from '@shell/Panel';
 import { c, fonts, valueColor } from '@shell/theme';
@@ -22,6 +22,8 @@ interface Props {
   evaluator: Evaluator;
   pins: Pins;
   jointProbability?: (s: Scenario) => number;
+  /** Joint factory (net mode) for the tools that perturb credences. */
+  makeJoint?: MakeJoint;
 }
 
 // The design doc's canonical opening question — "is open-sourcing the frontier
@@ -35,7 +37,7 @@ const DEFAULT_DECISION: Decision = { factor: 'powerConcentration', toward: 'diff
  * chosen factor-state — under what conditions it's favorable (the interventional
  * contrast, its cruxes, favorable-when lists, two-way map and break-even sweep).
  */
-export function FactorsTab({ credences, subCredences, weights, evaluator, pins, jointProbability }: Props) {
+export function FactorsTab({ credences, subCredences, weights, evaluator, pins, jointProbability, makeJoint }: Props) {
   // ── sensitivity tornado (measurable on weighted EV or a single value dimension) ─
   const [sensDim, setSensDim] = useState<'weighted' | ValueDimensionId>('weighted');
   const sensWeights = useMemo(
@@ -50,10 +52,10 @@ export function FactorsTab({ credences, subCredences, weights, evaluator, pins, 
     // sub-rows use the independence path — the pinned derived marginals can't be
     // re-raked per-row without recomputing the joint 20+ times per render.
     const subRows = subCredences
-      ? subfactorSensitivity(dataset, credences, subCredences, sensWeights, evaluator, pins)
+      ? subfactorSensitivity(dataset, credences, subCredences, sensWeights, evaluator, pins, makeJoint)
       : [];
     return [...factorRows, ...subRows].sort((a, b) => b.swing - a.swing);
-  }, [credences, subCredences, sensWeights, evaluator, pins, jointProbability]);
+  }, [credences, subCredences, sensWeights, evaluator, pins, jointProbability, makeJoint]);
 
   // ── interventional contrast: "under what conditions is factor = state favorable?" ─
   const [decision, setDecision] = useState<Decision>(DEFAULT_DECISION);
@@ -106,9 +108,9 @@ export function FactorsTab({ credences, subCredences, weights, evaluator, pins, 
   const threshold = useMemo(
     () =>
       mounted
-        ? beliefThreshold(dataset, deferredCredences, weights, evaluator, decision, sweepFactorId, sweepStateId, pins)
+        ? beliefThreshold(dataset, deferredCredences, weights, evaluator, decision, sweepFactorId, sweepStateId, pins, makeJoint)
         : null,
-    [mounted, deferredCredences, weights, evaluator, decision, sweepFactorId, sweepStateId, pins],
+    [mounted, deferredCredences, weights, evaluator, decision, sweepFactorId, sweepStateId, pins, makeJoint],
   );
 
   const stateSelectSx = { fontFamily: fonts.display, fontSize: '0.84rem' };

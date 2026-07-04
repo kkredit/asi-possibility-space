@@ -16,6 +16,16 @@ import { shiftedCredences, withMarginal } from '@engine/actions';
 import { scenarioKey, type Pins } from '@engine/scenarios';
 
 /**
+ * A joint FACTORY: given a credence set, return its joint P(scenario). The tools
+ * below perturb credences (sweeping a marginal, applying an action), so they can't
+ * reuse a precomputed joint — under the Bayes-net probability model each perturbed
+ * set must be re-raked. In independence mode pass nothing (analyze falls back to
+ * credences × couplings). Wired from the shell as
+ * `(c) => reconcileJoint(net, factors, c, c).probability`.
+ */
+export type MakeJoint = (credences: Credences) => (s: Scenario) => number;
+
+/**
  * Conditional contrast — "under what conditions is choice X favorable?"
  *
  * A decision picks a factor and two of its states: a `toward` state A (the choice)
@@ -288,10 +298,11 @@ function netDeltaFor(
   evaluator: Evaluator,
   decision: Decision,
   given: Pins,
+  makeJoint?: MakeJoint,
 ): number {
   const base: Pins = { ...given };
   delete base[decision.factor];
-  return summarize(groupByRest(dataset, credences, weights, evaluator, decision, base)).delta;
+  return summarize(groupByRest(dataset, credences, weights, evaluator, decision, base, makeJoint?.(credences))).delta;
 }
 
 export interface ThresholdPoint {
@@ -323,8 +334,9 @@ export interface BeliefThreshold {
  * other states) and trace the contrast's net delta, locating the break-even
  * credence(s) where the verdict flips — "favorable as long as P(X) exceeds Y%".
  *
- * This sweeps a *marginal credence*, so it uses the independence×couplings model
- * (no joint override): it answers "how does the verdict depend on my credence in X?".
+ * Under independence it sweeps a *marginal credence* directly. Under the Bayes-net
+ * model (pass `makeJoint`) each swept marginal is re-raked, so sweeping X also moves
+ * its correlated factors — exactly the soft-evidence behavior of dragging the slider.
  * Choosing the decision factor itself as the sweep target is meaningless (it's
  * integrated out of the contrast) — pick another factor.
  */
@@ -337,7 +349,9 @@ export function beliefThreshold(
   sweepFactor: FactorId,
   sweepState: StateId,
   given: Pins = {},
-  steps = 51,
+  makeJoint?: MakeJoint,
+  // Net mode re-rakes per point, so use a coarser sweep to stay responsive.
+  steps = makeJoint ? 26 : 51,
 ): BeliefThreshold {
   const dist = credences[sweepFactor] ?? {};
   const currentP = dist[sweepState] ?? 0;
@@ -346,14 +360,14 @@ export function beliefThreshold(
   for (let i = 0; i < steps; i++) {
     const p = i / (steps - 1);
     const swept: Credences = { ...credences, [sweepFactor]: withMarginal(dist, sweepState, p) };
-    points.push({ p, netDelta: netDeltaFor(dataset, swept, weights, evaluator, decision, given) });
+    points.push({ p, netDelta: netDeltaFor(dataset, swept, weights, evaluator, decision, given, makeJoint) });
   }
 
   return {
     sweepFactor,
     sweepState,
     currentP,
-    netDeltaAtCurrent: netDeltaFor(dataset, credences, weights, evaluator, decision, given),
+    netDeltaAtCurrent: netDeltaFor(dataset, credences, weights, evaluator, decision, given, makeJoint),
     points,
     crossings: findCrossings(points),
   };
@@ -411,15 +425,16 @@ export function contrastGrid(
 // (no joint override) — same rationale as `beliefThreshold`.
 // ===========================================================================
 
-/** Conditional-mean scalar EV over the free factors given `pins` (independence×couplings). */
+/** Conditional-mean scalar EV over the free factors given `pins` (net joint when supplied). */
 function condMeanEV(
   dataset: Dataset,
   credences: Credences,
   weights: ValueVector,
   evaluator: Evaluator,
   pins: Pins,
+  joint?: (s: Scenario) => number,
 ): number {
-  const a = analyze(dataset, credences, weights, evaluator, pins);
+  const a = analyze(dataset, credences, weights, evaluator, pins, joint);
   return a.totalProbability > 0 ? a.ev / a.totalProbability : 0;
 }
 
@@ -454,6 +469,7 @@ let worldsMemo: {
   action: Action;
   givenKey: string;
   subCredences?: SubCredences;
+  makeJoint?: MakeJoint;
   value: { worlds: ActionWorld[]; condIds: FactorId[] };
 } | null = null;
 
@@ -465,6 +481,7 @@ function actionWorlds(
   action: Action,
   given: Pins,
   subCredences?: SubCredences,
+  makeJoint?: MakeJoint,
 ): { worlds: ActionWorld[]; condIds: FactorId[] } {
   const givenKey = Object.keys(given)
     .sort()
@@ -479,12 +496,13 @@ function actionWorlds(
     m.evaluator === evaluator &&
     m.action === action &&
     m.givenKey === givenKey &&
-    m.subCredences === subCredences
+    m.subCredences === subCredences &&
+    m.makeJoint === makeJoint
   ) {
     return m.value;
   }
-  const value = computeActionWorlds(dataset, credences, weights, evaluator, action, given, subCredences);
-  worldsMemo = { dataset, credences, weights, evaluator, action, givenKey, subCredences, value };
+  const value = computeActionWorlds(dataset, credences, weights, evaluator, action, given, subCredences, makeJoint);
+  worldsMemo = { dataset, credences, weights, evaluator, action, givenKey, subCredences, makeJoint, value };
   return value;
 }
 
@@ -496,9 +514,11 @@ function computeActionWorlds(
   action: Action,
   given: Pins,
   subCredences?: SubCredences,
+  makeJoint?: MakeJoint,
 ): { worlds: ActionWorld[]; condIds: FactorId[] } {
   const condIds = conditionFactorIds(dataset, given);
-  const scenarios = analyze(dataset, credences, weights, evaluator, given).scenarios;
+  const baseJoint = makeJoint?.(credences);
+  const scenarios = analyze(dataset, credences, weights, evaluator, given, baseJoint).scenarios;
   const probByKey: Record<string, number> = {};
   const pinsByKey: Record<string, Pins> = {};
   for (const s of scenarios) {
@@ -510,15 +530,20 @@ function computeActionWorlds(
       pinsByKey[key] = p;
     }
   }
-  const shifted = dataset.actions.map((a) => ({ id: a.id, credences: shiftedCredences(dataset, credences, a, subCredences) }));
+  // Rake each action's shifted credences ONCE (not per objective-world): the joint is
+  // global, then conditioned per world via analyze's pins.
+  const shifted = dataset.actions.map((a) => {
+    const c = shiftedCredences(dataset, credences, a, subCredences);
+    return { id: a.id, credences: c, joint: makeJoint?.(c) };
+  });
   const worlds: ActionWorld[] = [];
   for (const key of Object.keys(probByKey)) {
     const pins = pinsByKey[key];
-    const baseEV = condMeanEV(dataset, credences, weights, evaluator, pins);
+    const baseEV = condMeanEV(dataset, credences, weights, evaluator, pins, baseJoint);
     let gainA = 0;
     let bestOther = 0; // do-nothing floor
     for (const s of shifted) {
-      const g = condMeanEV(dataset, s.credences, weights, evaluator, pins) - baseEV;
+      const g = condMeanEV(dataset, s.credences, weights, evaluator, pins, s.joint) - baseEV;
       if (s.id === action.id) gainA = g;
       else bestOther = Math.max(bestOther, g);
     }
@@ -574,8 +599,9 @@ export function actionConditions(
   given: Pins = {},
   metric: ActionMetric = 'margin',
   subCredences?: SubCredences,
+  makeJoint?: MakeJoint,
 ): ActionConditions {
-  const { worlds, condIds } = actionWorlds(dataset, credences, weights, evaluator, action, given, subCredences);
+  const { worlds, condIds } = actionWorlds(dataset, credences, weights, evaluator, action, given, subCredences, makeJoint);
   const totP = worlds.reduce((a, w) => a + w.prob, 0) || 1;
   const meanMargin = worlds.reduce((a, w) => a + w.prob * w.margin, 0) / totP;
   const meanGain = worlds.reduce((a, w) => a + w.prob * w.gain, 0) / totP;
@@ -609,8 +635,9 @@ function actionMean(
   given: Pins,
   metric: ActionMetric,
   subCredences?: SubCredences,
+  makeJoint?: MakeJoint,
 ): number {
-  const { worlds } = actionWorlds(dataset, credences, weights, evaluator, action, given, subCredences);
+  const { worlds } = actionWorlds(dataset, credences, weights, evaluator, action, given, subCredences, makeJoint);
   return meanMetric(worlds, metric);
 }
 
@@ -626,11 +653,12 @@ export function actionContrastGrid(
   given: Pins = {},
   metric: ActionMetric = 'margin',
   subCredences?: SubCredences,
+  makeJoint?: MakeJoint,
 ): ContrastGrid | null {
   const f1 = dataset.factors.find((f) => f.id === f1Id);
   const f2 = dataset.factors.find((f) => f.id === f2Id);
   if (!f1 || !f2 || f1.id === f2.id) return null;
-  const { worlds, condIds } = actionWorlds(dataset, credences, weights, evaluator, action, given, subCredences);
+  const { worlds, condIds } = actionWorlds(dataset, credences, weights, evaluator, action, given, subCredences, makeJoint);
   if (!condIds.includes(f1Id) || !condIds.includes(f2Id)) return null;
   return buildGrid(f1, f2, (s1, s2) =>
     meanMetric(worlds.filter((w) => w.pins[f1.id] === s1 && w.pins[f2.id] === s2), metric),
@@ -649,20 +677,22 @@ export function actionBeliefThreshold(
   given: Pins = {},
   metric: ActionMetric = 'margin',
   subCredences?: SubCredences,
+  makeJoint?: MakeJoint,
 ): BeliefThreshold {
-  const steps = 20;
+  // Net mode re-rakes base + every action per point, so use a coarser sweep.
+  const steps = makeJoint ? 12 : 20;
   const dist = credences[sweepFactor] ?? {};
   const points: ThresholdPoint[] = [];
   for (let i = 0; i <= steps; i++) {
     const p = i / steps;
     const cred: Credences = { ...credences, [sweepFactor]: withMarginal(dist, sweepState, p) };
-    points.push({ p, netDelta: actionMean(dataset, cred, weights, evaluator, action, given, metric, subCredences) });
+    points.push({ p, netDelta: actionMean(dataset, cred, weights, evaluator, action, given, metric, subCredences, makeJoint) });
   }
   return {
     sweepFactor,
     sweepState,
     currentP: dist[sweepState] ?? 0,
-    netDeltaAtCurrent: actionMean(dataset, credences, weights, evaluator, action, given, metric, subCredences),
+    netDeltaAtCurrent: actionMean(dataset, credences, weights, evaluator, action, given, metric, subCredences, makeJoint),
     points,
     crossings: findCrossings(points),
   };

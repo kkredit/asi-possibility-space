@@ -159,6 +159,17 @@ export function App() {
   // and analyze falls back to the credences × couplings path.
   const jointProbability = probabilityModel === 'bayesNet' ? bayesProbability ?? undefined : undefined;
   const netMode = probabilityModel === 'bayesNet';
+  // Joint FACTORY for the conditions/threshold/action tools, which perturb credences
+  // (sweep a marginal, apply an action) and so must re-rake per configuration rather
+  // than reuse a stale joint. Undefined in independence mode (analyze falls back to
+  // credences × couplings). Memoized so the tools' single-render memos stay warm.
+  const makeJoint = useMemo(
+    () =>
+      netMode && dataset.bayesNet
+        ? (c: typeof credences) => reconcileJoint(dataset.bayesNet!, dataset.factors, c, c).probability
+        : undefined,
+    [netMode],
+  );
 
   const analysis = useMemo(
     () => analyze(dataset, credences, weights, evaluator, pins, jointProbability),
@@ -312,6 +323,7 @@ export function App() {
                 evaluator={evaluator}
                 pins={pins}
                 ranking={actions!}
+                makeJoint={makeJoint}
               />
             )}
 
@@ -323,6 +335,7 @@ export function App() {
                 evaluator={evaluator}
                 pins={pins}
                 jointProbability={jointProbability}
+                makeJoint={makeJoint}
               />
             )}
 

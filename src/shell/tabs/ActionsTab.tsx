@@ -7,6 +7,7 @@ import {
   actionConditions,
   actionContrastGrid,
   type ActionMetric,
+  type MakeJoint,
   type RankedAction,
 } from '@engine/index';
 import type { Pins } from '@engine/scenarios';
@@ -29,6 +30,8 @@ interface Props {
   pins: Pins;
   /** Pre-computed action ranking from App (belief-model aware). */
   ranking: { baselineEv: number; ranked: RankedAction[] };
+  /** Joint factory (net mode) so the conditions tools re-rake per action/sweep. */
+  makeJoint?: MakeJoint;
 }
 
 /**
@@ -37,15 +40,15 @@ interface Props {
  * helps on its own. Conditions are the objective factors (the exogenous facts no action
  * moves); this uses the independence×couplings model since actions move marginals.
  */
-export function ActionsTab({ credences, subCredences, weights, evaluator, pins, ranking }: Props) {
+export function ActionsTab({ credences, subCredences, weights, evaluator, pins, ranking, makeJoint }: Props) {
   const [actionId, setActionId] = useState<string>(dataset.actions[0].id);
   const action = dataset.actions.find((a) => a.id === actionId)!;
   // 'gain' = absolute effect vs. doing nothing; 'margin' = vs. the best alternative.
   const [metric, setMetric] = useState<ActionMetric>('margin');
 
   const ac = useMemo(
-    () => actionConditions(dataset, credences, weights, evaluator, action, pins, metric, subCredences),
-    [credences, weights, evaluator, action, pins, metric, subCredences],
+    () => actionConditions(dataset, credences, weights, evaluator, action, pins, metric, subCredences, makeJoint),
+    [credences, weights, evaluator, action, pins, metric, subCredences, makeJoint],
   );
 
   const [hmF1, hmF2] = useMemo(() => {
@@ -53,8 +56,8 @@ export function ActionsTab({ credences, subCredences, weights, evaluator, pins, 
     return [ids[0], ids[1]] as [string | undefined, string | undefined];
   }, [ac]);
   const grid = useMemo(
-    () => (hmF1 && hmF2 ? actionContrastGrid(dataset, credences, weights, evaluator, action, hmF1, hmF2, pins, metric, subCredences) : null),
-    [credences, weights, evaluator, action, pins, hmF1, hmF2, metric, subCredences],
+    () => (hmF1 && hmF2 ? actionContrastGrid(dataset, credences, weights, evaluator, action, hmF1, hmF2, pins, metric, subCredences, makeJoint) : null),
+    [credences, weights, evaluator, action, pins, hmF1, hmF2, metric, subCredences, makeJoint],
   );
   const labelOf = (fid: string) => dataset.factors.find((f) => f.id === fid)?.label ?? fid;
 
@@ -79,9 +82,9 @@ export function ActionsTab({ credences, subCredences, weights, evaluator, pins, 
   const threshold = useMemo(
     () =>
       mounted
-        ? actionBeliefThreshold(dataset, deferredCredences, weights, evaluator, action, sweepFactorId, sweepStateId, pins, metric, subCredences)
+        ? actionBeliefThreshold(dataset, deferredCredences, weights, evaluator, action, sweepFactorId, sweepStateId, pins, metric, subCredences, makeJoint)
         : null,
-    [mounted, deferredCredences, weights, evaluator, action, sweepFactorId, sweepStateId, pins, metric, subCredences],
+    [mounted, deferredCredences, weights, evaluator, action, sweepFactorId, sweepStateId, pins, metric, subCredences, makeJoint],
   );
 
   const stateSelectSx = { fontFamily: fonts.display, fontSize: '0.84rem' };

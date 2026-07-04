@@ -1,6 +1,7 @@
 import type { Credences, Dataset, Evaluator, SubCredences, ValueVector } from '@model/types';
 import { analyze } from '@engine/analyze';
 import { deriveCredences } from '@engine/derive';
+import type { MakeJoint } from '@engine/conditions';
 import type { Pins } from '@engine/scenarios';
 import type { SensitivityRow } from '@engine/sensitivity';
 
@@ -8,6 +9,8 @@ import type { SensitivityRow } from '@engine/sensitivity';
  * Tornado rows for the subfactors: pin each sub-state (point mass), re-derive the
  * parents, and record the EV range — the same read as the factor tornado, colored
  * by the subfactor's kind (objective ⇒ value of information, influenceable ⇒ act).
+ * Pinning a sub-state re-derives the parents, so under the Bayes-net model each
+ * pinned set is re-raked via `makeJoint` (matching the rest of the app).
  */
 export function subfactorSensitivity(
   dataset: Dataset,
@@ -16,6 +19,7 @@ export function subfactorSensitivity(
   weights: ValueVector,
   evaluator: Evaluator,
   pins: Pins = {},
+  makeJoint?: MakeJoint,
 ): SensitivityRow[] {
   if (!dataset.subfactors?.length) return [];
   const rows: SensitivityRow[] = [];
@@ -29,7 +33,8 @@ export function subfactorSensitivity(
         ...subCredences,
         [sf.id]: Object.fromEntries(sf.states.map((s) => [s.id, s.id === st.id ? 1 : 0])),
       };
-      const ev = analyze(dataset, deriveCredences(dataset, credences, pinned), weights, evaluator, pins).ev;
+      const derived = deriveCredences(dataset, credences, pinned);
+      const ev = analyze(dataset, derived, weights, evaluator, pins, makeJoint?.(derived)).ev;
       if (ev > evHigh) {
         evHigh = ev;
         bestStateId = st.id;
