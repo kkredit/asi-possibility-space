@@ -34,6 +34,7 @@ import { ActionsTab } from '@shell/tabs/ActionsTab';
 import { AboutPage } from '@shell/pages/AboutPage';
 import { ResourcesPage } from '@shell/pages/ResourcesPage';
 import { DisclaimersPage } from '@shell/pages/DisclaimersPage';
+import { OgPreviewPage } from '@shell/pages/OgPreviewPage'; // TEMP: banner preview gallery
 import { FactorsTab } from '@shell/tabs/FactorsTab';
 
 // The full scenario-space size, derived so it never goes stale as factors change.
@@ -59,12 +60,17 @@ function readUrlTab(): number {
 // Top-level pages, hash-navigable (`#page=about` / `#page=resources`) — the app
 // deliberately has no client-side router (see AGENTS.md), so pages follow the same
 // hash-param pattern as tabs and presets.
-const PAGES = ['explorer', 'about', 'resources', 'disclaimers'] as const;
+const PAGES = ['explorer', 'about', 'resources', 'disclaimers', 'preview'] as const;
 type Page = (typeof PAGES)[number];
+
+// Dev-only tooling (the banner Preview gallery). import.meta.env.DEV is true under
+// `pnpm dev` and stripped from `pnpm build`, so the tab never ships to production.
+const DEV_TOOLS = import.meta.env.DEV;
 
 function readUrlPage(): Page {
   if (typeof window === 'undefined') return 'explorer';
   const p = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('page');
+  if (p === 'preview') return DEV_TOOLS ? 'preview' : 'explorer';
   return p === 'about' || p === 'resources' || p === 'disclaimers' ? p : 'explorer';
 }
 
@@ -118,6 +124,7 @@ function Masthead({ page, onNavigate }: { page: Page; onNavigate: (p: Page) => v
         {navLink('about', 'About')}
         {navLink('resources', 'Resources')}
         {navLink('disclaimers', 'Disclaimers')}
+        {DEV_TOOLS && navLink('preview', 'Preview')}
       </Box>
       <Box sx={{ flex: 1 }} />
       <Typography sx={{ fontFamily: fonts.mono, fontSize: '0.68rem', color: c.faint, whiteSpace: 'nowrap', display: { xs: 'none', sm: 'block' } }}>
@@ -266,7 +273,7 @@ export function App() {
       <Box sx={{ minHeight: '100vh' }}>
         <Masthead page={page} onNavigate={selectPage} />
         <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 3 } }}>
-          {page === 'about' ? <AboutPage /> : page === 'resources' ? <ResourcesPage /> : <DisclaimersPage />}
+          {page === 'about' ? <AboutPage /> : page === 'resources' ? <ResourcesPage /> : DEV_TOOLS && page === 'preview' ? <OgPreviewPage /> : <DisclaimersPage />}
         </Container>
       </Box>
     );
