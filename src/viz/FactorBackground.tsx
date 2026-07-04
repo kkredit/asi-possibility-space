@@ -27,7 +27,7 @@ const REF_KIND: Record<FactorReferenceKind, { label: string; accessible: boolean
  * named positions, and linked works badged by kind (accessible entry points first).
  * Rendered inside the "learn more" Dialog in Controls.
  */
-export function FactorBackground({ factor }: { factor: Factor }) {
+export function FactorBackground({ factor, showQuestion = true }: { factor: Factor; showQuestion?: boolean }) {
   const bg = factor.background;
   if (!bg) {
     return (
@@ -40,9 +40,11 @@ export function FactorBackground({ factor }: { factor: Factor }) {
 
   return (
     <Box>
-      <Typography sx={{ fontSize: '0.78rem', color: c.mute, fontStyle: 'italic', mb: 1.5, lineHeight: 1.5 }}>
-        {factor.question}
-      </Typography>
+      {showQuestion ? (
+        <Typography sx={{ fontSize: '0.78rem', color: c.mute, fontStyle: 'italic', mb: 1.5, lineHeight: 1.5 }}>
+          {factor.question}
+        </Typography>
+      ) : null}
 
       {bg.paragraphs.map((p, i) => (
         <Typography key={i} sx={{ fontSize: '0.82rem', color: c.bone, lineHeight: 1.6, mb: 1.25 }}>

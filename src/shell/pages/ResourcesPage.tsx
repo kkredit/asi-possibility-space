@@ -130,7 +130,7 @@ export function ResourcesPage() {
                   {e.question}
                 </Typography>
                 {e.background ? (
-                  <FactorBackground factor={e} />
+                  <FactorBackground factor={e} showQuestion={false} />
                 ) : (
                   <Typography sx={{ color: c.faint, fontSize: '0.85rem' }}>{e.description}</Typography>
                 )}
