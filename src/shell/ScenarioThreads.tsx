@@ -71,8 +71,13 @@ export function ScenarioThreads({ scenarios }: Props) {
               {entity ? <Typography sx={{ fontSize: '0.72rem', color: c.faint }}>load beliefs →</Typography> : null}
             </Stack>
 
-            <Stack spacing={1}>
-              {entThreads.map((th) => (
+            {[...new Set(entThreads.map((t) => t.source))].map((src) => (
+            <Box key={src} sx={{ mb: 1.25 }}>
+              <Typography sx={{ fontFamily: fonts.display, fontSize: '0.72rem', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: c.mute, mb: 0.75 }}>
+                {src}
+              </Typography>
+              <Stack spacing={1}>
+              {entThreads.filter((t) => t.source === src).map((th) => (
                 <Box key={th.id} sx={{ border: `1px solid ${c.line}`, borderRadius: 1.5, p: 1.5, bgcolor: c.panel2 }}>
                   <Stack direction="row" spacing={1.25} alignItems="flex-start">
                     <Box
@@ -150,7 +155,9 @@ export function ScenarioThreads({ scenarios }: Props) {
                   </Stack>
                 </Box>
               ))}
-            </Stack>
+              </Stack>
+            </Box>
+            ))}
           </Box>
         );
       })}

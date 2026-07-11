@@ -363,6 +363,9 @@ export interface ScenarioThread {
   id: string;
   /** Preset id of the entity that published it (resolves to a `Preset`). */
   entityId: FactorId;
+  /** The publication these threads come from, e.g. "AI 2040" — an entity may have
+   *  several (the UI groups threads by source). */
+  source: string;
   /** The scenario's name, e.g. "Verified Slowdown". */
   title: string;
   /** One- or two-sentence description of what happens in this thread. */

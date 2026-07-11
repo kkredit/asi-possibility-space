@@ -216,5 +216,11 @@ describe('scenario threads (published futures)', () => {
     expect(scalarOf('B', 0)).toBeGreaterThan(0.3);
     expect(scalarOf('B', 1)).toBeLessThan(-0.5);
     expect(scalarOf('C', 1)).toBeLessThan(-0.5);
+    // AI 2027: Race ending is doom; Slowdown survives-and-prospers but with thinner
+    // agency (concentrated aligned lock-in) than the distributed AI-2040 Plan A.
+    expect(scalarOf('R')).toBeLessThan(-0.5);
+    expect(scalarOf('SD')).toBeGreaterThan(0.3);
+    const cellOf = (id: string) => byKey.get(scenarioKey(threads.find((t) => t.id === id)!.scenarios[0]))!.value;
+    expect(cellOf('SD').agency).toBeLessThan(cellOf('A').agency);
   });
 });

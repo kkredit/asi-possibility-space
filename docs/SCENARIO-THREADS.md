@@ -43,5 +43,8 @@ takeover-as-extinction), so the threads differ on the *choices*, not the physics
    the mappings resolve to authored cells and land where the source's stated
    outcome implies.
 
-First entity: the **AI Futures Project** (AI 2040 plans A/B/C/D/S). AI 2027's
-scenarios are a natural next addition.
+The **AI Futures Project** publishes two, grouped by `source` in the UI: **AI 2040**
+(plans A/B/C/D/S) and **AI 2027** (its race and slowdown endings). Note the two
+sources land the same *shape* differently — AI 2040's good ending (Plan A) is
+distributed, while AI 2027's slowdown ending is a concentrated, oversight-committee
+lock-in (aligned, but thin on agency).
