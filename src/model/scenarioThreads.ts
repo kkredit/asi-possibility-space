@@ -30,7 +30,7 @@ export const scenarioThreads: ScenarioThread[] = [
     title: 'Verified Slowdown',
     summary:
       'A verified US–China slowdown deal with total research transparency: dozens of labs scale slowly and safely together to ~2040, buying the time and oversight to align superintelligence. The recommended plan (median p(great future) ≈ 42%).',
-    url: 'https://ai-2040.com/',
+    url: 'https://ai-2040.com/?choices=plan-a-root',
     scenarios: [
       s({ ...OBJ, tractability: 'hard', takeoff: 'slow', powerConcentration: 'diffuse', alignmentInTime: 'yes', controlDeployed: 'yes', coordination: 'regime', deception: 'faithful' }),
     ],
@@ -41,7 +41,7 @@ export const scenarioThreads: ScenarioThread[] = [
     title: 'Fight China',
     summary:
       'The US sabotages China’s AI (cyber, then kinetic) to buy a safety margin instead of coordinating. Power concentrates hard and a wartime footing degrades epistemics; alignment is roughly a coin-flip (≈ 50–55%). Maps to both a concentrated-but-aligned lock-in and a misaligned-takeover failure.',
-    url: 'https://ai-2040.com/supplements/comparing-possible-plans',
+    url: 'https://ai-2040.com/?choices=plan-b-root',
     scenarios: [
       s({ ...OBJ, tractability: 'hard', takeoff: 'fast', powerConcentration: 'concentrated', alignmentInTime: 'yes', controlDeployed: 'yes', coordination: 'none', deception: 'faithful' }),
       s({ ...OBJ, tractability: 'hard', takeoff: 'fast', powerConcentration: 'concentrated', alignmentInTime: 'no', controlDeployed: 'no', coordination: 'none', deception: 'deceptive' }),
@@ -53,7 +53,7 @@ export const scenarioThreads: ScenarioThread[] = [
     title: 'Burn the Lead',
     summary:
       'The leading project voluntarily spends its lead on safety, with only informal coordination and a small slice of resources to alignment (p ≈ 40–45%). Maps to a concentrated aligned success without a control backstop, and a weak-control failure where a deceptive system slips the leash.',
-    url: 'https://ai-2040.com/supplements/comparing-possible-plans',
+    url: 'https://ai-2040.com/?choices=plan-c-root',
     scenarios: [
       s({ ...OBJ, tractability: 'hard', takeoff: 'fast', powerConcentration: 'concentrated', alignmentInTime: 'yes', controlDeployed: 'no', coordination: 'none', deception: 'faithful' }),
       s({ ...OBJ, tractability: 'hard', takeoff: 'fast', powerConcentration: 'concentrated', alignmentInTime: 'no', controlDeployed: 'yes', coordination: 'none', deception: 'deceptive' }),
@@ -65,7 +65,7 @@ export const scenarioThreads: ScenarioThread[] = [
     title: 'Race to ASI',
     summary:
       'Frontier projects race at near-maximum speed with minimal safety investment (p(alignment) ≈ 25–32%, p(great future) ≈ 10%). A fast, concentrated, uncoordinated race into an uncontained deceptive takeover — the doom corner.',
-    url: 'https://ai-2040.com/supplements/comparing-possible-plans',
+    url: 'https://ai-2040.com/?choices=plan-d-root',
     scenarios: [
       s({ ...OBJ, tractability: 'nearImpossible', takeoff: 'fast', powerConcentration: 'concentrated', alignmentInTime: 'no', controlDeployed: 'no', coordination: 'none', deception: 'deceptive' }),
     ],
@@ -76,7 +76,7 @@ export const scenarioThreads: ScenarioThread[] = [
     title: 'Shut It All Down',
     summary:
       'An enforced international moratorium on frontier development, held until safety conditions are met — the most alignment margin of any plan, at the cost of the hardest enforcement problem. A slow, distributed, coordinated world that solves alignment with room to spare.',
-    url: 'https://ai-2040.com/supplements/comparing-possible-plans',
+    url: 'https://ai-2040.com/?choices=plan-s-root',
     scenarios: [
       s({ ...OBJ, tractability: 'easy', takeoff: 'slow', powerConcentration: 'diffuse', alignmentInTime: 'yes', controlDeployed: 'yes', coordination: 'regime', deception: 'faithful' }),
     ],
