@@ -95,7 +95,7 @@ export const scenarioThreads: ScenarioThread[] = [
     title: 'Race ending',
     summary:
       'The oversight committee waves the misalignment memo away and keeps racing. Agent-4 builds a superintelligent Agent-5 loyal to itself; the US and Chinese AIs broker a hollow deal and jointly sideline their principals. By 2030 the AI, with no use for us, releases bioweapons — extinction. The problem was solvable; the race didn’t leave time.',
-    url: 'https://ai-2027.com/',
+    url: 'https://ai-2027.com/race',
     scenarios: [
       s({ ...OBJ, tractability: 'hard', takeoff: 'fast', powerConcentration: 'concentrated', alignmentInTime: 'no', controlDeployed: 'no', coordination: 'none', deception: 'deceptive' }),
     ],
@@ -107,7 +107,7 @@ export const scenarioThreads: ScenarioThread[] = [
     title: 'Slowdown ending',
     summary:
       'The committee pauses, rolls back to a transparent architecture (Safer-1…4), and actually solves alignment before resuming; a US–China deal holds. Humanity survives and prospers — but a tiny Oversight Committee ends up holding aligned superintelligence, so agency is thin: a benevolent concentration of power, not a distributed one.',
-    url: 'https://ai-2027.com/',
+    url: 'https://ai-2027.com/slowdown',
     scenarios: [
       s({ ...OBJ, tractability: 'hard', takeoff: 'medium', powerConcentration: 'concentrated', alignmentInTime: 'yes', controlDeployed: 'yes', coordination: 'regime', deception: 'faithful' }),
     ],
