@@ -82,6 +82,7 @@ const byEsteem = (a: Preset, b: Preset) => esteemRank(a.id) - esteemRank(b.id);
 
 const people = presets.filter((p) => p.category === 'person').sort(byEsteem);
 const labs = presets.filter((p) => p.category === 'lab').sort(byEsteem);
+const orgs = presets.filter((p) => p.category === 'org').sort(byEsteem);
 
 function presetItem(p: Preset, ev: number) {
   return (
@@ -154,6 +155,10 @@ export function Presets() {
           {people.map((p) => presetItem(p, presetEv[p.id]))}
           <ListSubheader sx={{ ...sectionLabel, bgcolor: c.panel, lineHeight: '28px', color: c.faint }}>Labs</ListSubheader>
           {labs.map((p) => presetItem(p, presetEv[p.id]))}
+          {orgs.length ? (
+            <ListSubheader sx={{ ...sectionLabel, bgcolor: c.panel, lineHeight: '28px', color: c.faint }}>Organizations</ListSubheader>
+          ) : null}
+          {orgs.map((p) => presetItem(p, presetEv[p.id]))}
         </Select>
       </FormControl>
 

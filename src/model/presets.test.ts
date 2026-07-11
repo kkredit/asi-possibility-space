@@ -4,7 +4,7 @@ import type { Credences } from '@model/types';
 import type { KnownFactorId } from '@model/ids';
 import { presets } from '@model/presets';
 import { deriveCredences } from '@engine/derive';
-import { analyze, cachedEvaluator, disempowermentMass, doomMass, reconcileJoint } from '@engine/index';
+import { analyze, cachedEvaluator, disempowermentMass, doomMass, isReasoned, reconcileJoint, scenarioKey } from '@engine/index';
 import { VALUE_DIMENSION_IDS } from '@engine/value';
 import type { SubCredences } from '@model/types';
 
@@ -160,5 +160,61 @@ describe('preset doom calibration (stated vs model-implied, net mode)', () => {
         expect(total, `${p.id} takeover-total ${(total * 100).toFixed(0)}%`).toBeLessThanOrEqual(band.total[1]);
       }
     }
+  });
+});
+
+describe('scenario threads (published futures)', () => {
+  const threads = dataset.scenarioThreads ?? [];
+
+  it('exist and every one maps to ≥1 scenario', () => {
+    expect(threads.length).toBeGreaterThan(0);
+    for (const t of threads) expect(t.scenarios.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('every thread maps to a real, fully-specified, hand-reasoned cell', () => {
+    const factorIds = dataset.factors.map((f) => f.id);
+    for (const t of threads) {
+      for (const sc of t.scenarios) {
+        for (const f of dataset.factors) {
+          const states = f.states.map((s) => s.id);
+          expect(states, `${t.id} ${f.id}=${sc[f.id]}`).toContain(sc[f.id]);
+        }
+        expect(Object.keys(sc).sort()).toEqual([...factorIds].sort()); // fully specified
+        expect(isReasoned(sc, dataset), `${t.id} maps to an un-authored cell`).toBe(true);
+      }
+    }
+  });
+
+  it('every thread entity resolves to a preset', () => {
+    for (const t of threads) {
+      expect(presets.some((p) => p.id === t.entityId), `${t.id} entity ${t.entityId}`).toBe(true);
+    }
+  });
+
+  it('has a source url and non-trivial summary per thread', () => {
+    for (const t of threads) {
+      expect(t.url).toMatch(/^https:\/\//);
+      expect(t.summary.length).toBeGreaterThan(30);
+    }
+  });
+
+  it('the AIFP plans land where their p(great future) implies (good vs doom)', () => {
+    const aifp = presets.find((p) => p.id === 'aifp')!;
+    const cred = deriveCredences(dataset, { ...dataset.baselineCredences, ...aifp.credences }, {
+      ...dataset.subBaseline!,
+      ...(aifp.subCredences as SubCredences),
+    });
+    const a = analyze(dataset, cred, aifp.weights ?? dataset.defaultWeights, cachedEvaluator);
+    const byKey = new Map(a.scenarios.map((s) => [scenarioKey(s.scenario), s]));
+    const scalarOf = (id: string, i = 0) =>
+      byKey.get(scenarioKey(threads.find((t) => t.id === id)!.scenarios[i]))!.scalar;
+    // A (Verified Slowdown) and S (Shut It Down) are good; D (Race) is doom.
+    expect(scalarOf('A')).toBeGreaterThan(0.3);
+    expect(scalarOf('S')).toBeGreaterThan(0.3);
+    expect(scalarOf('D')).toBeLessThan(-0.5);
+    // B and C are coin-flips: first branch good, second catastrophic.
+    expect(scalarOf('B', 0)).toBeGreaterThan(0.3);
+    expect(scalarOf('B', 1)).toBeLessThan(-0.5);
+    expect(scalarOf('C', 1)).toBeLessThan(-0.5);
   });
 });

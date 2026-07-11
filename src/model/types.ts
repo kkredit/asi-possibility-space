@@ -325,8 +325,10 @@ export interface Preset {
   id: string;
   /** For `person`, the individual's name; for `lab`, the organization's name. */
   name: string;
-  /** Whether this preset represents an individual's personal views or an org's institutional position. */
-  category: 'person' | 'lab';
+  /** Whether this preset is an individual's personal views (`person`), an AI lab's
+   *  institutional position (`lab`), or a non-lab organization / research project
+   *  (`org`) — the latter may also publish mapped scenario threads. */
+  category: 'person' | 'lab' | 'org';
   /** Shown in parens after the name: for individuals their org/venue (e.g. "MIRI");
    *  for labs their head/CEO (e.g. "Sam Altman"). */
   affiliation?: string;
@@ -348,6 +350,31 @@ export interface Preset {
   factors: Partial<Record<FactorId, PresetFactorView>>;
   /** The entity's numbered reference list; `factors[id].refs` index into it (1-based). */
   references: PresetReference[];
+}
+
+/**
+ * A named future an entity has publicly laid out (e.g. one of the AI Futures
+ * Project's AI-2040 plans), mapped onto specific cells of the enumerated scenario
+ * space. A "thread" is a labelled path through the possibility space; the
+ * Scenarios tab highlights it and links back to the source.
+ */
+export interface ScenarioThread {
+  /** Short label the source uses, e.g. "A" (rendered as a badge). */
+  id: string;
+  /** Preset id of the entity that published it (resolves to a `Preset`). */
+  entityId: FactorId;
+  /** The scenario's name, e.g. "Verified Slowdown". */
+  title: string;
+  /** One- or two-sentence description of what happens in this thread. */
+  summary: string;
+  /** Link to the source material for this specific scenario. */
+  url: string;
+  /**
+   * The full-factor scenario(s) this thread maps to. More than one when the
+   * source under-specifies a factor (e.g. a plan that's a coin-flip on success),
+   * in which case each mapped scenario is a distinct branch of the thread.
+   */
+  scenarios: Scenario[];
 }
 
 export interface Dataset {
@@ -375,4 +402,6 @@ export interface Dataset {
   linearContributions: LinearContributions;
   /** Sparse hand-reasoned cells. Un-listed scenarios fall back to the linear evaluator. */
   cachedOutcomes: CachedCell[];
+  /** Named future threads published by entities, mapped onto the scenario space. */
+  scenarioThreads?: ScenarioThread[];
 }

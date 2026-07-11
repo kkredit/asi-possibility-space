@@ -35,6 +35,10 @@ export type KnownFactorState = {
   [F in KnownFactorId]: { factor: F; state: StateOf<F> };
 }[KnownFactorId];
 
+/** A fully-specified scenario: every factor set to one of its own states. Typos or
+ *  missing factors are compile errors — used for authored scenario-thread mappings. */
+export type KnownScenario = { [F in KnownFactorId]: StateOf<F> };
+
 /** Content-typed credences: every known factor, every state, no strays. */
 export type KnownCredences = { [F in KnownFactorId]: Record<StateOf<F>, number> };
 

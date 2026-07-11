@@ -5,6 +5,9 @@ import { App } from '@shell/App';
 import { AboutPage } from '@shell/pages/AboutPage';
 import { ResourcesPage } from '@shell/pages/ResourcesPage';
 import { DisclaimersPage } from '@shell/pages/DisclaimersPage';
+import { ScenarioThreads } from '@shell/ScenarioThreads';
+import { dataset } from '@model/dataset';
+import { analyze, cachedEvaluator } from '@engine/index';
 import { theme } from '@shell/theme';
 
 // Exercises the full component tree once (engine -> viz wiring) to catch runtime
@@ -47,5 +50,14 @@ describe('App smoke render', () => {
     );
     expect(disclaimers).toContain('unofficial reconstructions');
     expect(disclaimers).toContain('Superintelligence');
+
+    const a = analyze(dataset, dataset.baselineCredences, dataset.defaultWeights, cachedEvaluator);
+    const threads = renderToString(
+      <ThemeProvider theme={theme}>
+        <ScenarioThreads scenarios={a.scenarios} />
+      </ThemeProvider>,
+    );
+    expect(threads).toContain('AI Futures Project');
+    expect(threads).toContain('Verified Slowdown');
   });
 });

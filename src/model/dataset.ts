@@ -23,6 +23,7 @@ import {
 import { classifyCorner, type Corner } from './corners';
 import { factorBackgrounds } from './factorBackground';
 import { alignmentDerivations, alignmentSubBaseline, alignmentSubfactors } from './alignment';
+import { scenarioThreads } from './scenarioThreads';
 
 /**
  * ============================================================================
@@ -1191,4 +1192,5 @@ export const dataset: Dataset = {
   linearBaseline,
   linearContributions,
   cachedOutcomes,
+  scenarioThreads,
 };

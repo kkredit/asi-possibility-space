@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  alpha,
   Box,
   Chip,
   Stack,
@@ -23,6 +24,8 @@ interface Props {
   scenarios: EvaluatedScenario[];
   factors: Factor[];
   limit?: number;
+  /** Tint predicate — true for cells a published thread maps to (ScenarioThreads). */
+  isHighlighted?: (s: EvaluatedScenario) => boolean;
 }
 
 function stateLabel(factor: Factor, stateId: string): string {
@@ -38,7 +41,7 @@ const metricOf: Record<SortKey, (s: EvaluatedScenario) => number> = {
 const DEFAULT_DIR: Record<SortKey, SortDir> = { probability: 'desc', scalar: 'asc', contribution: 'desc' };
 
 /** Sortable, truncated table of the most relevant scenarios. */
-export function ScenarioTable({ scenarios, factors, limit = 25 }: Props) {
+export function ScenarioTable({ scenarios, factors, limit = 25, isHighlighted }: Props) {
   const [sortKey, setSortKey] = useState<SortKey>('probability');
   const [sortDir, setSortDir] = useState<SortDir>(DEFAULT_DIR.probability);
 
@@ -80,8 +83,14 @@ export function ScenarioTable({ scenarios, factors, limit = 25 }: Props) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {shown.map((s) => (
-              <TableRow key={factors.map((f) => s.scenario[f.id]).join('|')} hover>
+            {shown.map((s) => {
+              const highlighted = isHighlighted?.(s) ?? false;
+              return (
+              <TableRow
+                key={factors.map((f) => s.scenario[f.id]).join('|')}
+                hover
+                sx={highlighted ? { bgcolor: alpha(c.accent, 0.1), '& td:first-of-type': { borderLeft: `2px solid ${c.accent}` } } : undefined}
+              >
                 <TableCell sx={{ whiteSpace: 'nowrap', fontFamily: fonts.mono, fontSize: '0.78rem', color: c.mute, verticalAlign: 'top' }}>
                   {(s.probability * 100).toFixed(2)}%
                 </TableCell>
@@ -121,7 +130,8 @@ export function ScenarioTable({ scenarios, factors, limit = 25 }: Props) {
                   </Typography>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       </Box>

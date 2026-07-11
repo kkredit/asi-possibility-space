@@ -310,6 +310,10 @@ cell was authored vs. fell back. The fitted models train only on reasoned cells.
   panel's "Copy link" button. All SSR-safe; `beliefs=` takes precedence over
   `preset=` on load, schema-mismatched payloads are ignored, and manual edits
   clear whichever share param no longer matches.
+- **Scenario threads.** Named published futures (e.g. AI 2040's plans) mapped onto
+  the scenario space, in [`src/model/scenarioThreads.ts`](src/model/scenarioThreads.ts)
+  and highlighted on the Scenarios tab. The publishing entity is an `org`-category
+  preset. See [`docs/SCENARIO-THREADS.md`](docs/SCENARIO-THREADS.md).
 - **Social link previews.** `index.html` has OG/Twitter meta + a general
   `public/og-banner.png` (regenerate: `pnpm exec vitest run --config scripts/og.config.ts`).
   Per-beliefs preview cards are built and tested in

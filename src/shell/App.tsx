@@ -15,6 +15,7 @@ import {
   rankActions,
   reconcileJoint,
   scalarize,
+  scenarioKey,
   shiftedCredences,
   zeroVector,
 } from '@engine/index';
@@ -26,6 +27,7 @@ import { setHashParam, useBeliefs } from '@shell/store';
 import { c, fonts } from '@shell/theme';
 import { EVDistribution } from '@viz/EVDistribution';
 import { ScenarioTable } from '@viz/ScenarioTable';
+import { ScenarioThreads, threadHighlightKeys } from '@shell/ScenarioThreads';
 import { ParallelCoordinates } from '@viz/ParallelCoordinates';
 import { EvaluatorDiff, type DiffPoint } from '@viz/EvaluatorDiff';
 import { ModelLadder, type LadderRow } from '@viz/ModelLadder';
@@ -183,6 +185,8 @@ export function App() {
     () => analyze(dataset, credences, weights, evaluator, pins, jointProbability),
     [credences, weights, evaluator, pins, jointProbability],
   );
+  // Scenario keys that a published thread maps to (static — content-derived).
+  const threadKeys = useMemo(() => threadHighlightKeys(), []);
   // Tab-gated memos: only the active tab's expensive derived data is computed, so
   // dragging a belief slider re-runs the headline analysis plus ONE tab's work —
   // not the ranking + scatter + ladder for tabs that aren't visible.
@@ -350,9 +354,20 @@ export function App() {
             )}
 
             {tab === 3 && (
-              <Panel>
-                <ScenarioTable scenarios={analysis.scenarios} factors={dataset.factors} />
-              </Panel>
+              <>
+                {dataset.scenarioThreads?.length ? (
+                  <Panel>
+                    <ScenarioThreads scenarios={analysis.scenarios} />
+                  </Panel>
+                ) : null}
+                <Panel>
+                  <ScenarioTable
+                    scenarios={analysis.scenarios}
+                    factors={dataset.factors}
+                    isHighlighted={(sc) => threadKeys.has(scenarioKey(sc.scenario))}
+                  />
+                </Panel>
+              </>
             )}
 
             {tab === 4 && (
