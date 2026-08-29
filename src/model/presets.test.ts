@@ -138,6 +138,9 @@ describe('preset doom calibration (stated vs model-implied, net mode)', () => {
     xai: { ext: [0.08, 0.28] },
     lecun: { ext: [0, 0.05] },
     andreessen: { ext: [0, 0.05] },
+    tegmark: { total: [0.6, 0.9] },
+    hendrycks: { total: [0.6, 0.85] },
+    ord: { total: [0.05, 0.25] },
   };
 
   it('every banded preset lands inside its stated reading', () => {
