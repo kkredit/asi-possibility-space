@@ -19,12 +19,11 @@
     "noFallthroughCasesInSwitch": true,
     "verbatimModuleSyntax": true,
 
-    "baseUrl": ".",
     "paths": {
-      "@model/*": ["src/model/*"],
-      "@engine/*": ["src/engine/*"],
-      "@viz/*": ["src/viz/*"],
-      "@shell/*": ["src/shell/*"]
+      "@model/*": ["./src/model/*"],
+      "@engine/*": ["./src/engine/*"],
+      "@viz/*": ["./src/viz/*"],
+      "@shell/*": ["./src/shell/*"]
     },
 
     "types": ["vitest/globals", "vite/client"]
