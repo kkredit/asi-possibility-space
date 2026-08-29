@@ -55,7 +55,12 @@ export function ActionRanking({ ranked, baselineEv }: Props) {
           return (
             <Tooltip key={r.action.id} title={r.action.description} placement="top-start" arrow>
               <Box>
-                <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.4 }}>
+                <Stack
+                  direction="row"
+                  sx={{
+                    justifyContent: "space-between",
+                    mb: 0.4
+                  }}>
                   <Typography variant="body2" sx={{ color: c.bone }}>
                     {r.action.label}
                   </Typography>

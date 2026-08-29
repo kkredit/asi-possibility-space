@@ -86,50 +86,57 @@ export function ScenarioTable({ scenarios, factors, limit = 25, isHighlighted }:
             {shown.map((s) => {
               const highlighted = isHighlighted?.(s) ?? false;
               return (
-              <TableRow
-                key={factors.map((f) => s.scenario[f.id]).join('|')}
-                hover
-                sx={highlighted ? { bgcolor: alpha(c.accent, 0.1), '& td:first-of-type': { borderLeft: `2px solid ${c.accent}` } } : undefined}
-              >
-                <TableCell sx={{ whiteSpace: 'nowrap', fontFamily: fonts.mono, fontSize: '0.78rem', color: c.mute, verticalAlign: 'top' }}>
-                  {(s.probability * 100).toFixed(2)}%
-                </TableCell>
-                <TableCell sx={{ verticalAlign: 'top' }}>
-                  <Box
-                    sx={{
-                      display: 'inline-block',
-                      fontFamily: fonts.mono,
-                      fontWeight: 600,
-                      fontSize: '0.78rem',
-                      color: c.ink,
-                      bgcolor: valueColor(s.scalar),
-                      borderRadius: 1,
-                      px: 0.75,
-                      py: 0.25,
-                      minWidth: 46,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {fmtSigned(s.scalar)}
-                  </Box>
-                </TableCell>
-                <TableCell>
-                  <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mb: 0.6 }}>
-                    {factors.map((f) => (
-                      <Chip
-                        key={f.id}
-                        size="small"
-                        variant="outlined"
-                        label={stateLabel(f, s.scenario[f.id])}
-                        sx={{ height: 19, fontSize: 10, fontFamily: fonts.body, color: c.mute, '& .MuiChip-label': { px: 0.75 } }}
-                      />
-                    ))}
-                  </Stack>
-                  <Typography variant="caption" sx={{ color: c.mute, lineHeight: 1.45 }}>
-                    {s.narrative}
-                  </Typography>
-                </TableCell>
-              </TableRow>
+                <TableRow
+                  key={factors.map((f) => s.scenario[f.id]).join('|')}
+                  hover
+                  sx={highlighted ? { bgcolor: alpha(c.accent, 0.1), '& td:first-of-type': { borderLeft: `2px solid ${c.accent}` } } : undefined}
+                >
+                  <TableCell sx={{ whiteSpace: 'nowrap', fontFamily: fonts.mono, fontSize: '0.78rem', color: c.mute, verticalAlign: 'top' }}>
+                    {(s.probability * 100).toFixed(2)}%
+                  </TableCell>
+                  <TableCell sx={{ verticalAlign: 'top' }}>
+                    <Box
+                      sx={{
+                        display: 'inline-block',
+                        fontFamily: fonts.mono,
+                        fontWeight: 600,
+                        fontSize: '0.78rem',
+                        color: c.ink,
+                        bgcolor: valueColor(s.scalar),
+                        borderRadius: 1,
+                        px: 0.75,
+                        py: 0.25,
+                        minWidth: 46,
+                        textAlign: 'center',
+                      }}
+                    >
+                      {fmtSigned(s.scalar)}
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Stack
+                      direction="row"
+                      spacing={0.5}
+                      useFlexGap
+                      sx={{
+                        flexWrap: "wrap",
+                        mb: 0.6
+                      }}>
+                      {factors.map((f) => (
+                        <Chip
+                          key={f.id}
+                          size="small"
+                          variant="outlined"
+                          label={stateLabel(f, s.scenario[f.id])}
+                          sx={{ height: 19, fontSize: 10, fontFamily: fonts.body, color: c.mute, '& .MuiChip-label': { px: 0.75 } }}
+                        />
+                      ))}
+                    </Stack>
+                    <Typography variant="caption" sx={{ color: c.mute, lineHeight: 1.45 }}>
+                      {s.narrative}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
               );
             })}
           </TableBody>

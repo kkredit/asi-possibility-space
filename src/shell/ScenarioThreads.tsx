@@ -59,7 +59,13 @@ export function ScenarioThreads({ scenarios }: Props) {
         const entThreads = threads.filter((t) => t.entityId === eid);
         return (
           <Box key={eid} sx={{ mb: 2.5 }}>
-            <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mb: 1 }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                alignItems: "baseline",
+                mb: 1
+              }}>
               <Link
                 component="button"
                 type="button"
@@ -79,7 +85,9 @@ export function ScenarioThreads({ scenarios }: Props) {
               <Stack spacing={1}>
               {entThreads.filter((t) => t.source === src).map((th) => (
                 <Box key={th.id} sx={{ border: `1px solid ${c.line}`, borderRadius: 1.5, p: 1.5, bgcolor: c.panel2 }}>
-                  <Stack direction="row" spacing={1.25} alignItems="flex-start">
+                  <Stack direction="row" spacing={1.25} sx={{
+                    alignItems: "flex-start"
+                  }}>
                     <Box
                       sx={{
                         flexShrink: 0,
@@ -99,7 +107,14 @@ export function ScenarioThreads({ scenarios }: Props) {
                       {th.id}
                     </Box>
                     <Box sx={{ minWidth: 0, flex: 1 }}>
-                      <Stack direction="row" spacing={1} alignItems="baseline" flexWrap="wrap" useFlexGap>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        useFlexGap
+                        sx={{
+                          alignItems: "baseline",
+                          flexWrap: "wrap"
+                        }}>
                         <Typography sx={{ fontFamily: fonts.display, fontWeight: 600, fontSize: '0.86rem', color: c.bone }}>
                           {th.title}
                         </Typography>
@@ -116,7 +131,14 @@ export function ScenarioThreads({ scenarios }: Props) {
                         {th.summary}
                       </Typography>
 
-                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        useFlexGap
+                        sx={{
+                          flexWrap: "wrap",
+                          mt: 1
+                        }}>
                         {th.scenarios.map((sc, i) => {
                           const es = byKey.get(scenarioKey(sc));
                           const tag = es ? outcomeTag(es.value) : '—';

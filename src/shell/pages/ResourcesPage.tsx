@@ -120,7 +120,9 @@ export function ResourcesPage() {
 
             {sec.entries.map((e) => (
               <Box key={e.id} id={anchorId(e.id)} sx={{ mb: 4, scrollMarginTop: 16 }}>
-                <Stack direction="row" spacing={1} alignItems="center">
+                <Stack direction="row" spacing={1} sx={{
+                  alignItems: "center"
+                }}>
                   <Box sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: kindColor[e.kind], flexShrink: 0 }} />
                   <Typography sx={{ fontFamily: fonts.display, fontWeight: 600, fontSize: '1.02rem', color: c.bone }}>
                     {e.label}

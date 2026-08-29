@@ -120,9 +120,18 @@ export function BayesNetDiagram({ net, factors }: Props) {
       </Box>
 
       {/* kind legend */}
-      <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
+      <Stack
+        direction="row"
+        spacing={2}
+        useFlexGap
+        sx={{
+          flexWrap: "wrap",
+          mt: 1
+        }}>
         {FACTOR_KINDS.map((k) => (
-          <Stack key={k} direction="row" spacing={0.75} alignItems="center">
+          <Stack key={k} direction="row" spacing={0.75} sx={{
+            alignItems: "center"
+          }}>
             <Box sx={{ width: 11, height: 11, border: `1.5px solid ${kindColor[k]}`, borderRadius: 0.5, bgcolor: c.panel2 }} />
             <Typography variant="caption" sx={{ color: c.mute, textTransform: 'capitalize' }}>{k}</Typography>
           </Stack>

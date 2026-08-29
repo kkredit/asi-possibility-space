@@ -39,7 +39,13 @@ export function ModelLadder({ rows, info }: Props) {
       <Stack spacing={1.1}>
         {rows.map((r) => (
           <Box key={r.id}>
-            <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 0.3 }}>
+            <Stack
+              direction="row"
+              sx={{
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                mb: 0.3
+              }}>
               <Tooltip title={r.note ?? ''} arrow disableHoverListener={!r.note}>
                 <Typography
                   sx={{

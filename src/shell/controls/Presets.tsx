@@ -149,7 +149,7 @@ export function Presets() {
             return p ? displayName(p) : <Box component="span" sx={{ color: c.faint }}>Choose a figure or lab…</Box>;
           }}
           sx={{ fontFamily: fonts.display, fontSize: '0.84rem', '& .MuiSelect-select': { display: 'flex', alignItems: 'center' } }}
-          MenuProps={{ PaperProps: { sx: { maxHeight: 420, bgcolor: c.panel, border: `1px solid ${c.line}` } } }}
+          MenuProps={{ slotProps: { paper: { sx: { maxHeight: 420, bgcolor: c.panel, border: `1px solid ${c.line}` } } } }}
         >
           <ListSubheader sx={{ ...sectionLabel, bgcolor: c.panel, lineHeight: '28px', color: c.faint }}>People</ListSubheader>
           {people.map((p) => presetItem(p, presetEv[p.id]))}
@@ -199,7 +199,9 @@ export function Presets() {
             </Typography>
           </Box>
 
-          <Stack direction="row" spacing={2} alignItems="center">
+          <Stack direction="row" spacing={2} sx={{
+            alignItems: "center"
+          }}>
             <Link
               component="button"
               type="button"
@@ -249,7 +251,13 @@ export function Presets() {
                 if (!view) return null;
                 return (
                   <Box key={f.id} sx={{ mb: 0.85 }}>
-                    <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.15 }}>
+                    <Stack
+                      direction="row"
+                      spacing={0.75}
+                      sx={{
+                        alignItems: "center",
+                        mb: 0.15
+                      }}>
                       <Tooltip title={`${Math.round(view.accuracy * 100)}% — how directly the public record pins this factor`} arrow>
                         <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: accuracyColor(view.accuracy), flexShrink: 0 }} />
                       </Tooltip>

@@ -96,10 +96,27 @@ export function ActionsTab({ credences, subCredences, weights, evaluator, pins, 
       </Panel>
 
       <Panel>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" useFlexGap sx={{ mb: 1 }}>
+        <Stack
+          direction="row"
+          useFlexGap
+          sx={{
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            mb: 1
+          }}>
           <Typography variant="overline" sx={{ color: c.mute }}>Under what conditions is an action best?</Typography>
         </Stack>
-        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 0.5, mb: 1.5 }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          useFlexGap
+          sx={{
+            alignItems: "center",
+            flexWrap: "wrap",
+            mt: 0.5,
+            mb: 1.5
+          }}>
           <FormControl size="small" sx={{ minWidth: 260 }}>
             <Select value={actionId} onChange={(e) => setActionId(e.target.value)} sx={stateSelectSx}>
               {dataset.actions.map((a) => (
@@ -133,7 +150,14 @@ export function ActionsTab({ credences, subCredences, weights, evaluator, pins, 
               {Object.keys(pins).length > 0 ? ` Holding fixed the ${Object.keys(pins).length} condition(s) you pinned in Beliefs.` : ''}
             </InfoTip>
           </Typography>
-          <Stack direction="row" spacing={3} alignItems="baseline" flexWrap="wrap" useFlexGap>
+          <Stack
+            direction="row"
+            spacing={3}
+            useFlexGap
+            sx={{
+              alignItems: "baseline",
+              flexWrap: "wrap"
+            }}>
             <Typography sx={{ fontFamily: fonts.display, fontSize: '1.5rem', color: valueColor(Math.max(-1, Math.min(1, ac.mean * 3))) }}>
               {ac.mean >= 0 ? '+' : ''}{ac.mean.toFixed(3)}
               <Box component="span" sx={{ fontSize: '0.8rem', color: c.mute, ml: 0.75 }}>
@@ -182,7 +206,16 @@ export function ActionsTab({ credences, subCredences, weights, evaluator, pins, 
             </>
           }
         />
-        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 0.5, mb: 1.5 }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          useFlexGap
+          sx={{
+            alignItems: "center",
+            flexWrap: "wrap",
+            mt: 0.5,
+            mb: 1.5
+          }}>
           <Typography variant="caption" sx={{ color: c.mute }}>credence in</Typography>
           <FormControl size="small" sx={{ minWidth: 190 }}>
             <Select

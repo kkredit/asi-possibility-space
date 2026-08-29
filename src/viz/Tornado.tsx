@@ -26,7 +26,14 @@ export function Tornado({ rows, measureLabel = 'EV', control }: Props) {
 
   return (
     <Box>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 0.25 }}>
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          alignItems: "center",
+          justifyContent: "space-between",
+          mb: 0.25
+        }}>
         <Typography variant="subtitle2">Where it matters</Typography>
         {control}
       </Stack>
@@ -65,9 +72,18 @@ export function Tornado({ rows, measureLabel = 'EV', control }: Props) {
           </text>
         ))}
       </svg>
-      <Stack direction="row" spacing={2.5} flexWrap="wrap" useFlexGap sx={{ mt: 1.5 }}>
+      <Stack
+        direction="row"
+        spacing={2.5}
+        useFlexGap
+        sx={{
+          flexWrap: "wrap",
+          mt: 1.5
+        }}>
         {kinds.map((k) => (
-          <Stack key={k} direction="row" spacing={0.75} alignItems="center">
+          <Stack key={k} direction="row" spacing={0.75} sx={{
+            alignItems: "center"
+          }}>
             <Box sx={{ width: 11, height: 11, bgcolor: kindColor[k], borderRadius: 0.5 }} />
             <Typography variant="caption" sx={{ color: c.mute }}>
               {kindLabel[k]}

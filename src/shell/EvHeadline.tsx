@@ -22,7 +22,13 @@ const pct = (v: number) => `${((Math.max(-1, Math.min(1, v)) + 1) / 2) * 100}%`;
 function DimensionBar({ label, low, high, value }: { label: string; low: string; high: string; value: number }) {
   return (
     <Tooltip title={`${low} (−1) … ${high} (+1)`} arrow placement="left">
-      <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 0.6 }}>
+      <Stack
+        direction="row"
+        spacing={1.25}
+        sx={{
+          alignItems: "center",
+          mb: 0.6
+        }}>
         <Typography sx={{ width: 78, fontSize: '0.72rem', color: c.mute, fontFamily: fonts.display }}>
           {label}
         </Typography>
@@ -67,13 +73,22 @@ function BandStat({ label, value, tip, sx }: { label: string; value: number; tip
 export function EvHeadline({ ev, evVector, pDoom, pDisempowered, pFlourishing }: Props) {
   return (
     <Paper sx={{ p: { xs: 2, sm: 2.5 } }}>
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 2.5, md: 4 }} alignItems="stretch">
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 2.5, md: 4 }} sx={{
+        alignItems: "stretch"
+      }}>
         {/* Left: the number + the spectrum gauge (the signature instrument readout) */}
         <Box sx={{ flex: 1.2, minWidth: 0 }}>
           <Typography variant="overline" sx={{ color: c.mute }}>
             Expected value of the future
           </Typography>
-          <Stack direction="row" alignItems="baseline" spacing={1.5} sx={{ mt: 0.5, mb: 2 }}>
+          <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{
+              alignItems: "baseline",
+              mt: 0.5,
+              mb: 2
+            }}>
             <Typography
               sx={{ fontFamily: fonts.mono, fontWeight: 700, fontSize: { xs: '2.6rem', sm: '3.2rem' }, lineHeight: 0.9, color: valueColor(ev) }}
             >
@@ -103,7 +118,12 @@ export function EvHeadline({ ev, evVector, pDoom, pDisempowered, pFlourishing }:
               }}
             />
           </Box>
-          <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.75 }}>
+          <Stack
+            direction="row"
+            sx={{
+              justifyContent: "space-between",
+              mt: 0.75
+            }}>
             <Typography sx={{ fontSize: '0.66rem', color: c.red, fontFamily: fonts.display, letterSpacing: '0.04em' }}>
               ← extinction
             </Typography>

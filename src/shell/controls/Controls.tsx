@@ -66,7 +66,13 @@ function FactorControl({ factor }: { factor: Factor }) {
 
   return (
     <Box sx={{ mb: 1.75 }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          alignItems: "center",
+          justifyContent: "space-between"
+        }}>
         <Tooltip
           arrow
           placement="top-start"
@@ -127,10 +133,12 @@ function FactorControl({ factor }: { factor: Factor }) {
         <Stack
           key={st.id}
           direction="row"
-          alignItems="center"
           spacing={1}
-          sx={{ opacity: pin && pin !== st.id ? 0.35 : 1, transition: 'opacity 120ms' }}
-        >
+          sx={{
+            alignItems: "center",
+            opacity: pin && pin !== st.id ? 0.35 : 1,
+            transition: 'opacity 120ms'
+          }}>
           <Typography sx={{ width: 92, fontSize: '0.72rem', color: c.mute }}>{st.label}</Typography>
           <Slider
             size="small"
@@ -166,7 +174,9 @@ function SubfactorControl({ sub }: { sub: Subfactor }) {
 
   return (
     <Box sx={{ mb: 1.5 }}>
-      <Stack direction="row" alignItems="baseline" spacing={0.75}>
+      <Stack direction="row" spacing={0.75} sx={{
+        alignItems: "baseline"
+      }}>
         <Tooltip
           arrow
           placement="top-start"
@@ -212,7 +222,9 @@ function SubfactorControl({ sub }: { sub: Subfactor }) {
         </Dialog>
       ) : null}
       {sub.states.map((st) => (
-        <Stack key={st.id} direction="row" alignItems="center" spacing={1}>
+        <Stack key={st.id} direction="row" spacing={1} sx={{
+          alignItems: "center"
+        }}>
           <Tooltip title={st.blurb ?? ''} arrow placement="left">
             <Typography sx={{ width: 84, fontSize: '0.7rem', color: c.mute }}>{st.label}</Typography>
           </Tooltip>
@@ -246,7 +258,12 @@ function DeepDive({ factor }: { factor: Factor }) {
 
   return (
     <Box sx={{ mt: 0.25, mb: 0.75, ml: 0.5, pl: 1.25, borderLeft: `2px solid ${c.line}` }}>
-      <Stack direction="row" alignItems="center" justifyContent="space-between">
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: "center",
+          justifyContent: "space-between"
+        }}>
         <Typography
           onClick={() => setOpen(!open)}
           sx={{ fontFamily: fonts.display, fontSize: '0.72rem', color: derived ? c.accent : c.mute, cursor: 'pointer', userSelect: 'none', '&:hover': { color: c.accent } }}
@@ -322,7 +339,12 @@ export function Controls() {
 
   return (
     <Stack spacing={2.25}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
+      <Stack
+        direction="row"
+        sx={{
+          justifyContent: "space-between",
+          alignItems: "center"
+        }}>
         <Typography sx={{ fontFamily: fonts.display, fontWeight: 700, fontSize: '1.05rem', letterSpacing: '0.01em', color: c.bone }}>
           Beliefs
         </Typography>
@@ -367,7 +389,9 @@ export function Controls() {
           <Box key={kind}>
             <Tooltip title={KIND_HINT[kind]} arrow placement="top-start">
               <Box sx={{ mb: 1.25, cursor: 'help' }}>
-                <Stack direction="row" spacing={1} alignItems="center">
+                <Stack direction="row" spacing={1} sx={{
+                  alignItems: "center"
+                }}>
                   <Box sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: kindColor[kind], flexShrink: 0 }} />
                   <Typography sx={{ fontFamily: fonts.display, fontSize: '0.92rem', fontWeight: 700, color: c.bone }}>
                     {KIND_HEADING[kind]}
@@ -392,7 +416,14 @@ export function Controls() {
           Value weights
         </Typography>
         {dataset.valueDimensions.map((dim) => (
-          <Stack key={dim.id} direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+          <Stack
+            key={dim.id}
+            direction="row"
+            spacing={1}
+            sx={{
+              alignItems: "center",
+              mb: 0.5
+            }}>
             <Tooltip title={`${dim.lowLabel} (−1) … ${dim.highLabel} (+1)`} arrow>
               <Typography sx={{ width: 92, fontSize: '0.72rem', color: c.mute }}>{dim.label}</Typography>
             </Tooltip>

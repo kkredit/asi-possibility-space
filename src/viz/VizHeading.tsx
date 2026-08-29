@@ -8,7 +8,12 @@ import { InfoTip } from '@viz/InfoTip';
  */
 export function VizHeading({ title, info }: { title: string; info?: ReactNode }) {
   return (
-    <Stack direction="row" alignItems="center" sx={{ mb: 0.25 }}>
+    <Stack
+      direction="row"
+      sx={{
+        alignItems: "center",
+        mb: 0.25
+      }}>
       <Typography variant="subtitle2">{title}</Typography>
       {info ? <InfoTip>{info}</InfoTip> : null}
     </Stack>

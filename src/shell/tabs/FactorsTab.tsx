@@ -143,7 +143,16 @@ export function FactorsTab({ credences, subCredences, weights, evaluator, pins, 
 
       <Panel>
         <Typography variant="overline" sx={{ color: c.mute }}>Under what conditions is a factor favorable?</Typography>
-        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 0.5, mb: 1.5 }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          useFlexGap
+          sx={{
+            alignItems: "center",
+            flexWrap: "wrap",
+            mt: 0.5,
+            mb: 1.5
+          }}>
           <FormControl size="small" sx={{ minWidth: 200 }}>
             <Select value={decision.factor} onChange={(e) => pickFactor(e.target.value)} sx={stateSelectSx}>
               {dataset.factors.map((f) => (
@@ -184,7 +193,14 @@ export function FactorsTab({ credences, subCredences, weights, evaluator, pins, 
               {Object.keys(pins).length > 0 ? ` Holding fixed the ${Object.keys(pins).length} condition(s) you pinned in Beliefs.` : ''}
             </InfoTip>
           </Typography>
-          <Stack direction="row" spacing={3} alignItems="baseline" flexWrap="wrap" useFlexGap>
+          <Stack
+            direction="row"
+            spacing={3}
+            useFlexGap
+            sx={{
+              alignItems: "baseline",
+              flexWrap: "wrap"
+            }}>
             <Typography sx={{ fontFamily: fonts.display, fontSize: '1.5rem', color: valueColor(Math.max(-1, Math.min(1, contrast.netDelta * 3))) }}>
               {contrast.netDelta >= 0 ? '+' : ''}{contrast.netDelta.toFixed(3)}
               <Box component="span" sx={{ fontSize: '0.8rem', color: c.mute, ml: 0.75 }}>net EV</Box>
@@ -233,7 +249,16 @@ export function FactorsTab({ credences, subCredences, weights, evaluator, pins, 
             </>
           }
         />
-        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 0.5, mb: 1.5 }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          useFlexGap
+          sx={{
+            alignItems: "center",
+            flexWrap: "wrap",
+            mt: 0.5,
+            mb: 1.5
+          }}>
           <Typography variant="caption" sx={{ color: c.mute }}>credence in</Typography>
           <FormControl size="small" sx={{ minWidth: 190 }}>
             <Select
