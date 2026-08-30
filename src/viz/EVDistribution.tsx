@@ -209,7 +209,7 @@ export function EVDistribution({ bins, ev, factors, valence }: Props) {
             </Box>
             {!isPinned && active.scenarios.length > TOP ? (
               <Typography variant="caption" sx={{ color: c.faint, display: 'block', mt: 0.25 }}>
-                +{active.scenarios.length - TOP} more — click the bar to pin and scroll all{' '}
+                +{active.scenarios.length - TOP} more. Click the bar to pin and scroll all{' '}
                 {active.scenarios.length}
               </Typography>
             ) : null}

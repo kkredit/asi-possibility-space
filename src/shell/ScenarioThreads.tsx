@@ -50,7 +50,7 @@ export function ScenarioThreads({ scenarios }: Props) {
       </Typography>
       <Typography sx={{ fontSize: '0.78rem', color: c.mute, lineHeight: 1.5, mt: 0.25, mb: 2 }}>
         Named futures from public forecasts, mapped onto this model’s scenarios. Values and
-        probabilities are under your <em>current</em> beliefs — load the entity to see its own. The
+        probabilities are under your <em>current</em> beliefs; load the entity to see its own. The
         mapped rows are tinted in the table below.
       </Typography>
 

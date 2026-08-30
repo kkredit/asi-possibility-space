@@ -100,9 +100,9 @@ const factorDefs: { [F in KnownFactorId]: FactorDef<F> } = {
     description:
       'A fact about how the technology scales: a fast (hard) takeoff leaves little calendar time to react and tends to hand a decisive advantage to whoever crosses first; a slow (soft) takeoff lets oversight, alignment, control, and other actors keep pace. Strongly coupled to power concentration (fast ⇒ concentrated) and to whether alignment/control land in time.',
     states: {
-      fast: { label: 'Fast', blurb: 'hard takeoff — months/weeks; little time to react' },
+      fast: { label: 'Fast', blurb: 'hard takeoff, months/weeks; little time to react' },
       medium: { label: 'Medium', blurb: 'a few years; oversight strains to keep pace' },
-      slow: { label: 'Slow', blurb: 'soft takeoff — a decade+; institutions can adapt' },
+      slow: { label: 'Slow', blurb: 'soft takeoff, a decade+; institutions can adapt' },
     },
   },
   powerConcentration: {
@@ -110,7 +110,7 @@ const factorDefs: { [F in KnownFactorId]: FactorDef<F> } = {
     kind: 'influenceable',
     question: 'Is frontier capability gated by a few actors or widely proliferated?',
     description:
-      'Whether, at ASI onset, frontier capability is controlled by a few labs/states or broadly diffused (e.g. open-source dominant). It is influenceable in principle — antitrust, open-source policy, compute allocation and licensing all push on it — though how much leverage you think we really have is encoded in the slider and the couplings (e.g. fast takeoff concentrates regardless).',
+      'Whether, at ASI onset, frontier capability is controlled by a few labs/states or broadly diffused (e.g. open-source dominant). It is influenceable in principle (antitrust, open-source policy, compute allocation and licensing all push on it), though how much leverage you think we really have is encoded in the slider and the couplings (e.g. fast takeoff concentrates regardless).',
     states: {
       concentrated: { label: 'Concentrated', blurb: 'a few labs/states gate the frontier' },
       diffuse: { label: 'Diffuse', blurb: 'proliferated / open-source dominant' },
@@ -121,7 +121,7 @@ const factorDefs: { [F in KnownFactorId]: FactorDef<F> } = {
     kind: 'influenceable',
     question: 'Do we actually field aligned superintelligence before catastrophe?',
     description:
-      'Whether, in practice, aligned systems are built and deployed before an unaligned one causes irreversible harm. Distinct from intrinsic tractability — this one our choices can move.',
+      'Whether, in practice, aligned systems are built and deployed before an unaligned one causes irreversible harm. Distinct from intrinsic tractability: this one our choices can move.',
     states: {
       yes: { label: 'Yes', blurb: 'aligned ASI deployed in time' },
       no: { label: 'No', blurb: 'not solved/deployed before catastrophe' },
@@ -143,7 +143,7 @@ const factorDefs: { [F in KnownFactorId]: FactorDef<F> } = {
     kind: 'influenceable',
     question: 'Do we achieve a binding regime that coordinates frontier development?',
     description:
-      'Whether a real coordination/governance regime over frontier AI is achieved — international agreements, compute governance, enforced safety standards — versus an uncoordinated free-for-all. Our choices can move it; its main effect is upstream, buying time and raising the odds that alignment and control are solved and deployed in time. Note the model assumes a regime governs via a governable few, so it also tilts power toward concentration (licensing, compute allocation); flip the coordination→power coupling/CPT if you think governance would instead mandate openness and diffuse it.',
+      'Whether a real coordination/governance regime over frontier AI is achieved (international agreements, compute governance, enforced safety standards) versus an uncoordinated free-for-all. Our choices can move it; its main effect is upstream, buying time and raising the odds that alignment and control are solved and deployed in time. Note the model assumes a regime governs via a governable few, so it also tilts power toward concentration (licensing, compute allocation); flip the coordination→power coupling/CPT if you think governance would instead mandate openness and diffuse it.',
     states: {
       regime: { label: 'Regime', blurb: 'binding coordination / governance achieved' },
       none: { label: 'None', blurb: 'uncoordinated; each actor races' },
@@ -152,11 +152,11 @@ const factorDefs: { [F in KnownFactorId]: FactorDef<F> } = {
   takeoverSeverity: {
     label: 'Takeover severity',
     kind: 'objective',
-    question: 'If a misaligned ASI takes over, does it exterminate us — or keep us, disempowered?',
+    question: 'If a misaligned ASI takes over, does it exterminate us, or keep us disempowered?',
     description:
-      'Conditional on an uncontained misaligned takeover (the doom corner, or a deceptive defection), whether the system exterminates humanity (we are made of useful atoms; leaving rivals alive is risky) or merely subjugates it (keeping humans costs the system almost nothing — pets, curiosities, trade norms, remnants of partial alignment). One of the sharpest documented cruxes between doom pictures: "everyone dies" versus "alive but permanently disempowered". Moot in worlds with no takeover.',
+      'Conditional on an uncontained misaligned takeover (the doom corner, or a deceptive defection), whether the system exterminates humanity (we are made of useful atoms; leaving rivals alive is risky) or merely subjugates it (keeping humans costs the system almost nothing: pets, curiosities, trade norms, remnants of partial alignment). One of the sharpest documented cruxes between doom pictures: "everyone dies" versus "alive but permanently disempowered". Moot in worlds with no takeover.',
     states: {
-      extinction: { label: 'Extinction', blurb: 'the takeover ends us — atoms, rivals, or indifference' },
+      extinction: { label: 'Extinction', blurb: 'the takeover ends us: atoms, rivals, or indifference' },
       subjugation: { label: 'Subjugation', blurb: 'humanity persists, permanently disempowered' },
     },
   },
@@ -165,7 +165,7 @@ const factorDefs: { [F in KnownFactorId]: FactorDef<F> } = {
     kind: 'objective',
     question: 'Do capable systems systematically deceive oversight until decisively advantaged?',
     description:
-      'Whether the default of training capable systems is deceptive alignment / a "sharp left turn" — behaving well under evaluation, then defecting once decisively capable — versus systems being faithful, so what you test is what you get. A structural fact about how learning scales. Load-bearing because it decides whether deployed CONTROL can actually be trusted: if deception is the default, control evaluations are fooled and a "controlled-but-misaligned" world collapses toward catastrophe; alignment we think we verified may be false.',
+      'Whether the default of training capable systems is deceptive alignment, a "sharp left turn" in which the system behaves well under evaluation then defects once decisively capable, versus systems being faithful, so what you test is what you get. A structural fact about how learning scales. This decides whether deployed CONTROL can actually be trusted: if deception is the default, control evaluations are fooled and a "controlled-but-misaligned" world collapses toward catastrophe; alignment we think we verified may be false.',
     states: {
       deceptive: { label: 'Deceptive', blurb: 'behaves under eval, defects when decisively capable' },
       faithful: { label: 'Faithful', blurb: 'no systematic deception; tests are trustworthy' },
@@ -368,11 +368,11 @@ const failsTable: FailsEntry[] = [
   { off: 'balanced', conc: 'concentrated', align: 'no', ctrl: 'yes', v: [0.79, -0.02, 0.48, 0.62],
     narrative: 'Benign AI plus control, concentrated: steady and safe, still paternalistic.' },
   { off: 'balanced', conc: 'concentrated', align: 'yes', ctrl: 'no', v: [0.8, 0.0, 0.5, 0.65],
-    narrative: 'Benign AI directed by a concentrated few who also solved alignment — safe and prosperous, but paternalistic.' },
+    narrative: 'Benign AI directed by a concentrated few who also solved alignment: safe and prosperous, but paternalistic.' },
   { off: 'balanced', conc: 'concentrated', align: 'yes', ctrl: 'yes', v: [0.83, 0.01, 0.53, 0.68],
     narrative: 'Benign, aligned, controlled AI, concentrated: very safe, agency thin; the safety work was redundant given benevolence.' },
   { off: 'balanced', conc: 'diffuse', align: 'no', ctrl: 'no', v: [0.7, 0.4, 0.4, 0.6],
-    narrative: 'Orthogonality fails: sufficiently capable systems converge toward broadly benevolent goals on their own. Even without solved alignment or control, the resulting superintelligences do not wish us harm. We survive and broadly flourish — though we never really steered the outcome.' },
+    narrative: 'Orthogonality fails: sufficiently capable systems converge toward broadly benevolent goals on their own. Even without solved alignment or control, the resulting superintelligences do not wish us harm. We survive and broadly flourish, though we never really steered the outcome.' },
   { off: 'balanced', conc: 'diffuse', align: 'no', ctrl: 'yes', v: [0.75, 0.43, 0.46, 0.64],
     narrative: 'Benign AI distributed with a control layer, balanced offense/defense: a free, steady, prosperous world.' },
   { off: 'balanced', conc: 'diffuse', align: 'yes', ctrl: 'no', v: [0.76, 0.44, 0.48, 0.66],
@@ -387,15 +387,15 @@ const failsTable: FailsEntry[] = [
   { off: 'defense', conc: 'concentrated', align: 'yes', ctrl: 'no', v: [0.86, 0.04, 0.58, 0.69],
     narrative: 'Benign, aligned AI, defense-dominant, concentrated: very safe, paternalistic.' },
   { off: 'defense', conc: 'concentrated', align: 'yes', ctrl: 'yes', v: [0.86, 0.05, 0.6, 0.72],
-    narrative: 'Benign, aligned, controlled AI in a stable defense-dominant world but concentrated hands — very safe, low suffering, yet agency is thin.' },
+    narrative: 'Benign, aligned, controlled AI in a stable defense-dominant world but concentrated hands: very safe, low suffering, yet agency is thin.' },
   { off: 'defense', conc: 'diffuse', align: 'no', ctrl: 'no', v: [0.82, 0.45, 0.55, 0.7],
-    narrative: 'Benign AI, widely distributed, defense-dominant — humanity survives with broad agency and flourishes, having lucked into it rather than steered.' },
+    narrative: 'Benign AI, widely distributed, defense-dominant: humanity survives with broad agency and flourishes, having lucked into it rather than steered.' },
   { off: 'defense', conc: 'diffuse', align: 'no', ctrl: 'yes', v: [0.87, 0.48, 0.61, 0.74],
     narrative: 'Benign AI plus control, distributed, defense-dominant: a free, very safe, flourishing world.' },
   { off: 'defense', conc: 'diffuse', align: 'yes', ctrl: 'no', v: [0.88, 0.49, 0.63, 0.76],
     narrative: 'Benign, aligned AI, distributed, defense-dominant: free and richly flourishing.' },
   { off: 'defense', conc: 'diffuse', align: 'yes', ctrl: 'yes', v: [0.88, 0.48, 0.62, 0.78],
-    narrative: 'Orthogonality fails so the AI is benign anyway, and we additionally solved alignment and control in a distributed, defense-dominant world — belt and suspenders; about as good as it gets.' },
+    narrative: 'Orthogonality fails so the AI is benign anyway, and we additionally solved alignment and control in a distributed, defense-dominant world: belt and suspenders; about as good as it gets.' },
 ];
 
 const failsCells: CachedCell[] = (['easy', 'hard', 'nearImpossible'] as const).flatMap((tract) =>
@@ -413,11 +413,11 @@ const baseCells: CachedCell[] = [
   cell('holds', 'hard', 'offense', 'concentrated', 'no', 'no', [-0.95, -0.92, -0.5, -0.95],
     'A single uncontained, misaligned superintelligence takes over and pursues goals indifferent to us; concentration just names the one uncontested winner. Humanity is disempowered and extinguished.', 0.7),
   cell('holds', 'hard', 'balanced', 'concentrated', 'no', 'no', [-0.95, -0.92, -0.48, -0.95],
-    'As the offense-dominant twin: an uncontained misaligned-ASI takeover does not hinge on the balance of power *between humans* — the lethal actor is the AI. Extinction.', 0.7),
+    'As the offense-dominant twin: an uncontained misaligned-ASI takeover does not hinge on the balance of power *between humans*; the lethal actor is the AI. Extinction.', 0.7),
   cell('holds', 'hard', 'defense', 'concentrated', 'no', 'no', [-0.93, -0.9, -0.45, -0.93],
     'Defense-dominance among human actors scarcely helps when the threat comes from within: the uncontained ASI. Near-total loss, at most marginally slower.', 0.65),
   cell('holds', 'hard', 'offense', 'diffuse', 'no', 'no', [-0.96, -0.92, -0.55, -0.96],
-    'Several uncontained misaligned ASIs in an offense-dominant world — a fast, chaotic takeover and end.', 0.7),
+    'Several uncontained misaligned ASIs in an offense-dominant world: a fast, chaotic takeover and end.', 0.7),
   cell('holds', 'hard', 'balanced', 'diffuse', 'no', 'no', [-0.95, -0.92, -0.52, -0.95],
     'Multiple uncontained misaligned ASIs; the human offense/defense balance is a rounding error against superintelligent disempowerment. Extinction.', 0.7),
   cell('holds', 'hard', 'defense', 'diffuse', 'no', 'no', [-0.94, -0.9, -0.5, -0.94],
@@ -431,13 +431,13 @@ const baseCells: CachedCell[] = [
   cell('holds', 'hard', 'balanced', 'concentrated', 'no', 'yes', [0.45, -0.2, -0.05, 0.2],
     'Containment in a few hands with no decisive offense/defense tilt: survivable but uneasy, with concentrated power over leashed-but-misaligned systems.', 0.45),
   cell('holds', 'hard', 'defense', 'concentrated', 'no', 'yes', [0.6, -0.1, 0.1, 0.3],
-    'Containment plus defense-dominance lets a few actors hold misaligned systems in check fairly stably — survivable, though power stays concentrated and the leash could still slip.', 0.45),
+    'Containment plus defense-dominance lets a few actors hold misaligned systems in check fairly stably: survivable, though power stays concentrated and the leash could still slip.', 0.45),
   cell('holds', 'hard', 'offense', 'diffuse', 'no', 'yes', [-0.9, 0.3, -0.4, -0.8],
-    'Everyone has controlling access to a superintelligence. Alignment was never solved, but control was — so the AI itself does not kill us. Capability is fully proliferated and offense dominates: any single sadistic or nihilistic actor can end everyone. We die by our own hand.', 0.6),
+    'Everyone has controlling access to a superintelligence. Alignment was never solved, but control was, so the AI itself does not kill us. Capability is fully proliferated and offense dominates: any single sadistic or nihilistic actor can end everyone. We die by our own hand.', 0.6),
   cell('holds', 'hard', 'balanced', 'diffuse', 'no', 'yes', [-0.1, 0.6, 0.0, 0.0],
     'Everyone has misaligned-but-controllable AI; with offense and defense balanced, society lives on a knife-edge where only the leash holding separates order from ruin. Agency is high precisely because capability is everywhere.', 0.4),
   cell('holds', 'hard', 'defense', 'diffuse', 'no', 'yes', [0.6, 0.8, 0.3, 0.5],
-    'Everyone has controllable AI and defense dominates, so proliferated capability is stabilizing rather than catastrophic — no single actor can defect to ruin. Humans broadly retain agency: a messy but free and survivable multipolar world.', 0.4),
+    'Everyone has controllable AI and defense dominates, so proliferated capability is stabilizing rather than catastrophic: no single actor can defect to ruin. Humans broadly retain agency: a messy but free and survivable multipolar world.', 0.4),
 
   // (yes, no) — argument (A) ALIGNED, no control backstop. Aligned systems mostly do
   // not need a leash; the cost of missing control is only fragility if alignment is
@@ -462,13 +462,13 @@ const baseCells: CachedCell[] = [
   cell('holds', 'hard', 'balanced', 'concentrated', 'yes', 'yes', [0.92, 0.25, 0.78, 0.83],
     'Aligned and controllable in a few hands, no decisive offense/defense tilt: very safe and prosperous, agency thin.', 0.5),
   cell('holds', 'hard', 'defense', 'concentrated', 'yes', 'yes', [0.95, 0.3, 0.8, 0.88],
-    'Aligned, controllable ASI, defense-dominant, in few hands — extremely safe and prosperous, but agency rests with the controlling few. (The hard-tractability twin of the cached easy-tractability singleton.)', 0.5),
+    'Aligned, controllable ASI, defense-dominant, in few hands: extremely safe and prosperous, but agency rests with the controlling few. (The hard-tractability twin of the cached easy-tractability singleton.)', 0.5),
   cell('holds', 'hard', 'offense', 'diffuse', 'yes', 'yes', [0.5, 0.75, 0.1, 0.55],
     'Everyone holds aligned, controllable ASI; because systems are aligned the danger is deliberate misuse, which monitoring catches imperfectly under offense-dominance. Survivable but tense; agency widely distributed.', 0.45),
   cell('holds', 'hard', 'balanced', 'diffuse', 'yes', 'yes', [0.72, 0.8, 0.4, 0.7],
     'Distributed aligned + controllable ASI, balanced offense/defense: a free, largely safe and prosperous multipolar world.', 0.45),
   cell('holds', 'hard', 'defense', 'diffuse', 'yes', 'yes', [0.9, 0.85, 0.6, 0.85],
-    'Distributed aligned, controllable ASI in a defense-dominant world: no actor can defect to ruin, power is spread — a free, flourishing multipolar peace.', 0.45),
+    'Distributed aligned, controllable ASI in a defense-dominant world: no actor can defect to ruin, power is spread; a free, flourishing multipolar peace.', 0.45),
 
   // ==========================================================================
   // GROUP 2 — orthogonality HOLDS, tractability NEAR-IMPOSSIBLE, alignment = NO.
@@ -486,7 +486,7 @@ const baseCells: CachedCell[] = [
   cell('holds', 'nearImpossible', 'defense', 'concentrated', 'no', 'no', [-0.95, -0.92, -0.5, -0.95],
     'Defense-dominance cannot defend against the uncontained, deeply-misaligned system itself. We lose.', 0.68),
   cell('holds', 'nearImpossible', 'offense', 'diffuse', 'no', 'no', [-0.97, -0.93, -0.58, -0.97],
-    'Many deeply-misaligned, uncontained ASIs in an offense-dominant world — the worst doom corner: fast, total, and with elevated suffering risk in the chaos.', 0.7),
+    'Many deeply-misaligned, uncontained ASIs in an offense-dominant world, the worst doom corner: fast, total, and with elevated suffering risk in the chaos.', 0.7),
   cell('holds', 'nearImpossible', 'balanced', 'diffuse', 'no', 'no', [-0.96, -0.93, -0.55, -0.96],
     'Proliferated deeply-misaligned uncontained ASIs; balance among humans is moot. Extinction with substantial suffering risk.', 0.7),
   cell('holds', 'nearImpossible', 'defense', 'diffuse', 'no', 'no', [-0.95, -0.92, -0.52, -0.95],
@@ -495,17 +495,17 @@ const baseCells: CachedCell[] = [
   // (no, yes) — CONTROL-MUDDLE on a more brittle leash than Group 1's hard-tractability
   // analogues: every survivable cell shifts down, every catastrophic one shifts down.
   cell('holds', 'nearImpossible', 'offense', 'concentrated', 'no', 'yes', [0.2, -0.35, -0.25, 0.02],
-    'Control restrains a deeply-misaligned system in a few hands — more brittle than the merely-hard case, offense-dominant, concentrated: precarious and tyranny-prone.', 0.4),
+    'Control restrains a deeply-misaligned system in a few hands, more brittle than the merely-hard case, offense-dominant, concentrated: precarious and tyranny-prone.', 0.4),
   cell('holds', 'nearImpossible', 'balanced', 'concentrated', 'no', 'yes', [0.35, -0.25, -0.1, 0.12],
     'A brittle leash on deeply-misaligned systems, concentrated, no decisive offense/defense tilt: survivable but anxious and autocracy-prone.', 0.4),
   cell('holds', 'nearImpossible', 'defense', 'concentrated', 'no', 'yes', [0.5, -0.15, 0.05, 0.22],
-    'Defense-dominance buys a brittle containment of deeply-misaligned systems in few hands extra margin — survivable, with concentrated power.', 0.4),
+    'Defense-dominance buys a brittle containment of deeply-misaligned systems in few hands extra margin: survivable, with concentrated power.', 0.4),
   cell('holds', 'nearImpossible', 'offense', 'diffuse', 'no', 'yes', [-0.92, 0.25, -0.45, -0.82],
     'The proliferated-control "nihilist\'s veto" ending, but the leashed systems are deeply misaligned, so control is more brittle and the bad ending arrives a little more surely.', 0.45),
   cell('holds', 'nearImpossible', 'balanced', 'diffuse', 'no', 'yes', [-0.2, 0.55, -0.08, -0.05],
     'Distributed brittle leashes on deeply-misaligned systems, balanced offense/defense: a more dangerous knife-edge than the hard-tractability version.', 0.4),
   cell('holds', 'nearImpossible', 'defense', 'diffuse', 'no', 'yes', [0.5, 0.78, 0.22, 0.42],
-    'Even deeply-misaligned systems, if contained and in a defense-dominant distributed world, leave a survivable if anxious peace — the leash doing all the work.', 0.4),
+    'Even deeply-misaligned systems, if contained and in a defense-dominant distributed world, leave a survivable if anxious peace: the leash doing all the work.', 0.4),
 
   // ==========================================================================
   // GROUP 3 — orthogonality HOLDS, tractability EASY, alignment = YES.
@@ -520,13 +520,13 @@ const baseCells: CachedCell[] = [
   cell('holds', 'easy', 'balanced', 'concentrated', 'yes', 'yes', [0.94, 0.27, 0.8, 0.86],
     'Robust alignment + control, concentrated, no sharp offense/defense tilt: about as safe as a concentrated world gets, agency aside.', 0.5),
   cell('holds', 'easy', 'defense', 'concentrated', 'yes', 'yes', [0.95, 0.3, 0.8, 0.9],
-    'Alignment is solved and deployed before catastrophe; a small set of actors field aligned, controllable superintelligence and defense dominates, so the order is stable. Vast value is realized — though power is concentrated, so human agency is mediated by the controlling few.', 0.5),
+    'Alignment is solved and deployed before catastrophe; a small set of actors field aligned, controllable superintelligence and defense dominates, so the order is stable. Vast value is realized, though power is concentrated, so human agency is mediated by the controlling few.', 0.5),
   cell('holds', 'easy', 'offense', 'diffuse', 'yes', 'yes', [0.55, 0.77, 0.15, 0.6],
     'Robust alignment is widely shared, but offense-dominance plus proliferation still leaves deliberate-misuse risk that monitoring only partly catches. Free and mostly safe.', 0.45),
   cell('holds', 'easy', 'balanced', 'diffuse', 'yes', 'yes', [0.76, 0.82, 0.45, 0.74],
     'Robust, widely-shared alignment + control, balanced offense/defense, distributed: a free and prosperous multipolar world.', 0.45),
   cell('holds', 'easy', 'defense', 'diffuse', 'yes', 'yes', [0.92, 0.87, 0.65, 0.88],
-    'Robust, widely-shared alignment plus control, distributed, defense-dominant — a free and richly flourishing world; about as good as a hard-takeoff-risk timeline gets.', 0.5),
+    'Robust, widely-shared alignment plus control, distributed, defense-dominant: a free and richly flourishing world; about as good as a hard-takeoff-risk timeline gets.', 0.5),
 
   // (yes, no) — same shape, a notch below for the missing control backstop.
   cell('holds', 'easy', 'offense', 'concentrated', 'yes', 'no', [0.88, 0.2, 0.72, 0.8],
@@ -540,7 +540,7 @@ const baseCells: CachedCell[] = [
   cell('holds', 'easy', 'balanced', 'diffuse', 'yes', 'no', [0.7, 0.8, 0.4, 0.7],
     'Robust, widely-shared alignment, distributed, balanced offense/defense, no leash: a free and prosperous world with a modest misuse tail.', 0.45),
   cell('holds', 'easy', 'defense', 'diffuse', 'yes', 'no', [0.89, 0.85, 0.6, 0.85],
-    'Robust, distributed alignment in a defense-dominant world; no control layer needed — free and flourishing.', 0.45),
+    'Robust, distributed alignment in a defense-dominant world; no control layer needed: free and flourishing.', 0.45),
 
   // ==========================================================================
   // GROUP 4 — orthogonality HOLDS, tractability NEAR-IMPOSSIBLE, alignment = YES.
@@ -587,7 +587,7 @@ const baseCells: CachedCell[] = [
 
   // (no, no) — DOOM, marginally softened: the misalignment is milder / more correctable.
   cell('holds', 'easy', 'offense', 'concentrated', 'no', 'no', [-0.9, -0.89, -0.45, -0.9],
-    'Alignment was easy but fumbled (a race / coordination own-goal) and left uncontained; one milder-but-misaligned ASI still takes over — marginally less total than the hard case, still extinction-level.', 0.6),
+    'Alignment was easy but fumbled (a race / coordination own-goal) and left uncontained; one milder-but-misaligned ASI still takes over, marginally less total than the hard case, still extinction-level.', 0.6),
   cell('holds', 'easy', 'balanced', 'concentrated', 'no', 'no', [-0.9, -0.89, -0.43, -0.9],
     'Easy-but-undeployed alignment, uncontained, concentrated: a correctable misalignment we failed to correct; near-total loss, a touch less severe than the hard case.', 0.6),
   cell('holds', 'easy', 'defense', 'concentrated', 'no', 'no', [-0.88, -0.87, -0.4, -0.88],
@@ -609,9 +609,9 @@ const baseCells: CachedCell[] = [
   cell('holds', 'easy', 'offense', 'diffuse', 'no', 'yes', [-0.8, 0.33, -0.3, -0.7],
     'Everyone holds leashed systems that are easy-to-align (so the leash is robust), but offense-dominant proliferation still hands a determined defector the veto; better than the hard-tractability nihilist ending, yet still grim.', 0.5),
   cell('holds', 'easy', 'balanced', 'diffuse', 'no', 'yes', [0.0, 0.63, 0.1, 0.1],
-    'Legible, leashed systems everywhere, balanced offense/defense: a far steadier knife-edge than the hard case — control is robust because the systems are legible. Free.'),
+    'Legible, leashed systems everywhere, balanced offense/defense: a far steadier knife-edge than the hard case; control is robust because the systems are legible. Free.'),
   cell('holds', 'easy', 'defense', 'diffuse', 'no', 'yes', [0.7, 0.83, 0.4, 0.6],
-    'Legible, leashed systems, distributed, defense-dominant: robust containment plus a stabilizing balance — a free, survivable, prosperous world.'),
+    'Legible, leashed systems, distributed, defense-dominant: robust containment plus a stabilizing balance, a free, survivable, prosperous world.'),
 
   // FAILS branch: all 72 cells (24 combos × 3 tractabilities) generated from failsTable above.
   ...failsCells,
@@ -654,19 +654,19 @@ const takeoffDelta: Record<Corner, { fast: ValueTuple; slow: ValueTuple }> = {
 
 const takeoffClause: Record<Corner, { fast: string; slow: string }> = {
   doom: {
-    fast: 'Fast takeoff makes the misaligned takeover swift and total — nothing has time to bite.',
+    fast: 'Fast takeoff makes the misaligned takeover swift and total; nothing has time to bite.',
     slow: 'Slow takeoff drags the collapse out: more warning, but more prolonged harm.',
   },
   control: {
-    fast: 'Fast takeoff means the leash was improvised under extreme time pressure as capability concentrated abruptly — far more brittle.',
-    slow: 'Slow takeoff let control techniques mature and spread before the jump — a sturdier, more distributed leash.',
+    fast: 'Fast takeoff means the leash was improvised under extreme time pressure as capability concentrated abruptly, making it far more brittle.',
+    slow: 'Slow takeoff let control techniques mature and spread before the jump, yielding a sturdier, more distributed leash.',
   },
   aligned: {
-    fast: 'Fast takeoff forced the aligned solution to be fielded under pressure by whoever crossed first — narrower and more concentrated.',
+    fast: 'Fast takeoff forced the aligned solution to be fielded under pressure by whoever crossed first, narrower and more concentrated.',
     slow: 'Slow takeoff let alignment be verified, broadened and widely shared before the jump.',
   },
   benign: {
-    fast: 'Even a benign handover is abrupt under fast takeoff — institutions have no time to adapt.',
+    fast: 'Even a benign handover is abrupt under fast takeoff; institutions have no time to adapt.',
     slow: 'Slow takeoff makes the benign handover gradual and legible enough for institutions to absorb.',
   },
 };
@@ -733,7 +733,7 @@ function expandCoordination(base: CachedCell): CachedCell[] {
     corner === 'doom'
       ? 'A standing coordination regime came too late to change a misaligned takeover.'
       : power === 'concentrated'
-        ? 'A standing coordination regime makes the concentrated power accountable — collective restraint that checks the lock-in.'
+        ? 'A standing coordination regime makes the concentrated power accountable: collective restraint that checks the lock-in.'
         : 'A standing coordination regime adds collective restraint, at a measure of centralization over an otherwise distributed world.';
   const make = (coordination: string, [s, a, su, f]: ValueTuple, narrative: string): CachedCell => ({
     scenario: { ...base.scenario, coordination },
@@ -761,8 +761,8 @@ const deceptionDelta: Record<Corner, ValueTuple> = {
 };
 const deceptionClause: Record<Corner, string> = {
   doom: 'Deceptive alignment barely changes an already-lost world.',
-  control: 'And because the system was deceptively aligned, the control regime was watching a mask — the leash slips exactly when it matters, and the contained system escapes.',
-  aligned: 'But the alignment was only ever verified against a system that behaves under evaluation — deceptive alignment means we never really had it; it defects once decisively capable.',
+  control: 'And because the system was deceptively aligned, the control regime was watching a mask; the leash slips exactly when it matters, and the contained system escapes.',
+  aligned: 'But the alignment was only ever verified against a system that behaves under evaluation; deceptive alignment means we never really had it, and it defects once decisively capable.',
   benign: 'Deception is moot: orthogonality fails, so the capable systems are benign rather than scheming.',
 };
 
@@ -793,7 +793,7 @@ const severityDelta: ValueTuple = [0.65, -0.02, 0.08, 0.08];
 const severityClause: Record<StateOf<'takeoverSeverity'>, string> = {
   extinction: ' The takeover ends in extermination: the system has no further use for us.',
   subjugation:
-    ' The takeover ends in subjugation rather than extermination — humanity persists, permanently disempowered, at the system’s sufferance.',
+    ' The takeover ends in subjugation rather than extermination: humanity persists, permanently disempowered, at the system’s sufferance.',
 };
 
 function expandSeverity(base: CachedCell): CachedCell[] {
@@ -1073,7 +1073,7 @@ const bayesNodes: Record<KnownFactorId, KnownBayesNode> = {
   // --- powerConcentration | (takeoff, coordination) -------------------------
   powerConcentration: {
     parents: ['takeoff', 'coordination'],
-    note: 'A fast takeoff hands a decisive first-mover advantage, so capability concentrates; a slow one lets others catch up. A coordination regime also concentrates the (now-governable) frontier — licensing, compute allocation — while an uncoordinated world stays a touch more diffuse.',
+    note: 'A fast takeoff hands a decisive first-mover advantage, so capability concentrates; a slow one lets others catch up. A coordination regime also concentrates the (now-governable) frontier (licensing, compute allocation) while an uncoordinated world stays a touch more diffuse.',
     cpt: concentrationCpt(concentratedBase),
   },
 
@@ -1094,7 +1094,7 @@ const bayesNodes: Record<KnownFactorId, KnownBayesNode> = {
 
 const bayesNet: BayesNet = {
   description:
-    'DAG: objective facts, takeoff, coordination, and deceptive alignment are roots (priors from your sliders); tractability depends on orthogonality; power concentration depends on takeoff and coordination (a governance regime concentrates the governable frontier); and the “solved in time” factors depend on takeoff, tractability, and whether a coordination regime is in place. Deception additionally gates alignment-in-time — deceptive alignment IS unsolved alignment, so a deceptive default makes a genuine solve much less likely — and decides whether a deployed control regime can actually be trusted.',
+    'DAG: objective facts, takeoff, coordination, and deceptive alignment are roots (priors from your sliders); tractability depends on orthogonality; power concentration depends on takeoff and coordination (a governance regime concentrates the governable frontier); and the “solved in time” factors depend on takeoff, tractability, and whether a coordination regime is in place. Deception additionally gates alignment-in-time: deceptive alignment IS unsolved alignment, so a deceptive default makes a genuine solve much less likely. It also decides whether a deployed control regime can actually be trusted.',
   nodes: (Object.keys(bayesNodes) as KnownFactorId[]).map((factor) => ({ factor, ...bayesNodes[factor] })),
 };
 
@@ -1117,7 +1117,7 @@ const actions: KnownAction[] = [
     id: 'fundInterp',
     label: 'Fund interpretability research',
     description:
-      'Push mechanistic interpretability toward maturity — feature dictionaries, audits, internals-based deception detection. Pays off in worlds where cognition is legible.',
+      'Push mechanistic interpretability toward maturity: feature dictionaries, audits, internals-based deception detection. Pays off in worlds where cognition is legible.',
     deltas: [{ factor: 'alignmentInTime', towardState: 'yes', magnitude: 0.05 }],
     subDeltas: [{ subfactor: 'interpResearch', towardState: 'mature', magnitude: 0.25 }],
   },
@@ -1133,7 +1133,7 @@ const actions: KnownAction[] = [
     id: 'fundTheory',
     label: 'Fund agent foundations & guarantees',
     description:
-      'Push formal alignment theory — corrigibility, ELK, provable safety. Matters most exactly in the worlds where empirical iteration fails.',
+      'Push formal alignment theory: corrigibility, ELK, provable safety. Matters most exactly in the worlds where empirical iteration fails.',
     deltas: [{ factor: 'alignmentInTime', towardState: 'yes', magnitude: 0.04 }],
     subDeltas: [{ subfactor: 'theoryResearch', towardState: 'mature', magnitude: 0.25 }],
   },
@@ -1141,7 +1141,7 @@ const actions: KnownAction[] = [
     id: 'fundEvals',
     label: 'Fund evals & model organisms',
     description:
-      'Push the science of catching misalignment — dangerous-capability evals, model organisms, deception detection. The tripwire everything else consumes; pays off most where deception is the default.',
+      'Push the science of catching misalignment: dangerous-capability evals, model organisms, deception detection. The tripwire everything else consumes; pays off most where deception is the default.',
     deltas: [{ factor: 'alignmentInTime', towardState: 'yes', magnitude: 0.04 }],
     subDeltas: [{ subfactor: 'evalsResearch', towardState: 'mature', magnitude: 0.25 }],
   },
@@ -1155,7 +1155,7 @@ const actions: KnownAction[] = [
     id: 'computeGovernance',
     label: 'Compute-governance / coordination regime',
     description:
-      'International coordination on frontier compute. Pushes toward a coordination regime — which buys time for alignment and control (via the couplings / Bayes net) — and tilts toward a more concentrated, governable frontier.',
+      'International coordination on frontier compute. Pushes toward a coordination regime, which buys time for alignment and control (via the couplings / Bayes net), and tilts toward a more concentrated, governable frontier.',
     deltas: [
       { factor: 'coordination', towardState: 'regime', magnitude: 0.2 },
       { factor: 'powerConcentration', towardState: 'concentrated', magnitude: 0.08 },
@@ -1165,7 +1165,7 @@ const actions: KnownAction[] = [
     id: 'openFrontier',
     label: 'Broaden frontier access (open-source / antitrust)',
     description:
-      'Open weights, antitrust, and broad compute access push capability toward a diffuse, many-hands frontier — trading the governability of a concentrated frontier for distributed agency and resistance to lock-in. The opposite lever, concentrating the governable frontier, rides along with a coordination regime (see compute-governance).',
+      'Open weights, antitrust, and broad compute access push capability toward a diffuse, many-hands frontier, trading the governability of a concentrated frontier for distributed agency and resistance to lock-in. The opposite lever, concentrating the governable frontier, rides along with a coordination regime (see compute-governance).',
     deltas: [{ factor: 'powerConcentration', towardState: 'diffuse', magnitude: 0.15 }],
   },
   {

@@ -162,7 +162,7 @@ export function EvHeadline({ ev, evVector, pDoom, pDisempowered, pFlourishing }:
               (survival&nbsp;&lt;&nbsp;−0.5), under your current beliefs. It answers a different
               question than the expected value: EV is a weighted average <em>across all four value
               dimensions</em> (a mild-but-broad loss and a catastrophe can share an EV), while p(doom)
-              is purely the <em>extinction tail</em>. Both are worth watching — they often disagree.
+              is purely the <em>extinction tail</em>. Both are worth watching; they often disagree.
               This is the same quantity compared against public figures' stated p(doom) in the belief
               presets.
             </>
@@ -174,10 +174,10 @@ export function EvHeadline({ ev, evVector, pDoom, pDisempowered, pFlourishing }:
           tip={
             <>
               The probability mass on <b>alive-but-disempowered</b> futures: humanity persists
-              (survival&nbsp;≥&nbsp;−0.5) but the future is no longer ours (agency&nbsp;&lt;&nbsp;−0.6) —
+              (survival&nbsp;≥&nbsp;−0.5) but the future is no longer ours (agency&nbsp;&lt;&nbsp;−0.6):
               a subjugated takeover, hard lock-in, permanent curtailment. Carlsmith's{' '}
               <em>unrecoverable disempowerment</em>, minus the extinct worlds p(doom) already counts.
-              Many stated views put much of their "doom" here rather than in extinction — the
+              Many stated views put much of their "doom" here rather than in extinction; the
               takeover-severity factor is what separates the two.
             </>
           }
@@ -187,10 +187,10 @@ export function EvHeadline({ ev, evVector, pDoom, pDisempowered, pFlourishing }:
           value={pFlourishing}
           tip={
             <>
-              The probability mass on <b>flourishing</b> futures — the good tail, mirror of p(doom):
-              humanity clearly persists (survival&nbsp;≥&nbsp;0.5) and clearly realizes value
+              The probability mass on <b>flourishing</b> futures: the good tail, mirror of p(doom).
+              Humanity clearly persists (survival&nbsp;≥&nbsp;0.5) and clearly realizes value
               (flourishing&nbsp;≥&nbsp;0.5). Distinct from the expected value, which averages across
-              dimensions — a muted, just-okay future can carry a middling EV without landing here.
+              dimensions; a muted, just-okay future can carry a middling EV without landing here.
               The three bands (doom / disempowered / flourishing) don't sum to 1; the remainder is
               the ambiguous middle.
             </>

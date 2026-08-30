@@ -14,11 +14,11 @@ export function AboutPage() {
       <Typography sx={{ color: c.mute, lineHeight: 1.7, mb: 2 }}>
         {/* placeholder */}
         The ASI Possibility Space is an instrument for reasoning about AI futures: set your
-        credences over the questions that matter, and see what they imply — the distribution
-        over outcomes, where the leverage is, and which beliefs are doing the work.
+        credences over the questions that matter, and see what they imply, from the distribution
+        over outcomes to where the leverage is and which beliefs are doing the work.
       </Typography>
       <Typography sx={{ color: c.faint, fontStyle: 'italic', lineHeight: 1.7 }}>
-        (Placeholder — a personal introduction about what this site is and why it was created
+        (Placeholder: a personal introduction about what this site is and why it was created
         will go here.)
       </Typography>
     </Box>

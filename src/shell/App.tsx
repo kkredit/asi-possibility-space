@@ -253,10 +253,10 @@ export function App() {
   const ladder = useMemo<LadderRow[] | null>(() => {
     if (tab !== 4) return null;
     const NOTES: Record<string, string> = {
-      cached: 'The hand-reasoned surface itself — the reference every model is measured against.',
-      fittedPairwise: 'Every two-way interaction, fit by least squares. Captures pairwise structure but still misses the higher-order régime gating — so it now trails the archetype despite far more parameters.',
-      archetype: 'Twelve logical régimes — the four archetypes split by deception, with takeover régimes further split by severity (extermination vs subjugation) — predicting each régime’s mean value. Zero hand-tuning, yet it’s the single best fit: it beats even the 261-parameter pairwise model, because the surface’s sharpest structure is gated (deceptive defection collapses a world to ≈ doom; severity decides whether the takeover ends us) in ways only a gate can represent.',
-      fitted: 'Best possible interaction-free fit. Its residual is the irreducible non-linearity — what no sum-of-factors can capture.',
+      cached: 'The hand-reasoned surface itself: the reference every model is measured against.',
+      fittedPairwise: 'Every two-way interaction, fit by least squares. Captures pairwise structure but still misses the higher-order régime gating, so it now trails the archetype despite far more parameters.',
+      archetype: 'Twelve logical régimes: the four archetypes split by deception, with takeover régimes further split by severity (extermination vs subjugation), predicting each régime’s mean value. Zero hand-tuning, yet it’s the single best fit. It beats even the 261-parameter pairwise model, because the surface’s steepest structure is gated (deceptive defection collapses a world to ≈ doom; severity decides whether the takeover ends us) in ways only a gate can represent.',
+      fitted: 'Best possible interaction-free fit. Its residual is the irreducible non-linearity that no sum-of-factors can capture.',
     };
     return evaluators
       .map((e) => {
@@ -379,7 +379,7 @@ export function App() {
                       <>
                         Each model is fit to (or hand-set against) the same hand-reasoned cells. The drop
                         from <em>linear</em> to <em>fitted linear</em> is coefficients the hand-set model got
-                        wrong; <em>fitted + pairwise</em> adds two-way interaction — yet <em>logical gates</em>
+                        wrong; <em>fitted + pairwise</em> adds two-way interaction, yet <em>logical gates</em>
                         beats it at a fraction of the parameters, because the surface is gated (régimes), not
                         additive. See docs/MODEL.md.
                       </>
@@ -395,7 +395,7 @@ export function App() {
                       <>
                         Each dot is a scenario at its <strong>{compareEvaluator.label.toLowerCase()}</strong> value
                         (x) vs. hand-reasoned value (y). Distance from the dashed diagonal is where that model
-                        departs from careful reasoning — pick a different evaluator at left to compare it.
+                        departs from careful reasoning. Pick a different evaluator at left to compare it.
                       </>
                     }
                   />

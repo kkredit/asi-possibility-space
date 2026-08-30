@@ -91,7 +91,7 @@ export function BayesNetDiagram({ net, factors }: Props) {
             const kc = f ? kindColor[f.kind] : c.slate;
             const lines = wrapLabel(f?.label ?? n.factor, 19, 3);
             const isRoot = n.parents.length === 0;
-            const title = `${f?.label ?? n.factor}${isRoot ? ' — root (prior from your slider)' : ''}${n.note ? `\n${n.note}` : ''}`;
+            const title = `${f?.label ?? n.factor}${isRoot ? ' (root: prior from your slider)' : ''}${n.note ? `\n${n.note}` : ''}`;
             return (
               <Tooltip key={n.factor} title={title} arrow>
                 <g style={{ cursor: 'help' }}>

@@ -186,7 +186,7 @@ export function FactorsTab({ credences, subCredences, weights, evaluator, pins, 
             {' '}(vs {baselineLabel}) {isObjective ? 'would be' : 'is'}
             <InfoTip>
               {isObjective
-                ? 'This factor is objective — you can’t steer it, so read this as value of information: how much the verdict moves if it turns out one way vs. the other. '
+                ? 'This factor is objective; you can’t steer it, so read this as value of information: how much the verdict moves if it turns out one way vs. the other. '
                 : ''}
               Each future is compared to itself with only this factor changed (all else held fixed),
               so net EV and the favorable share always agree in sign.

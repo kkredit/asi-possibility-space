@@ -38,7 +38,7 @@ export function Tornado({ rows, measureLabel = 'EV', control }: Props) {
         {control}
       </Stack>
       <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 1 }}>
-        how far {measureLabel} swings as each factor moves across its states — colored by what you can do about it
+        how far {measureLabel} swings as each factor moves across its states, colored by what you can do about it
       </Typography>
       <svg width="100%" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Sensitivity tornado">
         <line x1={xOf(0)} x2={xOf(0)} y1={chartTop} y2={rows.length * rowH + chartTop} stroke={c.faint} strokeDasharray="2 4" />

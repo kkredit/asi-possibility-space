@@ -174,7 +174,7 @@ export function ActionsTab({ credences, subCredences, weights, evaluator, pins, 
           <Typography variant="caption" sx={{ color: c.faint, display: 'block', mt: 0.75 }}>
             On its own it improves EV in <Box component="span" sx={{ color: ac.positiveGainShare > 0.5 ? c.teal : c.mute }}>{(ac.positiveGainShare * 100).toFixed(0)}%</Box> of worlds
             (mean {ac.meanGain >= 0 ? '+' : ''}{ac.meanGain.toFixed(3)}) · the single best lever in {(ac.bestLeverShare * 100).toFixed(0)}%.
-            {ac.positiveGainShare > 0.9 && ac.bestLeverShare < 0.5 ? ' Helpful almost everywhere — just usually not the top priority, not harmful.' : ''}
+            {ac.positiveGainShare > 0.9 && ac.bestLeverShare < 0.5 ? ' Helpful almost everywhere and never harmful, just usually not the top priority.' : ''}
           </Typography>
         </Box>
       </Panel>

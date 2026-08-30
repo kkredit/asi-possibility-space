@@ -45,9 +45,9 @@ const KIND_HINT: Record<FactorKind, string> = {
   objective:
     'A structural fact true the same way in any universe. The slider is your confidence it holds. You can’t change it, only research it. High sensitivity ⇒ value of information.',
   contingent:
-    'A feature of the world at ASI onset that we have little leverage over — its trajectory is set mostly by exogenous forces. The slider forecasts its state at the threshold; you mainly track it and position for it. High sensitivity ⇒ situational awareness.',
+    'A feature of the world at ASI onset that we have little leverage over: its trajectory is set mostly by exogenous forces. The slider forecasts its state at the threshold; you mainly track it and position for it. High sensitivity ⇒ situational awareness.',
   influenceable:
-    'A feature of the world at ASI onset our choices substantially move. The slider forecasts its state at the threshold. Same kind of thing as contingent — just more leverage. High sensitivity ⇒ where to act.',
+    'A feature of the world at ASI onset our choices substantially move. The slider forecasts its state at the threshold. Same kind of thing as contingent, just more leverage. High sensitivity ⇒ where to act.',
 };
 
 const monoPct = { fontFamily: fonts.mono, fontSize: '0.72rem' };
@@ -88,7 +88,7 @@ function FactorControl({ factor }: { factor: Factor }) {
                     onClick={() => setLearnOpen(true)}
                     sx={{ fontSize: '0.72rem', color: c.accent, textDecorationColor: c.accent }}
                   >
-                    Read more — the debate &amp; key reading →
+                    Read more: the debate &amp; key reading →
                   </Link>
                 </Box>
               ) : null}
@@ -192,7 +192,7 @@ function SubfactorControl({ sub }: { sub: Subfactor }) {
                     onClick={() => setLearnOpen(true)}
                     sx={{ fontSize: '0.72rem', color: c.accent, textDecorationColor: c.accent }}
                   >
-                    Read more — the debate &amp; key reading →
+                    Read more: the debate &amp; key reading →
                   </Link>
                 </Box>
               ) : null}

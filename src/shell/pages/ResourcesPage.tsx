@@ -28,12 +28,12 @@ function sections(): Section[] {
       id: 'objective',
       title: 'The objective questions',
       blurb:
-        'Structural facts, true the same way in any universe. You cannot move them — only discover which way they point, by research. They set which futures are even reachable.',
+        'Structural facts, true the same way in any universe. You cannot move them, only discover which way they point, by research. They set which futures are even reachable.',
       entries: byKind('objective'),
     },
     {
       id: 'levers',
-      title: 'The world at ASI onset — the levers',
+      title: 'The world at ASI onset: the levers',
       blurb:
         'Features of the world at the threshold that our choices substantially move: who holds the frontier, whether alignment and control actually ship, whether a coordination regime exists.',
       entries: byKind('influenceable'),
@@ -42,14 +42,14 @@ function sections(): Section[] {
       id: 'problem',
       title: 'The alignment problem, in depth',
       blurb:
-        'The deep dive under "how hard is alignment": four objective subquestions that together derive the difficulty — legibility, specifiability, corrigibility, and whether oversight can scale in principle.',
+        'The deep dive under "how hard is alignment": four objective subquestions that together derive the difficulty: legibility, specifiability, corrigibility, and whether oversight can scale in principle.',
       entries: subs.filter((s) => s.kind === 'objective'),
     },
     {
       id: 'portfolio',
       title: 'The research portfolio',
       blurb:
-        'The four research bets that drive "do we solve it in time" — each gated by one of the objective questions above: a direction only pays off in worlds where it can work.',
+        'The four research bets that drive "do we solve it in time", each gated by one of the objective questions above: a direction only pays off in worlds where it can work.',
       entries: subs.filter((s) => s.kind === 'influenceable'),
     },
   ];
@@ -104,7 +104,7 @@ export function ResourcesPage() {
         </Typography>
         <Typography sx={{ color: c.mute, lineHeight: 1.7, mt: 1, mb: 4 }}>
           The questions this model is built from, introduced one at a time: what each one asks,
-          the named positions in its debate, and curated reading — accessible entry points
+          the named positions in its debate, and curated reading, accessible entry points
           first, primary sources after. The same material backs the “read more” links beside
           every slider.
         </Typography>

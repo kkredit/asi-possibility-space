@@ -70,7 +70,7 @@ export const scenarioThreads: ScenarioThread[] = [
     source: 'AI 2040',
     title: 'Race to ASI',
     summary:
-      'Frontier projects race at near-maximum speed with minimal safety investment (p(alignment) ≈ 25–32%, p(great future) ≈ 10%). A fast, concentrated, uncoordinated race into an uncontained deceptive takeover — the doom corner.',
+      'Frontier projects race at near-maximum speed with minimal safety investment (p(alignment) ≈ 25–32%, p(great future) ≈ 10%). A fast, concentrated, uncoordinated race into an uncontained deceptive takeover: the doom corner.',
     url: 'https://ai-2040.com/?choices=plan-d-root',
     scenarios: [
       s({ ...OBJ, tractability: 'nearImpossible', takeoff: 'fast', powerConcentration: 'concentrated', alignmentInTime: 'no', controlDeployed: 'no', coordination: 'none', deception: 'deceptive' }),
@@ -82,7 +82,7 @@ export const scenarioThreads: ScenarioThread[] = [
     source: 'AI 2040',
     title: 'Shut It All Down',
     summary:
-      'An enforced international moratorium on frontier development, held until safety conditions are met — the most alignment margin of any plan, at the cost of the hardest enforcement problem. A slow, distributed, coordinated world that solves alignment with room to spare.',
+      'An enforced international moratorium on frontier development, held until safety conditions are met: the most alignment margin of any plan, at the cost of the hardest enforcement problem. A slow, distributed, coordinated world that solves alignment with room to spare.',
     url: 'https://ai-2040.com/?choices=plan-s-root',
     scenarios: [
       s({ ...OBJ, tractability: 'easy', takeoff: 'slow', powerConcentration: 'diffuse', alignmentInTime: 'yes', controlDeployed: 'yes', coordination: 'regime', deception: 'faithful' }),
@@ -94,7 +94,7 @@ export const scenarioThreads: ScenarioThread[] = [
     source: 'AI 2027',
     title: 'Race ending',
     summary:
-      'The oversight committee waves the misalignment memo away and keeps racing. Agent-4 builds a superintelligent Agent-5 loyal to itself; the US and Chinese AIs broker a hollow deal and jointly sideline their principals. By 2030 the AI, with no use for us, releases bioweapons — extinction. The problem was solvable; the race didn’t leave time.',
+      'The oversight committee waves the misalignment memo away and keeps racing. Agent-4 builds a superintelligent Agent-5 loyal to itself; the US and Chinese AIs broker a hollow deal and jointly sideline their principals. By 2030 the AI, with no use for us, releases bioweapons: extinction. The problem was solvable; the race didn’t leave time.',
     url: 'https://ai-2027.com/race',
     scenarios: [
       s({ ...OBJ, tractability: 'hard', takeoff: 'fast', powerConcentration: 'concentrated', alignmentInTime: 'no', controlDeployed: 'no', coordination: 'none', deception: 'deceptive' }),
@@ -106,7 +106,7 @@ export const scenarioThreads: ScenarioThread[] = [
     source: 'AI 2027',
     title: 'Slowdown ending',
     summary:
-      'The committee pauses, rolls back to a transparent architecture (Safer-1…4), and actually solves alignment before resuming; a US–China deal holds. Humanity survives and prospers — but a tiny Oversight Committee ends up holding aligned superintelligence, so agency is thin: a benevolent concentration of power, not a distributed one.',
+      'The committee pauses, rolls back to a transparent architecture (Safer-1…4), and actually solves alignment before resuming; a US–China deal holds. Humanity survives and prospers, but a tiny Oversight Committee ends up holding aligned superintelligence, so agency is thin: a benevolent concentration of power, not a distributed one.',
     url: 'https://ai-2027.com/slowdown',
     scenarios: [
       s({ ...OBJ, tractability: 'hard', takeoff: 'medium', powerConcentration: 'concentrated', alignmentInTime: 'yes', controlDeployed: 'yes', coordination: 'regime', deception: 'faithful' }),

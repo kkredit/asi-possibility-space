@@ -18,7 +18,7 @@ export function ConditionList({
     <Box sx={{ flex: 1, minWidth: 220 }}>
       <Typography variant="caption" sx={{ color, fontFamily: fonts.display, fontWeight: 600 }}>{title}</Typography>
       {lines.length === 0 ? (
-        <Typography variant="body2" sx={{ color: c.faint }}>— never, at these beliefs</Typography>
+        <Typography variant="body2" sx={{ color: c.faint }}>Never, at these beliefs</Typography>
       ) : (
         lines.map((l) => (
           <Typography key={l.factorId + l.stateId} variant="body2" sx={{ color: c.bone }}>

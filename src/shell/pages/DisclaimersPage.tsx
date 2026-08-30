@@ -11,18 +11,18 @@ export function DisclaimersPage() {
         Disclaimers
       </Typography>
 
-      <Typography sx={h}>1 · This is about ASI — not about whether the current paradigm gets there</Typography>
+      <Typography sx={h}>1 · This is about ASI, not about whether the current paradigm gets there</Typography>
       <Typography sx={p}>
         This model reasons about <b>artificial superintelligence</b>: in Bostrom&rsquo;s canonical
         definition, &ldquo;an intellect that greatly exceeds the cognitive performance of humans in
         virtually all domains of interest.&rdquo; Every factor, scenario and outcome here is
         conditioned on such a thing eventually existing. The model takes <em>no position</em> on
-        whether today&rsquo;s paradigm — large language models, current training methods, current
-        hardware trajectories — is the road that leads there.
+        whether today&rsquo;s paradigm (large language models, current training methods, current
+        hardware trajectories) is the road that leads there.
       </Typography>
       <Typography sx={p}>
         Many thoughtful people believe the current paradigm will <em>not</em> produce ASI. That view
-        is entirely compatible with this tool — it just cashes out <em>inside</em> the model rather
+        is entirely compatible with this tool; it just cashes out <em>inside</em> the model rather
         than against it: expecting one or more paradigm shifts before superintelligence generally
         means longer timelines, which look like a <b>slower takeoff</b>, better odds that{' '}
         <b>alignment is solved in time</b>, and more mature <b>research portfolios</b> at the
@@ -54,7 +54,7 @@ export function DisclaimersPage() {
       <Typography sx={p}>
         Every belief preset is an <b>editorial estimate</b>: one reading of an entity&rsquo;s public
         statements, forced into this model&rsquo;s particular vocabulary of factors and states.
-        That is squares into a round hole by construction — each of these thinkers has a unique
+        That is squares into a round hole by construction: each of these thinkers has a unique
         belief system, with distinctions and dependencies this model does not represent, and none
         of them chose these numbers. Nothing in a preset purports to be anyone&rsquo;s actual
         views, and no figure or lab has endorsed their entry.
@@ -64,7 +64,7 @@ export function DisclaimersPage() {
         carries a sourcing note, an accuracy rating (how directly the public record pins that
         credence), and citations, and each preset&rsquo;s &ldquo;Sources &amp; reasoning&rdquo;
         view explains how its numbers were derived and where the model-implied results diverge
-        from the entity&rsquo;s stated ones — and why. For anyone&rsquo;s real views, read their
+        from the entity&rsquo;s stated ones, and why. For anyone&rsquo;s real views, read their
         linked materials, not this model.
       </Typography>
     </Box>

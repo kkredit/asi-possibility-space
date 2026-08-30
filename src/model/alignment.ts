@@ -37,9 +37,9 @@ const subfactorDefs: { [S in KnownSubfactorId]: SubfactorDef<S> } = {
     kind: 'objective',
     question: 'Can frontier-model internals ever be read well enough to verify what a system wants?',
     description:
-      'Whether the representations inside large networks are, in principle, decodable into faithful, human-auditable structure (features, circuits) — or irreducibly alien and distributed ("inscrutable matrices"). Sets the ceiling on what interpretability research can deliver: verified value-reads, deception detection, audits that reach the load-bearing cognition.',
+      'Whether the representations inside large networks are, in principle, decodable into faithful, human-auditable structure (features, circuits), or irreducibly alien and distributed ("inscrutable matrices"). Sets the ceiling on what interpretability research can deliver: verified value-reads, deception detection, audits that reach the cognition that matters most.',
     states: {
-      legible: { label: 'Legible', blurb: 'decodable in principle; audits can reach the load-bearing cognition' },
+      legible: { label: 'Legible', blurb: 'decodable in principle; audits can reach the cognition that matters most' },
       partially: { label: 'Partially', blurb: 'major structures readable; long tails stay opaque' },
       opaque: { label: 'Opaque', blurb: 'core cognition stays alien at frontier scale' },
     },
@@ -50,7 +50,7 @@ const subfactorDefs: { [S in KnownSubfactorId]: SubfactorDef<S> } = {
     kind: 'objective',
     question: 'Can "what we want" be specified or learned robustly enough to optimize against?',
     description:
-      'The complexity-and-fragility-of-value question: whether human intent can be captured — written down or learned from feedback — with enough fidelity that strong optimization against the captured target stays safe, rather than Goodharting into a proxy that diverges exactly where it matters.',
+      'The complexity-and-fragility-of-value question: whether human intent can be captured (written down or learned from feedback) with enough fidelity that strong optimization against the captured target stays safe, rather than Goodharting into a proxy that diverges exactly where it matters.',
     states: {
       learnable: { label: 'Learnable', blurb: 'a good-enough target can be specified or learned' },
       brittle: { label: 'Brittle', blurb: 'targets Goodhart under strong optimization' },
@@ -62,7 +62,7 @@ const subfactorDefs: { [S in KnownSubfactorId]: SubfactorDef<S> } = {
     kind: 'objective',
     question: 'Does approximate alignment self-correct, or is corrigibility anti-natural?',
     description:
-      "Whether a roughly-aligned system tends to help you finish aligning it (Christiano's broad basin of attraction: deference and honesty are stable under improvement) or whether corrigibility is anti-natural — shutdown-tolerance and deference fight convergent instrumental drives, so approximately-aligned systems drift away rather than back. The live crux between the Christiano and MIRI views of difficulty.",
+      "Whether a roughly-aligned system tends to help you finish aligning it (Christiano's broad basin of attraction: deference and honesty are stable under improvement) or whether corrigibility is anti-natural: shutdown-tolerance and deference fight convergent instrumental drives, so approximately-aligned systems drift away rather than back. The live crux between the Christiano and MIRI views of difficulty.",
     states: {
       broadBasin: { label: 'Broad basin', blurb: 'roughly-aligned systems help you finish the job' },
       narrow: { label: 'Narrow', blurb: 'self-correction only from a precise start' },
@@ -90,11 +90,11 @@ const subfactorDefs: { [S in KnownSubfactorId]: SubfactorDef<S> } = {
     gatedBy: 'interpLegibility',
     question: 'How mature are interpretability tools when we reach the threshold?',
     description:
-      'The state of the art of reading model internals at ASI onset — feature dictionaries, circuit analysis, model biology, internals-based lie detection. Its payoff is gated by whether cognition is legible at all: mature tools in a legible world can verify alignment directly; the same tools against opaque cognition inspect the mask.',
+      'The state of the art of reading model internals at ASI onset: feature dictionaries, circuit analysis, model biology, internals-based lie detection. Its payoff is gated by whether cognition is legible at all: mature tools in a legible world can verify alignment directly; the same tools against opaque cognition inspect the mask.',
     states: {
       mature: { label: 'Mature', blurb: 'audits of frontier systems are routine' },
       partial: { label: 'Partial', blurb: 'useful but spotty coverage of frontier internals' },
-      nascent: { label: 'Nascent', blurb: 'lab curiosities; no load-bearing audits' },
+      nascent: { label: 'Nascent', blurb: 'lab curiosities; nothing yet that matters' },
     },
   },
   oversightResearch: {
@@ -102,9 +102,9 @@ const subfactorDefs: { [S in KnownSubfactorId]: SubfactorDef<S> } = {
     label: 'Scalable oversight',
     kind: 'influenceable',
     gatedBy: 'oversightScaling',
-    question: 'How mature are oversight protocols — debate, weak-to-strong, process supervision?',
+    question: 'How mature are oversight protocols: debate, weak-to-strong, process supervision?',
     description:
-      'The state of the art of supervising systems smarter than the supervisor: debate, recursive reward modeling, process supervision, weak-to-strong generalization. Gated by whether oversight can scale in principle — mature protocols are the main engine of alignment-in-time if weak judges hold, and confident theater if they do not.',
+      'The state of the art of supervising systems smarter than the supervisor: debate, recursive reward modeling, process supervision, weak-to-strong generalization. Gated by whether oversight can scale in principle: mature protocols are the main engine of alignment-in-time if weak judges hold, and confident theater if they do not.',
     states: {
       mature: { label: 'Mature', blurb: 'frontier training runs use scalable-oversight protocols end-to-end' },
       partial: { label: 'Partial', blurb: 'protocols exist; deployed unevenly' },
@@ -116,7 +116,7 @@ const subfactorDefs: { [S in KnownSubfactorId]: SubfactorDef<S> } = {
     label: 'Agent foundations & guarantees',
     kind: 'influenceable',
     gatedBy: 'corrigibility',
-    question: 'How mature is the theory — formal accounts of agency, corrigibility, guarantees?',
+    question: 'How mature is the theory: formal accounts of agency, corrigibility, guarantees?',
     description:
       'Agent foundations, formal verification, provable-safety agendas, eliciting-latent-knowledge-style theory. Matters most exactly where empirical iteration fails: if corrigibility is anti-natural, only a theoretical solution turns "patch and hope" into a real answer; in a broad-basin world it mostly adds assurance.',
     states: {
@@ -130,7 +130,7 @@ const subfactorDefs: { [S in KnownSubfactorId]: SubfactorDef<S> } = {
     label: 'Evals & model organisms',
     kind: 'influenceable',
     gatedBy: 'deception',
-    question: 'How mature is the science of catching misalignment — evals, red-teams, model organisms?',
+    question: 'How mature is the science of catching misalignment: evals, red-teams, model organisms?',
     description:
       'Dangerous-capability evals, deception-detection science, model organisms of misalignment (deliberately trained schemers used to test our defenses). Gated by the deception factor itself: if capable systems systematically deceive, mature evals are the difference between catching the defector early and flying blind.',
     states: {

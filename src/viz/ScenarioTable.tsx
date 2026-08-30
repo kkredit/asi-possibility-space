@@ -71,7 +71,7 @@ export function ScenarioTable({ scenarios, factors, limit = 25, isHighlighted }:
         Scenarios
       </Typography>
       <Typography variant="caption" sx={{ color: c.mute, display: 'block', mb: 1 }}>
-        top {shown.length} of {scenarios.length} — click a column to sort by probability, value, or contribution to EV; click again to reverse
+        top {shown.length} of {scenarios.length}. Click a column to sort by probability, value, or contribution to EV; click again to reverse
       </Typography>
       <Box sx={{ overflowX: 'auto' }}>
         <Table size="small" sx={{ minWidth: 640, '& td, & th': { borderColor: c.line } }}>

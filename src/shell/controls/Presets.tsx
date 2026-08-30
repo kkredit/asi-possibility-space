@@ -136,7 +136,7 @@ export function Presets() {
   return (
     <Box>
       <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.bone, mb: 1 }}>
-        Enter your own beliefs below — or start from a well-known figure or lab:
+        Enter your own beliefs below, or start from a well-known figure or lab:
       </Typography>
 
       <FormControl fullWidth size="small">
@@ -187,11 +187,11 @@ export function Presets() {
               <InfoTip>
                 The probability this model puts on extinction-level outcomes (survival ≈ lost), given
                 this entity's credences and the <em>shared</em> outcome model, under the{' '}
-                <b>active probability model</b> ({probabilityModel === 'bayesNet' ? 'Bayes net' : 'independence + couplings'}) —
+                <b>active probability model</b> ({probabilityModel === 'bayesNet' ? 'Bayes net' : 'independence + couplings'}),
                 so it equals the headline p(doom) once you load this preset. Toggle the probability model
                 and this value tracks it. It can diverge from a <em>stated</em> p(doom) for two reasons:
                 (1) a gestalt p(doom) often differs from the product of someone's per-factor credences
-                (people aren't internally consistent), and (2) the outcome model is shared — it may value
+                (people aren't internally consistent), and (2) the outcome model is shared, so it may value
                 a scenario like "misaligned but controlled" more optimistically than a given pessimist
                 would. Large gaps point at a credence worth re-checking, or a value judgment the shared
                 model can't express.
@@ -258,7 +258,7 @@ export function Presets() {
                         alignItems: "center",
                         mb: 0.15
                       }}>
-                      <Tooltip title={`${Math.round(view.accuracy * 100)}% — how directly the public record pins this factor`} arrow>
+                      <Tooltip title={`${Math.round(view.accuracy * 100)}%: how directly the public record pins this factor`} arrow>
                         <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: accuracyColor(view.accuracy), flexShrink: 0 }} />
                       </Tooltip>
                       <Typography sx={{ fontFamily: fonts.display, fontSize: '0.68rem', fontWeight: 600, color: c.bone }}>
