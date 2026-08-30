@@ -27,8 +27,8 @@ export function DisclaimersPage() {
         means longer timelines, which look like a <b>slower takeoff</b>, better odds that{' '}
         <b>alignment is solved in time</b>, and more mature <b>research portfolios</b> at the
         threshold. What paradigm skepticism does <em>not</em> do is rule ASI out in principle:
-        the limitations of today&rsquo;s systems are facts about today&rsquo;s systems, not about
-        the physics of intelligence.
+        the limitations of today&rsquo;s systems are facts about today&rsquo;s systems, not
+        fundamental limits on intelligence itself.
       </Typography>
       <Typography sx={p}>
         If the underlying question is new to you, the canonical starting points:{' '}
