@@ -1079,6 +1079,7 @@ export const presets: KnownPreset[] = [
       { label: 'Policy / global coalition essay (Dario Amodei, 2025)', url: 'https://darioamodei.com/post/policy-on-the-ai-exponential', quote: `"Democracies should seek to form a global coalition centered on building AI according to their common values."` },
       { label: 'Simple probes can catch sleeper agents (Anthropic)', url: 'https://www.anthropic.com/research/probes-catch-sleeper-agents' },
       { label: 'Amodei gives his p(doom): 25% (Axios AI+ DC Summit, 2025)', url: 'https://www.axios.com/2025/09/17/anthropic-dario-amodei-p-doom-25-percent', quote: `"I'm relatively an optimist, so I think there's a 25% chance that things go really, really badly ... and a 75% chance that things go really, really well — with not much space in between."` },
+      { label: 'Evan Hubinger, Anthropic Alignment Science lead, on X (2026)', url: 'https://x.com/EvanHub/status/2097497037956891126', quote: `"We really do earnestly believe AI could kill all humans! I personally think it is >10% within the next decade ... we do not yet have a plan to solve alignment for superintelligence and are not clearly on track to." Posted the same week a colleague publicly resigned over safety concerns; not an official Anthropic position, and disputed by outside critics (including Musk) as overstated.` },
     ],
     factors: {
       orthogonality: { accuracy: 0.75, refs: [1, 4], note: `Not a strict default, but "we do not know how to train systems to robustly behave well"; treats misalignment as a serious live risk.` },
@@ -1086,7 +1087,7 @@ export const presets: KnownPreset[] = [
       offenseDefense: { accuracy: 0.3, refs: [2], note: `No direct thesis; an implied defensive lean via ASL misuse safeguards and biosecurity focus. Inferred.` },
       takeoff: { accuracy: 0.8, refs: [3, 5], note: `Fast arrival ("as early as 2026") but Dario rejects instant singularity, citing "real physical and practical limits."` },
       powerConcentration: { accuracy: 0.7, refs: [3, 5], note: `Favors concentration in trusted hands: "democracies have the upper hand," a coalition denying chips to adversaries.` },
-      alignmentInTime: { accuracy: 0.7, refs: [3, 4], note: `An explicit "race between interpretability and model intelligence" with a ~2027 detection goal; hopeful but genuinely uncertain.` },
+      alignmentInTime: { accuracy: 0.7, refs: [3, 4, 8], note: `An explicit "race between interpretability and model intelligence" with a ~2027 detection goal; hopeful but genuinely uncertain. A 2026 internal dissent (Hubinger, personal, contested) put the company "not clearly on track" toward a superintelligence-alignment plan.` },
       controlDeployed: { accuracy: 0.9, refs: [2, 4], note: `Strongest pin: RSP/ASL standards, a commitment not to deploy unsafe models, interpretability as an "MRI for AI."` },
       coordination: { accuracy: 0.65, refs: [5, 2], note: `Wants coordination (a "global coalition," urgent government action), but prefers a democratic-state coalition over a binding international body.` },
       deception: { accuracy: 0.6, refs: [4], note: `Researches alignment-faking/deception and frames interpretability as a "race" to catch models that may behave deceptively.` },
