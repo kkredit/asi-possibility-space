@@ -80,7 +80,7 @@ configuration.
 
 Copyright © 2026 Kevin Kredit.
 
-Licensed under the [GNU General Public License v3.0 or later](LICENSE) (GPL-3.0-or-later). You are
-free to use, share, and modify this project — including all authored content (factors, odds,
-outcomes, narratives) — provided derivative works remain under the same license and retain
-attribution to this repository.
+Licensed under the [MIT License](LICENSE). You are free to use, share, modify, and build on this
+project — including all authored content (factors, odds, outcomes, narratives) — for any purpose,
+including commercially and in closed-source derivatives, provided you retain the copyright notice
+and attribution to this repository.
