@@ -25,7 +25,6 @@ import { evaluators } from '@engine/index';
 import { FACTOR_KINDS, type Factor, type FactorKind, type Subfactor } from '@model/types';
 import { setHashParam, useBeliefs } from '@shell/store';
 import { encodeBeliefs } from '@shell/urlBeliefs';
-import { Presets } from '@shell/controls/Presets';
 import { BayesNetDiagram } from '@viz/BayesNetDiagram';
 import { FactorBackground } from '@viz/FactorBackground';
 import { c, fonts, kindColor } from '@shell/theme';
@@ -363,10 +362,6 @@ export function Controls() {
           </Button>
         </Stack>
       </Stack>
-
-      <Presets />
-
-      <Divider />
 
       {dataset.bayesNet ? (
         <Dialog open={netOpen} onClose={() => setNetOpen(false)} maxWidth="md" fullWidth>

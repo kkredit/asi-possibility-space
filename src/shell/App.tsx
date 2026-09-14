@@ -20,6 +20,7 @@ import {
   zeroVector,
 } from '@engine/index';
 import { Controls } from '@shell/controls/Controls';
+import { Presets } from '@shell/controls/Presets';
 import { BeliefsSheet } from '@shell/BeliefsSheet';
 import { EvHeadline } from '@shell/EvHeadline';
 import { Logo } from '@shell/Logo';
@@ -289,6 +290,8 @@ export function App() {
       <Masthead page={page} onNavigate={selectPage} />
 
       <Container maxWidth="xl" sx={{ pt: { xs: 2, sm: 3 }, pb: { xs: 10, md: 3 } }}>
+        <Presets />
+
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: 'flex-start' }}>
           {!isMobile && (
             <Paper

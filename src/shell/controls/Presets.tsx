@@ -1,14 +1,11 @@
 import { useMemo, useState } from 'react';
 import {
   Box,
+  Chip,
   Dialog,
   DialogContent,
   DialogTitle,
-  FormControl,
   Link,
-  ListSubheader,
-  MenuItem,
-  Select,
   Stack,
   Tooltip,
   Typography,
@@ -23,6 +20,7 @@ import { useBeliefs, type ProbabilityModel } from '@shell/store';
 import { InfoTip } from '@viz/InfoTip';
 import { fmtSigned } from '@viz/text';
 import { c, fonts, valueColor } from '@shell/theme';
+import { Panel } from '@shell/Panel';
 
 /** Analyze a preset under the ACTIVE evaluator + probability model — so the preset's
  *  EV and implied p(doom) match what the headline shows once that preset is loaded,
@@ -66,13 +64,14 @@ function displayName(p: Preset): string {
 
 // Display order within each group: roughly by esteem / notoriety in the AI-risk
 // conversation (Turing/Nobel laureates and the most-cited voices first; controversial
-// figures included on the same footing). Ids not listed fall to the end. People are
-// always shown above labs (the two groups render under separate subheaders).
+// figures included on the same footing). Ids not listed fall to the end. Labs & orgs
+// are always shown above people (the two groups render under separate subheaders).
 const ESTEEM_ORDER = [
+  // labs & orgs
+  'openai', 'deepmind', 'anthropic', 'meta', 'xai', 'aifp',
   // people
-  'hinton', 'bengio', 'lecun', 'sutskever', 'yudkowsky', 'christiano', 'andreessen', 'acx', 'kokotajlo', 'yampolskiy', 'lifland',
-  // labs
-  'openai', 'deepmind', 'anthropic', 'meta', 'xai',
+  'hinton', 'bengio', 'tegmark', 'lecun', 'sutskever', 'yudkowsky', 'christiano',
+  'andreessen', 'acx', 'ord', 'kokotajlo', 'hendrycks', 'yampolskiy', 'lifland',
 ];
 const esteemRank = (id: string) => {
   const i = ESTEEM_ORDER.indexOf(id);
@@ -80,22 +79,38 @@ const esteemRank = (id: string) => {
 };
 const byEsteem = (a: Preset, b: Preset) => esteemRank(a.id) - esteemRank(b.id);
 
+const labsAndOrgs = presets.filter((p) => p.category === 'lab' || p.category === 'org').sort(byEsteem);
 const people = presets.filter((p) => p.category === 'person').sort(byEsteem);
-const labs = presets.filter((p) => p.category === 'lab').sort(byEsteem);
-const orgs = presets.filter((p) => p.category === 'org').sort(byEsteem);
 
-function presetItem(p: Preset, ev: number) {
+function PresetChip({ p, ev, active, onClick }: { p: Preset; ev: number; active: boolean; onClick: () => void }) {
   return (
-    <MenuItem key={p.id} value={p.id} sx={{ fontSize: '0.82rem' }}>
-      <Box component="span" sx={{ flex: 1 }}>{displayName(p)}</Box>
-      <Box
-        component="span"
-        title={`expected value ${fmtSigned(ev)}`}
-        sx={{ fontFamily: fonts.mono, fontSize: '0.74rem', color: valueColor(ev), ml: 1.5 }}
-      >
-        {fmtSigned(ev)}
-      </Box>
-    </MenuItem>
+    <Chip
+      onClick={onClick}
+      variant={active ? 'filled' : 'outlined'}
+      label={
+        <Box component="span" sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.85 }}>
+          <Box component="span">{displayName(p)}</Box>
+          <Box
+            component="span"
+            sx={{ fontFamily: fonts.mono, fontSize: '0.68rem', color: active ? 'inherit' : valueColor(ev), opacity: active ? 0.8 : 1 }}
+          >
+            {fmtSigned(ev)}
+          </Box>
+        </Box>
+      }
+      sx={{
+        height: 'auto',
+        py: 0.65,
+        fontFamily: fonts.display,
+        fontSize: '0.78rem',
+        borderColor: active ? c.accent : c.line,
+        bgcolor: active ? c.accent : 'transparent',
+        color: active ? c.ink : c.bone,
+        cursor: 'pointer',
+        '&:hover': { borderColor: c.accent, bgcolor: active ? c.accent : c.panel2 },
+        '& .MuiChip-label': { px: 1.25 },
+      }}
+    />
   );
 }
 
@@ -134,33 +149,24 @@ export function Presets() {
   };
 
   return (
-    <Box>
-      <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.bone, mb: 1 }}>
-        Enter your own beliefs below, or start from a well-known figure or lab:
+    <Panel>
+      <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.bone, mb: 1.5 }}>
+        Start from a well-known lab or figure, or set your own beliefs in the sliders below.
       </Typography>
 
-      <FormControl fullWidth size="small">
-        <Select
-          value={active ? active.id : ''}
-          displayEmpty
-          onChange={(e) => applyPreset(e.target.value)}
-          renderValue={(val) => {
-            const p = presets.find((x) => x.id === val);
-            return p ? displayName(p) : <Box component="span" sx={{ color: c.faint }}>Choose a figure or lab…</Box>;
-          }}
-          sx={{ fontFamily: fonts.display, fontSize: '0.84rem', '& .MuiSelect-select': { display: 'flex', alignItems: 'center' } }}
-          MenuProps={{ slotProps: { paper: { sx: { maxHeight: 420, bgcolor: c.panel, border: `1px solid ${c.line}` } } } }}
-        >
-          <ListSubheader sx={{ ...sectionLabel, bgcolor: c.panel, lineHeight: '28px', color: c.faint }}>People</ListSubheader>
-          {people.map((p) => presetItem(p, presetEv[p.id]))}
-          <ListSubheader sx={{ ...sectionLabel, bgcolor: c.panel, lineHeight: '28px', color: c.faint }}>Labs</ListSubheader>
-          {labs.map((p) => presetItem(p, presetEv[p.id]))}
-          {orgs.length ? (
-            <ListSubheader sx={{ ...sectionLabel, bgcolor: c.panel, lineHeight: '28px', color: c.faint }}>Organizations</ListSubheader>
-          ) : null}
-          {orgs.map((p) => presetItem(p, presetEv[p.id]))}
-        </Select>
-      </FormControl>
+      <Typography sx={{ ...sectionLabel, fontSize: '0.64rem', mb: 0.75 }}>Labs &amp; orgs</Typography>
+      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 1.75 }}>
+        {labsAndOrgs.map((p) => (
+          <PresetChip key={p.id} p={p} ev={presetEv[p.id]} active={active?.id === p.id} onClick={() => applyPreset(p.id)} />
+        ))}
+      </Stack>
+
+      <Typography sx={{ ...sectionLabel, fontSize: '0.64rem', mb: 0.75 }}>People</Typography>
+      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+        {people.map((p) => (
+          <PresetChip key={p.id} p={p} ev={presetEv[p.id]} active={active?.id === p.id} onClick={() => applyPreset(p.id)} />
+        ))}
+      </Stack>
 
       {active && (
         <Box sx={{ mt: 1.5, p: 1.5, border: `1px solid ${c.line}`, borderRadius: 1.5, bgcolor: c.panel2 }}>
@@ -306,6 +312,6 @@ export function Presets() {
           </Dialog>
         </Box>
       )}
-    </Box>
+    </Panel>
   );
 }
