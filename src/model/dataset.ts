@@ -190,24 +190,24 @@ const factors: Factor[] = FACTOR_IDS.map((id) => buildFactor(id));
 
 // Starting odds (default credences). Each factor's states sum to 1.
 const baselineCredences = {
-  orthogonality: { holds: 0.8, fails: 0.2 },
-  tractability: { easy: 0.1, hard: 0.6, nearImpossible: 0.3 },
+  orthogonality: { holds: 0.95, fails: 0.05 },
+  tractability: { easy: 0.26, hard: 0.539, nearImpossible: 0.201 },
   offenseDefense: { offense: 0.7, balanced: 0.2, defense: 0.1 },
   takeoff: { fast: 0.2, medium: 0.6, slow: 0.2 },
   powerConcentration: { concentrated: 0.8, diffuse: 0.2 },
-  alignmentInTime: { yes: 0.65, no: 0.35 },
+  alignmentInTime: { yes: 0.748, no: 0.252 },
   controlDeployed: { yes: 0.45, no: 0.55 },
-  coordination: { regime: 0.75, none: 0.25 },
-  deception: { deceptive: 0.35, faithful: 0.65 },
+  coordination: { regime: 0.7, none: 0.3 },
+  deception: { deceptive: 0.6, faithful: 0.4 },
   takeoverSeverity: { extinction: 0.8, subjugation: 0.2 },
 } satisfies KnownCredences;
 
 // Default weights — survival & suffering weighted highest.
 const defaultWeights: ValueVector = {
-  survival: 0.4,
-  suffering: 0.3,
+  survival: 0.6,
+  suffering: 0.5,
   agency: 0.15,
-  flourishing: 0.15,
+  flourishing: 0.3,
 };
 
 // Linear evaluator: value_d = clamp(baseline_d + Σ contribution[factor][state][d]).

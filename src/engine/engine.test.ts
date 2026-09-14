@@ -97,7 +97,10 @@ describe('probability model', () => {
       controlDeployed: 'yes',
     };
     // orth holds · tract hard · offense · power diffuse · align no · control yes
-    const expected = 0.8 * 0.6 * 0.7 * 0.2 * 0.35 * 0.45;
+    const b = dataset.baselineCredences;
+    const expected =
+      b.orthogonality.holds * b.tractability.hard * b.offenseDefense.offense *
+      b.powerConcentration.diffuse * b.alignmentInTime.no * b.controlDeployed.yes;
     expect(scenarioProbability(scenario, dataset.baselineCredences)).toBeCloseTo(expected, 10);
   });
 

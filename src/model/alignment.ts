@@ -269,14 +269,14 @@ export const alignmentDerivations: Derivation[] = [
 ];
 
 // Baseline sub-credences, calibrated so the derived parents land near the
-// long-standing baseline sliders (tractability ≈ {.1,.6,.3}, align-yes ≈ .65).
+// baseline sliders (tractability ≈ {.26,.539,.201}, align-yes ≈ .748).
 export const alignmentSubBaseline = {
-  interpLegibility: { legible: 0.16, partially: 0.58, opaque: 0.26 },
+  interpLegibility: { legible: 0.75, partially: 0.173, opaque: 0.077 },
   valueSpec: { learnable: 0.46, brittle: 0.54 },
   corrigibility: { broadBasin: 0.33, narrow: 0.51, antiNatural: 0.16 },
-  oversightScaling: { scales: 0.58, fails: 0.42 },
-  interpResearch: { mature: 0.25, partial: 0.55, nascent: 0.2 },
-  oversightResearch: { mature: 0.15, partial: 0.55, nascent: 0.3 },
-  theoryResearch: { mature: 0.1, partial: 0.4, nascent: 0.5 },
-  evalsResearch: { mature: 0.25, partial: 0.55, nascent: 0.2 },
+  oversightScaling: { scales: 0.75, fails: 0.25 },
+  interpResearch: { mature: 0.069, partial: 0.6, nascent: 0.331 },
+  oversightResearch: { mature: 0.144, partial: 0.526, nascent: 0.33 },
+  theoryResearch: { mature: 0.349, partial: 0.5, nascent: 0.151 },
+  evalsResearch: { mature: 0.28, partial: 0.528, nascent: 0.192 },
 } satisfies KnownSubCredences;
