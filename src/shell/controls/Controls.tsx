@@ -23,7 +23,7 @@ import LinkIcon from '@mui/icons-material/Link';
 import { dataset } from '@model/dataset';
 import { evaluators } from '@engine/index';
 import { FACTOR_KINDS, type Factor, type FactorKind, type Subfactor } from '@model/types';
-import { setHashParam, useBeliefs } from '@shell/store';
+import { beliefMode, setHashParam, useBeliefs } from '@shell/store';
 import { encodeBeliefs } from '@shell/urlBeliefs';
 import { BayesNetDiagram } from '@viz/BayesNetDiagram';
 import { FactorBackground } from '@viz/FactorBackground';
@@ -302,15 +302,22 @@ export function Controls() {
   const setEvaluator = useBeliefs((s) => s.setEvaluator);
   const probabilityModel = useBeliefs((s) => s.probabilityModel);
   const setProbabilityModel = useBeliefs((s) => s.setProbabilityModel);
+  const activePresetId = useBeliefs((s) => s.activePresetId);
+  const browsing = useBeliefs((s) => s.browsing);
   const reset = useBeliefs((s) => s.reset);
   const [netOpen, setNetOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
+  const mode = beliefMode({ browsing, activePresetId });
+
   // Share the CURRENT beliefs: an active preset shares as `#preset=<id>`; anything
-  // custom is encoded whole into a compact `#beliefs=<base64url>` param.
+  // custom is encoded whole into a compact `#beliefs=<base64url>` param. Sharing
+  // while browsing means something was actually chosen: lock in whatever the
+  // carousel currently has spotlighted (→ 'preset' mode) before reading state.
   const copyLink = async () => {
     if (typeof window === 'undefined' || !navigator.clipboard) return;
+    if (mode === 'browsing' && activePresetId) useBeliefs.getState().applyPreset(activePresetId);
     const s = useBeliefs.getState();
     if (s.activePresetId) {
       setHashParam('beliefs', null);
@@ -345,9 +352,18 @@ export function Controls() {
           justifyContent: "space-between",
           alignItems: "center"
         }}>
-        <Typography sx={{ fontFamily: fonts.display, fontWeight: 700, fontSize: '1.05rem', letterSpacing: '0.01em', color: c.bone }}>
-          Beliefs
-        </Typography>
+        <Stack direction="row" spacing={0.75} sx={{ alignItems: 'baseline' }}>
+          <Typography sx={{ fontFamily: fonts.display, fontWeight: 700, fontSize: '1.05rem', letterSpacing: '0.01em', color: c.bone }}>
+            Beliefs
+          </Typography>
+          {mode === 'browsing' && (
+            <Tooltip title="The carousel above is auto-cycling presets; pick one, edit a slider, or Reset to take over." arrow>
+              <Typography sx={{ fontFamily: fonts.display, fontSize: '0.68rem', color: c.faint, cursor: 'default' }}>
+                browsing…
+              </Typography>
+            </Tooltip>
+          )}
+        </Stack>
         <Stack direction="row" spacing={0.5}>
           <Button
             size="small"

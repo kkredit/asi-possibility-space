@@ -13,6 +13,28 @@ export type ProbabilityModel = 'independence' | 'bayesNet';
  *  parent sliders are set directly ('direct', the sub-layer detached). */
 export type AlignmentMode = 'derived' | 'direct';
 
+/**
+ * The three states every belief-input surface (URL, preset dropdown, sliders, the
+ * "Beliefs" panel) agrees on and reflects consistently, though each shows it
+ * differently:
+ *   - 'browsing': nothing has been specified yet — the preset carousel is auto-
+ *     cycling and live-driving credences/weights so the headline and sliders track
+ *     whichever entity is currently spotlighted, but the URL and dropdown stay
+ *     neutral since no real choice has been made.
+ *   - 'preset':   a specific entity was deliberately chosen (dropdown, clicking the
+ *     carousel's spotlighted card, or a `#preset=<id>` link).
+ *   - 'custom':   the credences were hand-edited away from any preset, or arrived
+ *     via a `#beliefs=<encoded>` link.
+ * Any deliberate action (a pick, a slider edit, Reset) ends 'browsing' for good;
+ * Reset returns to 'browsing' rather than a silent, unlabeled baseline.
+ */
+export type BeliefMode = 'browsing' | 'preset' | 'custom';
+
+export function beliefMode(s: Pick<BeliefState, 'browsing' | 'activePresetId'>): BeliefMode {
+  if (s.browsing) return 'browsing';
+  return s.activePresetId !== null ? 'preset' : 'custom';
+}
+
 export interface BeliefState {
   credences: Credences;
   /** Beliefs over the alignment deep-dive subfactors. */
@@ -24,6 +46,9 @@ export interface BeliefState {
   pins: Pins;
   /** Which preset the current credences came from, or null once edited. */
   activePresetId: string | null;
+  /** True while nothing has been specified yet and the preset carousel owns the
+   *  credences (see BeliefMode). Any deliberate action clears it for good. */
+  browsing: boolean;
 
   /** Probability model: independence×couplings (default) or the Bayes net. */
   probabilityModel: ProbabilityModel;
@@ -37,7 +62,15 @@ export interface BeliefState {
   setWeight: (dim: ValueDimensionId, value: number) => void;
   setEvaluator: (id: string) => void;
   setPin: (factor: FactorId, state: StateId | null) => void;
+  /** Deliberately choose a preset: ends 'browsing', writes `#preset=<id>`. */
   applyPreset: (id: string) => void;
+  /** The carousel's live-drive while 'browsing': applies a preset's credences
+   *  without writing the URL or leaving 'browsing' — a look, not a choice. */
+  previewPreset: (id: string) => void;
+  /** Re-enter 'browsing' from wherever the carousel currently is — used by its
+   *  Resume control. Unlike `reset`, this leaves credences/weights untouched
+   *  (the next carousel tick overwrites them within moments regardless). */
+  resumeBrowsing: () => void;
   setProbabilityModel: (model: ProbabilityModel) => void;
   reset: () => void;
 }
@@ -130,6 +163,7 @@ function baselineState() {
     evaluatorId: 'cached',
     pins: {} as Pins,
     activePresetId: null as string | null,
+    browsing: true,
     probabilityModel,
     bayesProbability: probabilityModel === 'bayesNet' ? netJoint(credences) : null,
   };
@@ -155,6 +189,7 @@ function initialState() {
       alignmentMode: shared.alignmentMode,
       probabilityModel,
       activePresetId: null,
+      browsing: false,
       bayesProbability: probabilityModel === 'bayesNet' ? netJoint(credences) : null,
     };
   }
@@ -166,6 +201,7 @@ function initialState() {
   return {
     ...state,
     activePresetId: urlId,
+    browsing: false,
     credences,
     subCredences,
     weights,
@@ -178,7 +214,8 @@ function initialState() {
 export const useBeliefs = create<BeliefState>((set) => ({
   ...initialState(),
 
-  // Manual credence/weight edits mean the beliefs no longer match a preset.
+  // Manual credence/weight edits mean the beliefs no longer match a preset, and end
+  // 'browsing' for good — a hand-edit is a deliberate action, not ambient scrolling.
   setCredence: (factor, state, value) =>
     set((s) => {
       if (s.activePresetId) writeUrlPresetId(null);
@@ -186,6 +223,7 @@ export const useBeliefs = create<BeliefState>((set) => ({
       const credences = { ...s.credences, [factor]: withMarginal(s.credences[factor], state, value) };
       return {
         activePresetId: null,
+        browsing: false,
         credences,
         bayesProbability: s.probabilityModel === 'bayesNet' ? netJoint(credences) : null,
       };
@@ -195,7 +233,7 @@ export const useBeliefs = create<BeliefState>((set) => ({
     set((s) => {
       if (s.activePresetId) writeUrlPresetId(null);
       clearUrlBeliefs();
-      return { activePresetId: null, weights: { ...s.weights, [dim]: Math.max(0, value) } };
+      return { activePresetId: null, browsing: false, weights: { ...s.weights, [dim]: Math.max(0, value) } };
     }),
 
   setSubCredence: (subfactor, state, value) =>
@@ -207,6 +245,7 @@ export const useBeliefs = create<BeliefState>((set) => ({
         s.alignmentMode === 'derived' ? deriveCredences(dataset, s.credences, subCredences) : s.credences;
       return {
         activePresetId: null,
+        browsing: false,
         subCredences,
         credences,
         bayesProbability: s.probabilityModel === 'bayesNet' ? netJoint(credences) : null,
@@ -246,12 +285,35 @@ export const useBeliefs = create<BeliefState>((set) => ({
         s.alignmentMode === 'derived' ? deriveCredences(dataset, stated, subCredences) : stated;
       return {
         activePresetId: id,
+        browsing: false,
         credences,
         subCredences,
         weights,
         bayesProbability: s.probabilityModel === 'bayesNet' ? netJoint(credences) : null,
       };
     });
+  },
+
+  previewPreset: (id) => {
+    if (!presets.some((p) => p.id === id)) return;
+    const { credences: stated, subCredences, weights } = presetCredencesWeights(id);
+    set((s) => {
+      const credences =
+        s.alignmentMode === 'derived' ? deriveCredences(dataset, stated, subCredences) : stated;
+      return {
+        activePresetId: id,
+        credences,
+        subCredences,
+        weights,
+        bayesProbability: s.probabilityModel === 'bayesNet' ? netJoint(credences) : null,
+      };
+    });
+  },
+
+  resumeBrowsing: () => {
+    writeUrlPresetId(null);
+    clearUrlBeliefs();
+    set({ browsing: true });
   },
 
   setProbabilityModel: (model) =>

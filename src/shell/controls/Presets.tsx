@@ -1,22 +1,28 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
-  Chip,
   Dialog,
   DialogContent,
   DialogTitle,
+  FormControl,
+  IconButton,
   Link,
+  ListSubheader,
+  MenuItem,
+  Select,
   Stack,
   Tooltip,
   Typography,
 } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import PauseIcon from '@mui/icons-material/Pause';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import type { Evaluator, Preset } from '@model/types';
 import { presets } from '@model/presets';
 import { dataset } from '@model/dataset';
 import type { KnownFactorId } from '@model/ids';
 import { analyze, deriveCredences, doomMass, getEvaluator, reconcileJoint } from '@engine/index';
-import { useBeliefs, type ProbabilityModel } from '@shell/store';
+import { beliefMode, useBeliefs, type ProbabilityModel } from '@shell/store';
 import { InfoTip } from '@viz/InfoTip';
 import { fmtSigned } from '@viz/text';
 import { c, fonts, valueColor } from '@shell/theme';
@@ -82,45 +88,172 @@ const byEsteem = (a: Preset, b: Preset) => esteemRank(a.id) - esteemRank(b.id);
 const labsAndOrgs = presets.filter((p) => p.category === 'lab' || p.category === 'org').sort(byEsteem);
 const people = presets.filter((p) => p.category === 'person').sort(byEsteem);
 
-function PresetChip({ p, ev, active, onClick }: { p: Preset; ev: number; active: boolean; onClick: () => void }) {
+function presetItem(p: Preset, ev: number) {
   return (
-    <Chip
+    <MenuItem key={p.id} value={p.id} sx={{ fontSize: '0.82rem' }}>
+      <Box component="span" sx={{ flex: 1 }}>{displayName(p)}</Box>
+      <Box
+        component="span"
+        title={`expected value ${fmtSigned(ev)}`}
+        sx={{ fontFamily: fonts.mono, fontSize: '0.74rem', color: valueColor(ev), ml: 1.5 }}
+      >
+        {fmtSigned(ev)}
+      </Box>
+    </MenuItem>
+  );
+}
+
+// Carousel order: alternate a lab/org with the next-most-esteemed person, so the
+// most prominent labs and people lead together; once labs run out, the remaining
+// (less prominent) people trail before the whole sequence loops.
+const CAROUSEL_ORDER: Preset[] = (() => {
+  const out: Preset[] = [];
+  const n = Math.min(labsAndOrgs.length, people.length);
+  for (let i = 0; i < n; i++) {
+    out.push(labsAndOrgs[i]);
+    out.push(people[i]);
+  }
+  out.push(...labsAndOrgs.slice(n));
+  out.push(...people.slice(n));
+  return out;
+})();
+
+const CAROUSEL_ITEM_WIDTH = 184; // px, including gap — drives both layout and scroll math
+const CAROUSEL_GAP = 10;
+const CAROUSEL_SPEED = 15; // px/sec — deliberately slow, ambient motion
+
+function CarouselCard({ p, isLeftmost, onClick }: { p: Preset; isLeftmost: boolean; onClick: () => void }) {
+  return (
+    <Box
       onClick={onClick}
-      variant={active ? 'filled' : 'outlined'}
-      label={
-        <Box component="span" sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.85 }}>
-          <Box component="span">{displayName(p)}</Box>
-          <Box
-            component="span"
-            sx={{ fontFamily: fonts.mono, fontSize: '0.68rem', color: active ? 'inherit' : valueColor(ev), opacity: active ? 0.8 : 1 }}
-          >
-            {fmtSigned(ev)}
-          </Box>
-        </Box>
-      }
       sx={{
-        height: 'auto',
-        py: 0.65,
-        fontFamily: fonts.display,
-        fontSize: '0.78rem',
-        borderColor: active ? c.accent : c.line,
-        bgcolor: active ? c.accent : 'transparent',
-        color: active ? c.ink : c.bone,
+        flexShrink: 0,
+        width: CAROUSEL_ITEM_WIDTH - CAROUSEL_GAP,
+        mr: `${CAROUSEL_GAP}px`,
+        height: '100%',
+        px: 1.1,
+        display: 'flex',
+        alignItems: 'center',
+        borderRadius: 1.5,
+        border: `1px solid ${isLeftmost ? c.accent : c.line}`,
+        bgcolor: isLeftmost ? c.panel2 : 'transparent',
         cursor: 'pointer',
-        '&:hover': { borderColor: c.accent, bgcolor: active ? c.accent : c.panel2 },
-        '& .MuiChip-label': { px: 1.25 },
+        opacity: isLeftmost ? 1 : 0.5,
+        transition: 'opacity 0.4s ease, border-color 0.4s ease, background-color 0.4s ease',
+        '&:hover': { opacity: 1, borderColor: c.accent },
       }}
-    />
+    >
+      <Typography noWrap sx={{ fontFamily: fonts.display, fontSize: '0.78rem', fontWeight: 600, color: c.bone }}>
+        {p.name}
+      </Typography>
+    </Box>
+  );
+}
+
+/**
+ * A slowly, continuously scrolling filmstrip of presets. The leftmost card is the
+ * "preview" — visually spotlighted, the only one clickable, and drives the actual
+ * belief state live as it changes (via `onPreview`), so the headline and every
+ * downstream view track whichever entity is currently spotlighted. The parent
+ * controls `paused`, which freezes the strip in place once the user takes any real
+ * action of their own (a manual pick, a slider edit, or Reset).
+ */
+function PresetCarousel({
+  paused,
+  onPreview,
+  onSelect,
+}: {
+  paused: boolean;
+  onPreview: (id: string) => void;
+  onSelect: (id: string) => void;
+}) {
+  const [offset, setOffset] = useState(0);
+  const offsetRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+  const lastTsRef = useRef<number | null>(null);
+  const lastIndexRef = useRef<number>(-1);
+  const cycleWidth = CAROUSEL_ORDER.length * CAROUSEL_ITEM_WIDTH;
+
+  useEffect(() => {
+    if (paused) return;
+    const tick = (ts: number) => {
+      if (lastTsRef.current == null) lastTsRef.current = ts;
+      const dt = (ts - lastTsRef.current) / 1000;
+      lastTsRef.current = ts;
+      const next = (offsetRef.current + CAROUSEL_SPEED * dt) % cycleWidth;
+      offsetRef.current = next;
+      // The active card is the leftmost one that's FULLY visible — ceil, not floor,
+      // so a card sliding out past the left edge (partially clipped) isn't spotlighted.
+      const idx = Math.ceil(next / CAROUSEL_ITEM_WIDTH) % CAROUSEL_ORDER.length;
+      if (idx !== lastIndexRef.current) {
+        lastIndexRef.current = idx;
+        onPreview(CAROUSEL_ORDER[idx].id);
+      }
+      setOffset(next);
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      lastTsRef.current = null;
+    };
+  }, [paused, cycleWidth, onPreview]);
+
+  const leftmostIndex = Math.ceil(offset / CAROUSEL_ITEM_WIDTH) % CAROUSEL_ORDER.length;
+  // Render the sequence twice back-to-back so the modulo wrap in the offset lands on
+  // an identical second copy — the loop point is invisible.
+  const doubled = [...CAROUSEL_ORDER, ...CAROUSEL_ORDER];
+
+  // Clicking ANY visible card (not just the spotlighted one) selects it — and snaps
+  // the strip so that card becomes the leftmost/active one, matching the mode change
+  // to 'preset' (which naturally freezes the strip in place via the `paused` prop).
+  const handleCardClick = (idx: number) => {
+    const snapped = idx * CAROUSEL_ITEM_WIDTH;
+    offsetRef.current = snapped;
+    lastIndexRef.current = idx;
+    setOffset(snapped);
+    onSelect(CAROUSEL_ORDER[idx].id);
+  };
+
+  return (
+    <Box sx={{ overflow: 'hidden', width: '100%', height: '100%' }}>
+      <Box sx={{ display: 'flex', height: '100%', transform: `translateX(-${offset}px)` }}>
+        {doubled.map((p, i) => (
+          <CarouselCard
+            key={`${p.id}-${i}`}
+            p={p}
+            isLeftmost={i % CAROUSEL_ORDER.length === leftmostIndex}
+            onClick={() => handleCardClick(i % CAROUSEL_ORDER.length)}
+          />
+        ))}
+      </Box>
+    </Box>
   );
 }
 
 export function Presets() {
   const activePresetId = useBeliefs((s) => s.activePresetId);
+  const browsing = useBeliefs((s) => s.browsing);
   const applyPreset = useBeliefs((s) => s.applyPreset);
+  const previewPreset = useBeliefs((s) => s.previewPreset);
+  const resumeBrowsing = useBeliefs((s) => s.resumeBrowsing);
   const probabilityModel = useBeliefs((s) => s.probabilityModel);
   const evaluatorId = useBeliefs((s) => s.evaluatorId);
   const [showSources, setShowSources] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const mode = beliefMode({ browsing, activePresetId });
+
+  // Pause/resume is a separate axis from mode: pausing just freezes the strip in
+  // place without leaving 'browsing' (the URL/dropdown stay neutral, credences stay
+  // on whatever was last spotlighted); resuming re-enters 'browsing' regardless of
+  // the mode it's resuming FROM. The strip only actually animates while both
+  // `mode === 'browsing'` and `scrolling` are true.
+  const [scrolling, setScrolling] = useState(true);
+  const resume = useCallback(() => {
+    setScrolling(true);
+    resumeBrowsing();
+  }, [resumeBrowsing]);
 
   const active = presets.find((p) => p.id === activePresetId);
 
@@ -139,6 +272,12 @@ export function Presets() {
 
   const copyLink = async () => {
     if (typeof navigator === 'undefined' || !navigator.clipboard) return;
+    // Sharing while browsing means something was actually chosen: lock in whatever's
+    // currently spotlighted (→ 'preset' mode, writes the URL) before copying it.
+    if (mode === 'browsing' && activePresetId) {
+      setScrolling(false);
+      applyPreset(activePresetId);
+    }
     try {
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
@@ -150,22 +289,47 @@ export function Presets() {
 
   return (
     <Panel>
-      <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.bone, mb: 1.5 }}>
+      <Typography sx={{ fontFamily: fonts.display, fontSize: '0.82rem', color: c.bone, mb: 1.25 }}>
         Start from a well-known lab or figure, or set your own beliefs in the sliders below.
       </Typography>
 
-      <Typography sx={{ ...sectionLabel, fontSize: '0.64rem', mb: 0.75 }}>Labs &amp; orgs</Typography>
-      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 1.75 }}>
-        {labsAndOrgs.map((p) => (
-          <PresetChip key={p.id} p={p} ev={presetEv[p.id]} active={active?.id === p.id} onClick={() => applyPreset(p.id)} />
-        ))}
-      </Stack>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: 'stretch' }}>
+        <FormControl size="small" sx={{ width: { xs: '100%', sm: 320 }, flexShrink: 0 }}>
+          <Select
+            value={mode === 'browsing' ? '' : active ? active.id : ''}
+            displayEmpty
+            onChange={(e) => applyPreset(e.target.value)}
+            renderValue={(val) => {
+              const p = presets.find((x) => x.id === val);
+              return p ? displayName(p) : <Box component="span" sx={{ color: c.faint }}>Choose a lab or figure…</Box>;
+            }}
+            sx={{ fontFamily: fonts.display, fontSize: '0.84rem', '& .MuiSelect-select': { display: 'flex', alignItems: 'center' } }}
+            MenuProps={{ slotProps: { paper: { sx: { maxHeight: 420, bgcolor: c.panel, border: `1px solid ${c.line}` } } } }}
+          >
+            <ListSubheader sx={{ ...sectionLabel, bgcolor: c.panel, lineHeight: '28px', color: c.faint }}>Labs &amp; orgs</ListSubheader>
+            {labsAndOrgs.map((p) => presetItem(p, presetEv[p.id]))}
+            <ListSubheader sx={{ ...sectionLabel, bgcolor: c.panel, lineHeight: '28px', color: c.faint }}>People</ListSubheader>
+            {people.map((p) => presetItem(p, presetEv[p.id]))}
+          </Select>
+        </FormControl>
 
-      <Typography sx={{ ...sectionLabel, fontSize: '0.64rem', mb: 0.75 }}>People</Typography>
-      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
-        {people.map((p) => (
-          <PresetChip key={p.id} p={p} ev={presetEv[p.id]} active={active?.id === p.id} onClick={() => applyPreset(p.id)} />
-        ))}
+        <Tooltip title={mode === 'browsing' && scrolling ? 'Pause browsing' : 'Resume browsing'} arrow>
+          <IconButton
+            size="small"
+            onClick={() => (mode === 'browsing' && scrolling ? setScrolling(false) : resume())}
+            sx={{ color: c.faint, alignSelf: 'center', '&:hover': { color: c.accent } }}
+          >
+            {mode === 'browsing' && scrolling ? <PauseIcon fontSize="small" /> : <PlayArrowIcon fontSize="small" />}
+          </IconButton>
+        </Tooltip>
+
+        <Box sx={{ flex: 1, minWidth: 0, height: 40 }}>
+          <PresetCarousel
+            paused={!(mode === 'browsing' && scrolling)}
+            onPreview={previewPreset}
+            onSelect={applyPreset}
+          />
+        </Box>
       </Stack>
 
       {active && (
