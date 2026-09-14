@@ -355,11 +355,6 @@ export function App() {
 
             {tab === 3 && (
               <>
-                {dataset.scenarioThreads?.length ? (
-                  <Panel>
-                    <ScenarioThreads scenarios={analysis.scenarios} />
-                  </Panel>
-                ) : null}
                 <Panel>
                   <ScenarioTable
                     scenarios={analysis.scenarios}
@@ -367,6 +362,11 @@ export function App() {
                     isHighlighted={(sc) => threadKeys.has(scenarioKey(sc.scenario))}
                   />
                 </Panel>
+                {dataset.scenarioThreads?.length ? (
+                  <Panel>
+                    <ScenarioThreads scenarios={analysis.scenarios} />
+                  </Panel>
+                ) : null}
               </>
             )}
 

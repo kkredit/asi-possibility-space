@@ -1,4 +1,5 @@
-import { Box, Chip, Link, Stack, Typography } from '@mui/material';
+import { useState } from 'react';
+import { Box, Chip, Collapse, Link, Stack, Typography } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { dataset } from '@model/dataset';
 import { presets } from '@model/presets';
@@ -35,6 +36,7 @@ interface Props {
  */
 export function ScenarioThreads({ scenarios }: Props) {
   const applyPreset = useBeliefs((s) => s.applyPreset);
+  const [open, setOpen] = useState(false);
   const threads = dataset.scenarioThreads ?? [];
   if (threads.length === 0) return null;
 
@@ -45,16 +47,21 @@ export function ScenarioThreads({ scenarios }: Props) {
 
   return (
     <Box>
-      <Typography variant="overline" sx={{ color: c.mute }}>
-        Published scenario threads
+      <Typography
+        variant="overline"
+        onClick={() => setOpen((o) => !o)}
+        sx={{ color: c.mute, cursor: 'pointer', userSelect: 'none', '&:hover': { color: c.accent } }}
+      >
+        {open ? '▾' : '▸'} Published scenario threads ({threads.length})
       </Typography>
-      <Typography sx={{ fontSize: '0.78rem', color: c.mute, lineHeight: 1.5, mt: 0.25, mb: 2 }}>
-        Named futures from public forecasts, mapped onto this model’s scenarios. Values and
-        probabilities are under your <em>current</em> beliefs; load the entity to see its own. The
-        mapped rows are tinted in the table below.
-      </Typography>
+      <Collapse in={open}>
+        <Typography sx={{ fontSize: '0.78rem', color: c.mute, lineHeight: 1.5, mt: 0.25, mb: 2 }}>
+          Named futures from public forecasts, mapped onto this model’s scenarios. Values and
+          probabilities are under your <em>current</em> beliefs; load the entity to see its own. The
+          mapped rows are tinted in the table below.
+        </Typography>
 
-      {entityIds.map((eid) => {
+        {entityIds.map((eid) => {
         const entity = presets.find((p) => p.id === eid);
         const entThreads = threads.filter((t) => t.entityId === eid);
         return (
@@ -183,6 +190,7 @@ export function ScenarioThreads({ scenarios }: Props) {
           </Box>
         );
       })}
+      </Collapse>
     </Box>
   );
 }
