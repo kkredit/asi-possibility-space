@@ -1,5 +1,6 @@
 import { Box, Typography } from '@mui/material';
 import { c, fonts } from '@shell/theme';
+import { DEV_TOOLS } from '@shell/devTools';
 
 /**
  * PLACEHOLDER — KK to write the real About page (what this site is, why it exists).
@@ -17,10 +18,12 @@ export function AboutPage() {
         credences over the questions that matter, and see what they imply, from the distribution
         over outcomes to where the leverage is and which beliefs are doing the work.
       </Typography>
-      <Typography sx={{ color: c.faint, fontStyle: 'italic', lineHeight: 1.7 }}>
-        (Placeholder: a personal introduction about what this site is and why it was created
-        will go here.)
-      </Typography>
+      {DEV_TOOLS && (
+        <Typography sx={{ color: c.faint, fontStyle: 'italic', lineHeight: 1.7 }}>
+          (Placeholder: a personal introduction about what this site is and why it was created
+          will go here.)
+        </Typography>
+      )}
     </Box>
   );
 }

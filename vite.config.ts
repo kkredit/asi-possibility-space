@@ -8,6 +8,9 @@ import { fileURLToPath, URL } from 'node:url';
 // uses tab navigation, not client-side routing, so relative asset URLs are safe.
 export default defineConfig({
   base: './',
+  // ASI_ alongside Vite's default VITE_ prefix, so ASI_DEV=true (set via
+  // .env.local or the shell) is exposed as import.meta.env.ASI_DEV.
+  envPrefix: ['VITE_', 'ASI_'],
   plugins: [react()],
   resolve: {
     alias: {

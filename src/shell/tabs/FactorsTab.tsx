@@ -13,6 +13,7 @@ import { BeliefThreshold } from '@viz/BeliefThreshold';
 import { ConditionList } from '@shell/tabs/ConditionList';
 import { InfoTip } from '@viz/InfoTip';
 import { VizHeading } from '@viz/VizHeading';
+import { DEV_TOOLS } from '@shell/devTools';
 
 interface Props {
   credences: Credences;
@@ -230,7 +231,7 @@ export function FactorsTab({ credences, subCredences, weights, evaluator, pins, 
         </Box>
       </Panel>
 
-      {grid ? (
+      {DEV_TOOLS && grid ? (
         <Panel>
           <ConditionHeatmap
             data={{ f1Label: labelOf(grid.f1), f2Label: labelOf(grid.f2), rows: grid.rows, cols: grid.cols, cells: grid.cells, maxAbs: grid.maxAbs }}

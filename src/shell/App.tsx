@@ -38,6 +38,7 @@ import { ResourcesPage } from '@shell/pages/ResourcesPage';
 import { DisclaimersPage } from '@shell/pages/DisclaimersPage';
 import { OgPreviewPage } from '@shell/pages/OgPreviewPage'; // TEMP: banner preview gallery
 import { FactorsTab } from '@shell/tabs/FactorsTab';
+import { DEV_TOOLS } from '@shell/devTools';
 
 // The full scenario-space size, derived so it never goes stale as factors change.
 const SCENARIO_COUNT = dataset.factors.reduce((n, f) => n * f.states.length, 1);
@@ -52,9 +53,13 @@ const TABS = [
   { label: 'Evaluators', slug: 'evaluators' },
 ] as const;
 
+// Tabs shown in the tab bar — the Evaluators tab is dev-only (see @shell/devTools).
+const VISIBLE_TABS = DEV_TOOLS ? TABS : TABS.filter((t) => t.slug !== 'evaluators');
+
 function readUrlTab(): number {
   if (typeof window === 'undefined') return 0;
   const slug = new URLSearchParams(window.location.hash.replace(/^#/, '')).get('tab');
+  if (slug === 'evaluators' && !DEV_TOOLS) return 0;
   const i = slug ? TABS.findIndex((t) => t.slug === slug) : -1;
   return i >= 0 ? i : 0;
 }
@@ -64,10 +69,6 @@ function readUrlTab(): number {
 // hash-param pattern as tabs and presets.
 const PAGES = ['explorer', 'about', 'resources', 'disclaimers', 'preview'] as const;
 type Page = (typeof PAGES)[number];
-
-// Dev-only tooling (the banner Preview gallery). import.meta.env.DEV is true under
-// `pnpm dev` and stripped from `pnpm build`, so the tab never ships to production.
-const DEV_TOOLS = import.meta.env.DEV;
 
 function readUrlPage(): Page {
   if (typeof window === 'undefined') return 'explorer';
@@ -312,7 +313,7 @@ export function App() {
 
             <Box sx={{ borderBottom: `1px solid ${c.line}`, mb: 2 }}>
               <Tabs value={tab} onChange={(_, v) => selectTab(v)} variant="scrollable" scrollButtons="auto" allowScrollButtonsMobile>
-                {TABS.map(({ label, slug }) => (
+                {VISIBLE_TABS.map(({ label, slug }) => (
                   <Tab key={slug} label={label} />
                 ))}
               </Tabs>
@@ -323,9 +324,11 @@ export function App() {
                 <Panel>
                   <EVDistribution bins={bins!} ev={analysis.ev} factors={dataset.factors} valence={stateValence} />
                 </Panel>
-                <Panel>
-                  <ParallelCoordinates scenarios={analysis.scenarios} factors={dataset.factors} />
-                </Panel>
+                {DEV_TOOLS && (
+                  <Panel>
+                    <ParallelCoordinates scenarios={analysis.scenarios} factors={dataset.factors} />
+                  </Panel>
+                )}
               </>
             )}
 
@@ -370,7 +373,7 @@ export function App() {
               </>
             )}
 
-            {tab === 4 && (
+            {DEV_TOOLS && tab === 4 && (
               <>
                 <Panel>
                   <ModelLadder
